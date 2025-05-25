@@ -1,0 +1,8 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate-openapi": {
+      "outputs": ["src/types.ts"]
+    }
+  }
+}
