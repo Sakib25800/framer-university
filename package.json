@@ -3,12 +3,12 @@
   "private": true,
   "scripts": {
     "build": "dotenv -- turbo run build",
-    "clean": "turbo run clean && rm -rf node_modules",
+    "clean": "turbo run clean && rm -rf .turbo node_modules",
     "dev": "dotenv -- turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "lint": "dotenv -- turbo run lint",
     "test": "dotenv -- turbo run test",
-    "e2e": "dotenv -- turbo run e2e",
+    "test:e2e": "dotenv -- turbo run test:e2e",
     "check-types": "dotenv -- turbo run check-types",
     "generate-openapi": "dotenv -- turbo run generate-openapi"
   },

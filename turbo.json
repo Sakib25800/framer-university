@@ -13,7 +13,8 @@
         "dist/**",
         ".next/**",
         "!.next/cache/**",
-        "storybook-static/**"
+        "storybook-static/**",
+        ".open-next/**"
       ]
     },
     "dev": {

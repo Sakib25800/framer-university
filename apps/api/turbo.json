@@ -10,12 +10,20 @@
         "src/**",
         "crates/**"
       ],
-      "outputs": ["target/release/api", "target/release/gen_openapi"],
+      "outputs": ["target/release/**"],
+      "cache": false
+    },
+    "test": {
+      "outputs": ["target/debug/deps/**"],
       "cache": false
     },
     "generate-openapi": {
       "dependsOn": ["build"],
-      "outputs": ["../packages/api/openapi.json"]
+      "outputs": ["../../packages/api/openapi.json"]
+    },
+    "generate-sqlx": {
+      "dependsOn": ["build"],
+      "outputs": [".sqlx"]
     }
   }
 }
