@@ -10,16 +10,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ["react", "react-dom"],
-        },
-      },
-    },
-  },
-  css: {
-    preprocessorOptions: {
-      css: {
-        additionalData: `@import "@framer-university/ui/styles.css";`,
-      },
-    },
-  },
+          vendor: ["react", "react-dom"]
+        }
+      }
+    }
+  }
 });

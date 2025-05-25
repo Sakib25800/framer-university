@@ -1,14 +1,13 @@
 {
-    "name": "api",
-    "scripts": {
-        "build": "cargo build --release",
-        "dev": "cargo run",
-        "lint": "cargo clippy -- -D warnings",
-        "format": "cargo fmt",
-        "format:check": "cargo fmt --check",
-        "test": "cargo test",
-        "deploy": "fly deploy",
-        "clean": "cargo clean",
-        "generate-openapi": "cargo run --bin gen_openapi"
-    }
+  "name": "api",
+  "scripts": {
+    "build": "cargo build --release",
+    "dev": "cargo run",
+    "lint": "cargo clippy -- -D warnings",
+    "format": "cargo fmt --check",
+    "test": "cargo test",
+    "clean": "rm -rf .turbo && cargo clean",
+    "generate-openapi": "cargo run --bin gen_openapi",
+    "generate-sqlx": "cargo sqlx prepare -- --package framer_university_database --all-targets"
+  }
 }

@@ -19,14 +19,10 @@
   },
   "scripts": {
     "build": "tsup",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "eslint src/ --max-warnings 0",
     "clean": "rm -rf .turbo node_modules dist",
-    "format": "prettier --write . --ignore-path ../../.prettierignore",
-    "format:check": "prettier --check . --ignore-path ../../.prettierignore",
-    "typecheck": "tsc --noEmit",
-    "build:with-server": "pnpm install && pnpm tsup",
-    "generate-types": "openapi-typescript openapi.json -o src/types.ts",
-    "prebuild": "pnpm generate-types"
+    "check-types": "tsc --noEmit",
+    "generate-openapi-ts": "openapi-typescript openapi.json -o src/types.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "5.74.4",
@@ -43,7 +39,6 @@
     "@types/react-dom": "19.1.5",
     "bunchee": "^6.4.0",
     "eslint": "^8.57.0",
-    "prettier": "^3.2.5",
     "tsup": "^8.0.2",
     "typescript": "^5.3.3",
     "openapi-typescript": "^7.0.0"

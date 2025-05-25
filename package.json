@@ -1,28 +1,25 @@
 {
-    "name": "framer-university",
-    "private": true,
-    "scripts": {
-        "build": "dotenv -- turbo run build",
-        "clean": "dotenv -- turbo run clean",
-        "dev": "dotenv -- turbo run dev",
-        "format": "dotenv -- turbo run format",
-        "format:check": "dotenv -- turbo run format:check",
-        "lint": "dotenv -- turbo run lint",
-        "test": "dotenv -- turbo run test",
-        "e2e": "dotenv -- turbo run e2e",
-        "check-types": "dotenv -- turbo run check-types",
-        "generate-openapi": "dotenv -- turbo run generate-openapi",
-        "ci": "dotenv -- turbo run ci",
-        "deploy": "dotenv -- turbo run deploy"
-    },
-    "devDependencies": {
-        "prettier": "^3.5.3",
-        "prettier-plugin-tailwindcss": "^0.6.11",
-        "turbo": "^2.5.3",
-        "dotenv-cli": "^8.0.0"
-    },
-    "packageManager": "pnpm@10.11.0",
-    "engines": {
-        "node": ">=18"
-    }
+  "name": "framer-university",
+  "private": true,
+  "scripts": {
+    "build": "dotenv -- turbo run build",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "dev": "dotenv -- turbo run dev",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "lint": "dotenv -- turbo run lint",
+    "test": "dotenv -- turbo run test",
+    "e2e": "dotenv -- turbo run e2e",
+    "check-types": "dotenv -- turbo run check-types",
+    "generate-openapi": "dotenv -- turbo run generate-openapi"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "turbo": "^2.5.3",
+    "dotenv-cli": "^8.0.0"
+  },
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=18"
+  }
 }

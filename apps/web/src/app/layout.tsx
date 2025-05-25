@@ -10,19 +10,19 @@ export const metadata: Metadata = {
       rel: "icon",
       type: "image/png",
       url: "/images/icon-light.png",
-      media: "(prefers-color-scheme: light)",
+      media: "(prefers-color-scheme: light)"
     },
     {
       rel: "icon",
       type: "image/png",
       url: "/images/icon-dark.png",
-      media: "(prefers-color-scheme: dark)",
-    },
-  ],
+      media: "(prefers-color-scheme: dark)"
+    }
+  ]
 };
 
 export default function RootLayout({
-  children,
+  children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
