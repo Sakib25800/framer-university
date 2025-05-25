@@ -5,19 +5,19 @@ const meta = {
   title: "Components/Button",
   component: Button,
   parameters: {
-    layout: "centered",
+    layout: "centered"
   },
   tags: ["autodocs"],
   argTypes: {
     intent: {
       control: { type: "radio" },
-      options: ["primary", "secondary"],
+      options: ["primary", "secondary"]
     },
     size: {
       control: { type: "radio" },
-      options: ["sm", "md", "lg"],
-    },
-  },
+      options: ["sm", "md", "lg"]
+    }
+  }
 } satisfies Meta<typeof Button>;
 
 export default meta;
@@ -28,14 +28,14 @@ export const Primary: Story = {
   args: {
     children: "Primary",
     intent: "primary",
-    size: "md",
-  },
+    size: "md"
+  }
 };
 
 export const Secondary: Story = {
   args: {
     children: "Secondary",
     intent: "secondary",
-    size: "md",
-  },
+    size: "md"
+  }
 };

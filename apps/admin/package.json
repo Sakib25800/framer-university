@@ -8,11 +8,7 @@
     "dev": "vite --host 0.0.0.0 --port 3003 --clearScreen false",
     "check-types": "tsc --noEmit",
     "lint": "eslint src/ --max-warnings 0",
-    "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,md,json,html}\" --ignore-path ../../.prettierignore",
-    "format:check": "prettier --check \"./**/*.{js,jsx,ts,tsx,md,json,html}\" --ignore-path ../../.prettierignore",
-    "deploy": "wrangler deploy",
-    "preview": "wrangler preview",
-    "clean": "rm -rf dist .turbo"
+    "clean": "rm -rf dist .turbo node_modules .wrangler"
   },
   "dependencies": {
     "@framer-university/ui": "workspace:*",

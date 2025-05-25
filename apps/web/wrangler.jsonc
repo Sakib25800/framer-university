@@ -5,29 +5,29 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS",
+    "binding": "ASSETS"
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "web",
-    },
+      "service": "web"
+    }
   ],
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
-      "bucket_name": "web-cache",
-    },
+      "bucket_name": "web-cache"
+    }
   ],
   "d1_databases": [
     {
       "binding": "NEXT_TAG_CACHE_D1",
       "database_name": "web-tag-cache",
-      "database_id": "26605a0c-a253-43bb-a2d1-0aabf944ec49",
-    },
+      "database_id": "26605a0c-a253-43bb-a2d1-0aabf944ec49"
+    }
   ],
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 0.01,
-  },
+    "head_sampling_rate": 0.01
+  }
 }

@@ -44,7 +44,12 @@ jobs:
 
             - run: pnpm install
             - run: cd apps/web && pnpm playwright install chromium
-            - run: pnpm run ci
+            - run: pnpm build
+            - run: pnpm lint:check
+            - run: pnpm format:check
+            - run: pnpm check-types
+            - run: pnpm run test
+            - run: pnpm run e2e
 
     deploy:
         needs: ci
@@ -91,8 +96,7 @@ jobs:
 
             - uses: superfly/flyctl-actions/setup-flyctl@master
             - name: Deploy API to Fly
-              run: |
-                  cd apps/api
-                  flyctl deploy
+              run: flyctl deploy
+              working-directory: apps/api
               env:
                   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

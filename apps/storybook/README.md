@@ -49,9 +49,9 @@ const meta = {
   title: "Components/Button",
   component: Button,
   parameters: {
-    layout: "centered",
+    layout: "centered"
   },
-  tags: ["autodocs"],
+  tags: ["autodocs"]
 } satisfies Meta<typeof Button>;
 
 export default meta;
@@ -60,8 +60,8 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     variant: "primary",
-    children: "Button",
-  },
+    children: "Button"
+  }
 };
 ```
 

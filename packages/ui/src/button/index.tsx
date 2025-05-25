@@ -13,25 +13,25 @@ const button = cva(
     "rounded-full",
     "font-medium",
     "cursor-pointer",
-    "!text-white",
+    "!text-white"
   ],
   {
     variants: {
       intent: {
         primary: ["bg-transparent", "border", "border-primary-700"],
-        secondary: ["bg-accent"],
+        secondary: ["bg-accent"]
       },
       size: {
         sm: ["text-base", "px-4", "py-2"],
         md: ["text-body", "px-5", "py-2.5"],
-        lg: ["text-body-lg", "px-[26px]", "py-[15px]"],
-      },
+        lg: ["text-body-lg", "px-[26px]", "py-[15px]"]
+      }
     },
     defaultVariants: {
       intent: "primary",
-      size: "sm",
-    },
-  },
+      size: "sm"
+    }
+  }
 );
 
 export interface ButtonProps
@@ -57,7 +57,7 @@ export const Button = ({
         whileTap={{ scale: 0.95 }}
         transition={{
           duration: 0.2,
-          ease: "easeInOut",
+          ease: "easeInOut"
         }}
         onClick={href ? () => (window.location.href = href) : undefined}
         {...props}

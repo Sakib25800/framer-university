@@ -9,8 +9,8 @@ const isDev = process.env.NODE_ENV === "development";
 export default defineCloudflareConfig({
   incrementalCache: withRegionalCache(r2IncrementalCache, {
     mode: "long-lived",
-    shouldLazilyUpdateOnCacheHit: true,
+    shouldLazilyUpdateOnCacheHit: true
   }),
   queue: isDev ? undefined : doQueue,
-  tagCache: isDev ? undefined : d1NextTagCache,
+  tagCache: isDev ? undefined : d1NextTagCache
 });
