@@ -3,6 +3,7 @@ on:
     branches: ["main"]
 
 env:
+  SQLX_OFFLINE: true
   # renovate: datasource=npm depName=pnpm
   PNPM_VERSION: 10.11.0
   # Turborepo
@@ -22,8 +23,6 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    env:
-      SQLX_OFFLINE: true
     steps:
       - uses: actions/checkout@v4
 
