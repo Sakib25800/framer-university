@@ -51,6 +51,18 @@ jobs:
           cache-workspaces: apps/api
 
       - run: pnpm install
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+
+      - name: SQLX setup
+        run: |
+          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          cargo sqlx database create && sqlx migrate run
+          cargo sqlx prepare --check -- --all-targets
+
       - run: pnpm build
       - run: pnpm check-types
       - run: pnpm lint
