@@ -4,6 +4,7 @@
   "remoteCache": {
     "signature": true
   },
+  "globalPassThroughEnv": ["DATABASE_URL"],
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
