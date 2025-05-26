@@ -3,6 +3,7 @@ on:
     branches: ["main"]
 
 env:
+  SQLX_OFFLINE: true
   # renovate: datasource=npm depName=pnpm
   PNPM_VERSION: 10.11.0
   # Turborepo
@@ -43,7 +44,8 @@ jobs:
           cache-workspaces: apps/api
 
       - run: pnpm install
-      - run: cd apps/web && pnpm playwright install chromium
+      - run: pnpm playwright install chromium
+        working-directory: apps/web
       - run: pnpm build
       - run: pnpm check-types
       - run: pnpm lint
