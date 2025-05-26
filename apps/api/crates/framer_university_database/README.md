@@ -15,7 +15,7 @@ This package provides access to the framer-university database.
 ### Generate `.sqlx` directory
 
 ```console
-$ cargo sqlx prepare -- --package framer_university_database --all-targets
+$ cargo sqlx prepare --workspace -- --all-targets
 ```
 
 You should also commit the changes to the `.sqlx` directory.
