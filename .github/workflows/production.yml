@@ -1,14 +1,12 @@
 on:
   push:
     branches: ["main"]
-
 env:
   PNPM_VERSION: 10.11.0
   TURBO_API: ${{ vars.TURBO_API }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
-  DATABASE_URL: ${{ vars.DATABASE_URL }}
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
@@ -52,12 +50,6 @@ jobs:
 
       - run: pnpm install
 
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.85.0
-          components: clippy, rustfmt
-          cache-workspaces: apps/api
-
       - name: SQLX setup
         working-directory: apps/api
         run: |
@@ -69,8 +61,10 @@ jobs:
       - run: pnpm check-types
       - run: pnpm lint
       - run: pnpm test
+
       - run: pnpm playwright install chromium
         working-directory: apps/web
+
       - run: pnpm test:e2e
 
   deploy:
@@ -117,7 +111,6 @@ jobs:
           exitOnceUploaded: true
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
-
       - name: Deploy API to Fly
         run: flyctl deploy
         working-directory: apps/api
