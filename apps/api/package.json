@@ -8,6 +8,6 @@
     "test": "cargo test",
     "clean": "rm -rf .turbo && cargo clean",
     "generate-openapi": "cargo run --bin gen_openapi",
-    "generate-sqlx": "cargo sqlx prepare -- --package framer_university_database --all-targets"
+    "generate-sqlx": "cargo sqlx prepare --workspace -- --all-targets"
   }
 }
