@@ -4,20 +4,14 @@ on:
 
 env:
   SQLX_OFFLINE: true
-  # renovate: datasource=npm depName=pnpm
   PNPM_VERSION: 10.11.0
-  # Turborepo
   TURBO_API: ${{ vars.TURBO_API }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
-  # Neon
-  DATABASE_URL: ${{ vars.DATABASE_URL }}
-  # Fly
+  DATABASE_URL: ${{ vars.DATABASE_URL }} # used in CI job, safe default (offline mode)
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  # Cloudflare
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  # Chromatic
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
 
 jobs:
@@ -52,6 +46,27 @@ jobs:
   deploy:
     needs: ci
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: framer_university
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/framer_university
+      SQLX_OFFLINE: false
+      PNPM_VERSION: 10.11.0
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -63,6 +78,12 @@ jobs:
         with:
           node-version: 20
           cache: "pnpm"
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
 
       - run: pnpm install
       - run: pnpm build
@@ -93,6 +114,7 @@ jobs:
           exitOnceUploaded: true
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
+
       - name: Deploy API to Fly
         run: flyctl deploy
         working-directory: apps/api
