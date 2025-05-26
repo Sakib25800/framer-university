@@ -3,6 +3,7 @@
   "globalPassThroughEnv": ["RUST_BACKTRACE", "RUST_LOG"],
   "tasks": {
     "build": {
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "Cargo.toml",
@@ -10,8 +11,7 @@
         "src/**",
         "crates/**"
       ],
-      "outputs": ["target/release/**"],
-      "cache": false
+      "outputs": ["target/release/api", "target/release/gen_openapi"]
     },
     "test": {
       "outputs": ["target/debug/deps/**"],

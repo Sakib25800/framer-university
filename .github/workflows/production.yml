@@ -17,26 +17,23 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-latest
-
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/test
+      SQLX_OFFLINE: false
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: framer_university_test
+          POSTGRES_DB: test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      DATABASE_URL: postgres://postgres:password@localhost:5432/framer_university_test
-      SQLX_OFFLINE: false
-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +53,12 @@ jobs:
           cache-workspaces: apps/api
 
       - run: pnpm install
+      - run: pnpm build
+      - name: Check build artifacts
+        run: |
+          [ -f "apps/api/target/release/api" ] && echo "✓ API binary exists" || echo "✗ API binary not found"
+          [ -f "apps/api/target/release/gen_openapi" ] && echo "✓ OpenAPI generator exists" || echo "✗ OpenAPI generator not found"
+          [ ! -f "apps/api/target/release/api" -o ! -f "apps/api/target/release/gen_openapi" ] && exit 1 || exit 0
       - run: pnpm check-types
       - run: pnpm lint
       - run: pnpm test
