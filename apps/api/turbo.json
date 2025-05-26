@@ -3,7 +3,6 @@
   "globalPassThroughEnv": ["RUST_BACKTRACE", "RUST_LOG"],
   "tasks": {
     "build": {
-      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "Cargo.toml",
