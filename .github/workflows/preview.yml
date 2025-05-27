@@ -93,12 +93,29 @@ jobs:
 
       - run: pnpm install
 
+      - name: Cache SQLX CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/sqlx
+          key: sqlx-cli-0.7.4
+
+      - name: Install SQLX CLI
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          fi
+
+      - name: Cache SQLX metadata
+        uses: actions/cache@v4
+        with:
+          path: apps/api/.sqlx
+          key: sqlx-${{ hashFiles('apps/api/migrations/**/*.sql') }}
+
       - name: SQLX setup
         working-directory: apps/api
         run: |
-          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           cargo sqlx database create && sqlx migrate run
-          cargo sqlx prepare --check -- --all-targets
+          pnpm generate-sqlx
 
       - run: pnpm build
 
@@ -166,13 +183,23 @@ jobs:
 
       - run: pnpm install
 
-      - name: SQLX setup
+      - name: Cache SQLX CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/sqlx
+          key: sqlx-cli-0.7.4
+
+      - name: Install SQLX CLI
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          fi
+
+      - name: SQLX setup for deployment
         working-directory: apps/api
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: |
-          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
-          sqlx migrate run
+        run: sqlx migrate run
 
       - env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
@@ -185,7 +212,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
-          command: pages deploy --project-name=frameruniversity-web-preview --branch=pr-${{ github.event.number }}
+          command: deploy --name=web-preview-pr-${{ github.event.number }}
 
       - name: Deploy admin to Cloudflare
         id: deploy-admin
@@ -194,7 +221,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
-          command: pages deploy --project-name=frameruniversity-admin-preview --branch=pr-${{ github.event.number }}
+          command: deploy --name=admin-preview-pr-${{ github.event.number }}
 
       - name: Deploy plugin to Cloudflare
         id: deploy-plugin
@@ -203,7 +230,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
-          command: pages deploy --project-name=frameruniversity-plugin-preview --branch=pr-${{ github.event.number }}
+          command: deploy --name=plugin-preview-pr-${{ github.event.number }}
 
       - name: Deploy API to Fly
         id: deploy-api
@@ -230,10 +257,9 @@ jobs:
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
           compare_branch: preview/pr-${{ github.event.number }}
-          base_branch: main
+          base_branch: production
           api_key: ${{ env.NEON_API_KEY }}
           database: neondb
-          username: neondb_owner
 
   comment:
     needs: [deploy, schema-diff]
