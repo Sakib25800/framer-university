@@ -4,9 +4,10 @@
   "compatibility_date": "2024-04-01",
   "assets": {
     "not_found_handling": "single-page-application",
+    "directory": "dist"
   },
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 0.01,
-  },
+    "head_sampling_rate": 0.01
+  }
 }
