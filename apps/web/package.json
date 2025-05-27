@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "open-next build",
+    "build": "next build",
     "dev": "next dev -p 3000",
     "lint": "next lint",
     "check-types": "tsc --noEmit",
