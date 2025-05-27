@@ -3,6 +3,8 @@
 import { Button } from "@framer-university/ui";
 import { $api } from "@framer-university/api";
 
+// Invalidate cache
+
 export default function Home() {
   $api.useQuery("get", "/");
 
