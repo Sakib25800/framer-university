@@ -39,6 +39,8 @@ jobs:
   ci:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/test
     concurrency:
       group: pr-${{ github.event.number }}
       cancel-in-progress: true
@@ -100,16 +102,12 @@ jobs:
           cargo sqlx database create && sqlx migrate run
           cargo sqlx prepare --check -- --all-targets
 
-      - env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: pnpm build
+      - run: pnpm build
 
       - run: pnpm check-types
       - run: pnpm lint
 
-      - env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/test
-        run: pnpm test
+      - run: pnpm test
 
       - run: pnpm playwright install chromium
         working-directory: apps/web
