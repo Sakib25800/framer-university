@@ -9,15 +9,7 @@
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "dependsOn": ["^build"],
-      "outputs": [
-        "build/**",
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**",
-        "storybook-static/**",
-        ".open-next/**",
-        "!.open-next/cache/**"
-      ]
+      "outputs": ["build/**", "dist/**", "storybook-static/**"]
     },
     "dev": {
       "dependsOn": ["^build"],

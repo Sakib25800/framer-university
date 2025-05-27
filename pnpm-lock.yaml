@@ -217,9 +217,6 @@ importers:
       '@framer-university/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@opennextjs/cloudflare':
-        specifier: 1.0.0-beta.4
-        version: 1.0.0-beta.4(wrangler@4.16.1)
       '@tanstack/react-query':
         specifier: 5.74.4
         version: 5.74.4(react@19.1.0)
@@ -254,6 +251,9 @@ importers:
       '@next/eslint-plugin-next':
         specifier: ^15.3.0
         version: 15.3.2
+      '@opennextjs/cloudflare':
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4(wrangler@4.16.1)
       '@playwright/test':
         specifier: ^1.51.1
         version: 1.52.0
