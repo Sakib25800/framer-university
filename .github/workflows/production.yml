@@ -85,7 +85,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build --force
+      - run: pnpm build
 
       - name: Deploy web to Cloudflare
         uses: cloudflare/wrangler-action@v3
