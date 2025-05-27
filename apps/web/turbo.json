@@ -1,6 +1,13 @@
 {
   "extends": ["//"],
   "tasks": {
-    "test:e2e": {}
+    "test:e2e": {},
+    "build": {
+      "dependsOn": ["build:worker"],
+      "outputs": [".next/**", "!.next/cache/**", ".wrangler"]
+    },
+    "build:worker": {
+      "outputs": [".open-next", "!.open-next/cache/**"]
+    }
   }
 }
