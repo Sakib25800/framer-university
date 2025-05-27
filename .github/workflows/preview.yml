@@ -44,7 +44,6 @@ jobs:
       cancel-in-progress: true
     environment:
       name: pr-${{ github.event.number }}
-      url: ${{ steps.deploy-web.outputs.deployment-url }}
     services:
       postgres:
         image: postgres:16
@@ -163,7 +162,22 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
+
       - run: pnpm install
+
+      - name: SQLX setup
+        working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+        run: |
+          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          cargo sqlx database create && sqlx migrate run
+          cargo sqlx prepare --check -- --all-targets
 
       - env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
