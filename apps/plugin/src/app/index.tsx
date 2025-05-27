@@ -7,6 +7,9 @@ function App() {
           <p className="text-primary-950 max-w-[308px] text-base font-medium">
             Plugin
           </p>
+          <div className="bg-purple-100 border border-purple-300 text-purple-800 px-4 py-2 rounded-md">
+            🚀 PR Preview Test - Plugin App Updated!
+          </div>
         </div>
       </div>
     </div>
