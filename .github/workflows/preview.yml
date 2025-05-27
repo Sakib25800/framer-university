@@ -39,17 +39,12 @@ jobs:
   ci:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-    
-    # Only run one deployment at a time per PR
     concurrency:
       group: pr-${{ github.event.number }}
       cancel-in-progress: true
-
-    # Create a GitHub deployment environment per preview app
     environment:
       name: pr-${{ github.event.number }}
       url: ${{ steps.deploy-web.outputs.deployment-url }}
-
     services:
       postgres:
         image: postgres:16
@@ -64,7 +59,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -107,24 +101,21 @@ jobs:
           cargo sqlx database create && sqlx migrate run
           cargo sqlx prepare --check -- --all-targets
 
-      - name: Build
-        env:
+      - env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
         run: pnpm build
 
       - run: pnpm check-types
       - run: pnpm lint
 
-      - name: Test
-        env:
+      - env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/test
         run: pnpm test
 
       - run: pnpm playwright install chromium
         working-directory: apps/web
 
-      - name: E2E Tests
-        env:
+      - env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
         run: pnpm test:e2e
 
@@ -132,22 +123,23 @@ jobs:
     needs: ci
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-    
     concurrency:
       group: pr-${{ github.event.number }}-deploy
       cancel-in-progress: true
-
     environment:
       name: pr-${{ github.event.number }}
       url: ${{ steps.deploy-web.outputs.deployment-url }}
-
     outputs:
       web-url: ${{ steps.deploy-web.outputs.deployment-url }}
       admin-url: ${{ steps.deploy-admin.outputs.deployment-url }}
       plugin-url: ${{ steps.deploy-plugin.outputs.deployment-url }}
       api-url: ${{ steps.deploy-api.outputs.url }}
       branch-id: ${{ steps.create-branch.outputs.branch_id }}
-
+      web-status: ${{ steps.deploy-web.outcome }}
+      admin-status: ${{ steps.deploy-admin.outcome }}
+      plugin-status: ${{ steps.deploy-plugin.outcome }}
+      api-status: ${{ steps.deploy-api.outcome }}
+      database-status: ${{ steps.create-branch.outcome }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -173,14 +165,14 @@ jobs:
 
       - run: pnpm install
 
-      - name: Build
-        env:
+      - env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
         run: pnpm build
 
       - name: Deploy web to Cloudflare
         id: deploy-web
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
@@ -189,6 +181,7 @@ jobs:
       - name: Deploy admin to Cloudflare
         id: deploy-admin
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
@@ -197,6 +190,7 @@ jobs:
       - name: Deploy plugin to Cloudflare
         id: deploy-plugin
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
@@ -205,6 +199,7 @@ jobs:
       - name: Deploy API to Fly
         id: deploy-api
         uses: superfly/fly-pr-review-apps@1.5.0
+        continue-on-error: true
         with:
           name: pr-${{ github.event.number }}-frameruniversity-api
           secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
@@ -233,34 +228,89 @@ jobs:
 
   comment:
     needs: [deploy, schema-diff]
-    if: github.event.action != 'closed'
+    if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
+      - name: Get current timestamp
+        id: timestamp
+        run: echo "current=$(date -u +'%b %d, %Y %l:%M%p')" >> $GITHUB_OUTPUT
+
+      - name: Set deployment statuses
+        id: statuses
+        run: |
+          # Web status
+          if [ "${{ needs.deploy.outputs.web-status }}" = "success" ]; then
+            echo "web=✅ Ready" >> $GITHUB_OUTPUT
+            echo "web-preview=[Visit Preview](${{ needs.deploy.outputs.web-url }})" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.deploy.outputs.web-status }}" = "failure" ]; then
+            echo "web=❌ Failed" >> $GITHUB_OUTPUT
+            echo "web-preview=" >> $GITHUB_OUTPUT
+          else
+            echo "web=🔄 Building" >> $GITHUB_OUTPUT
+            echo "web-preview=" >> $GITHUB_OUTPUT
+          fi
+          
+          # Admin status
+          if [ "${{ needs.deploy.outputs.admin-status }}" = "success" ]; then
+            echo "admin=✅ Ready" >> $GITHUB_OUTPUT
+            echo "admin-preview=[Visit Preview](${{ needs.deploy.outputs.admin-url }})" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.deploy.outputs.admin-status }}" = "failure" ]; then
+            echo "admin=❌ Failed" >> $GITHUB_OUTPUT
+            echo "admin-preview=" >> $GITHUB_OUTPUT
+          else
+            echo "admin=🔄 Building" >> $GITHUB_OUTPUT
+            echo "admin-preview=" >> $GITHUB_OUTPUT
+          fi
+          
+          # Plugin status
+          if [ "${{ needs.deploy.outputs.plugin-status }}" = "success" ]; then
+            echo "plugin=✅ Ready" >> $GITHUB_OUTPUT
+            echo "plugin-preview=[Visit Preview](${{ needs.deploy.outputs.plugin-url }})" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.deploy.outputs.plugin-status }}" = "failure" ]; then
+            echo "plugin=❌ Failed" >> $GITHUB_OUTPUT
+            echo "plugin-preview=" >> $GITHUB_OUTPUT
+          else
+            echo "plugin=🔄 Building" >> $GITHUB_OUTPUT
+            echo "plugin-preview=" >> $GITHUB_OUTPUT
+          fi
+          
+          # API status
+          if [ "${{ needs.deploy.outputs.api-status }}" = "success" ]; then
+            echo "api=✅ Ready" >> $GITHUB_OUTPUT
+            echo "api-preview=[Visit Preview](${{ needs.deploy.outputs.api-url }})" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.deploy.outputs.api-status }}" = "failure" ]; then
+            echo "api=❌ Failed" >> $GITHUB_OUTPUT
+            echo "api-preview=" >> $GITHUB_OUTPUT
+          else
+            echo "api=🔄 Building" >> $GITHUB_OUTPUT
+            echo "api-preview=" >> $GITHUB_OUTPUT
+          fi
+          
+          # Database status
+          if [ "${{ needs.deploy.outputs.database-status }}" = "success" ]; then
+            echo "database=✅ Ready" >> $GITHUB_OUTPUT
+            echo "database-preview=[View Console](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.deploy.outputs.branch-id }})" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.deploy.outputs.database-status }}" = "failure" ]; then
+            echo "database=❌ Failed" >> $GITHUB_OUTPUT
+            echo "database-preview=" >> $GITHUB_OUTPUT
+          else
+            echo "database=🔄 Building" >> $GITHUB_OUTPUT
+            echo "database-preview=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Comment on Pull Request
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            ## 🚀 Preview Deployment Ready!
-            
-            Your preview environment has been successfully deployed:
-            
-            ### 🌐 Preview URLs
-            - **Web App**: ${{ needs.deploy.outputs.web-url }}
-            - **Admin Panel**: ${{ needs.deploy.outputs.admin-url }}  
-            - **Plugin**: ${{ needs.deploy.outputs.plugin-url }}
-            - **API**: ${{ needs.deploy.outputs.api-url }}
-            
-            ### 🐘 Database
-            - **Neon Branch**: https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.deploy.outputs.branch-id }}
-            - **Branch Name**: `preview/pr-${{ github.event.number }}`
-            
-            ### ℹ️ Info
-            - This preview will be automatically cleaned up when the PR is closed
-            - Database migrations have been applied to the preview branch
-            - All tests passed ✅
-            
-            ---
-            *This comment will be updated automatically when new commits are pushed*
+            The latest updates on your project deployments. [Learn more about GitHub Actions ↗︎](https://docs.github.com/en/actions)
+
+            | Name | Status | Preview | Updated (UTC) |
+            |------|--------|---------|---------------|
+            | web | ${{ steps.statuses.outputs.web }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.web-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | database | ${{ steps.statuses.outputs.database }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
           comment_tag: preview-deployment
