@@ -70,9 +70,12 @@ jobs:
 
       - run: pnpm test:e2e
 
-  deploy:
+  deploy-web:
     needs: ci
     runs-on: ubuntu-latest
+    environment:
+      name: Production - Web
+      url: https://frameruniversity.com
     steps:
       - uses: actions/checkout@v4
         with:
@@ -96,11 +99,57 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
 
+  deploy-admin:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - Admin
+      url: https://admin.frameruniversity.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+      - run: pnpm build
+
       - name: Deploy admin to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
+
+  deploy-plugin:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - Plugin
+      url: https://plugin.frameruniversity.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+      - run: pnpm build
 
       - name: Deploy plugin to Cloudflare
         uses: cloudflare/wrangler-action@v3
@@ -108,12 +157,43 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
 
+  deploy-storybook:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+      - run: pnpm build
+
       - name: Deploy Storybook to Chromatic
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/storybook
           exitOnceUploaded: true
+
+  deploy-api:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - API
+      url: https://api.frameruniversity.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy API to Fly
