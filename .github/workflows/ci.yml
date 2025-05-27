@@ -53,12 +53,29 @@ jobs:
 
       - run: pnpm install
 
+      - name: Cache SQLX CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/sqlx
+          key: sqlx-cli-0.7.4
+
+      - name: Install SQLX CLI
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          fi
+
+      - name: Cache SQLX metadata
+        uses: actions/cache@v4
+        with:
+          path: apps/api/.sqlx
+          key: sqlx-${{ hashFiles('apps/api/migrations/**/*.sql') }}
+
       - name: SQLX setup
         working-directory: apps/api
         run: |
-          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           cargo sqlx database create && sqlx migrate run
-          cargo sqlx prepare --check -- --all-targets
+          pnpm generate-sqlx
 
       - run: pnpm build
       - run: pnpm check-types
