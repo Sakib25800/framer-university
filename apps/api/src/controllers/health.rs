@@ -12,7 +12,7 @@ use crate::{util::errors::AppResult, views::MessageResponse};
 )]
 pub async fn health_check() -> AppResult<Json<MessageResponse>> {
     Ok(Json(MessageResponse {
-        message: "Ok".to_string(),
+        message: "Ok - PR Preview Test - API Updated!".to_string(),
     }))
 }
 
@@ -25,7 +25,7 @@ mod tests {
     async fn health_check(pool: sqlx::PgPool) {
         let (_, anon) = TestApp::init().empty(pool).await;
         anon.get("/").await.assert_json(&json!({
-            "message": "Ok"
+            "message": "Ok - PR Preview Test - API Updated!"
         }));
     }
 }

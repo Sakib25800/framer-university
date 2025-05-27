@@ -18,6 +18,9 @@ export default function Home() {
             The world&apos;s first learning platform dedicated to teaching
             Framer in a fun & efficient way
           </p>
+          <div className="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-md">
+            🚀 PR Preview Test - Web App Updated!
+          </div>
         </div>
         <div className="flex gap-2.5">
           <Button
