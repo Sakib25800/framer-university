@@ -1,0 +1,266 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+env:
+  PNPM_VERSION: 10.11.0
+  TURBO_API: ${{ vars.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+  NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+
+jobs:
+  cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch: preview/pr-${{ github.event.number }}
+          api_key: ${{ env.NEON_API_KEY }}
+        continue-on-error: true
+
+      - name: Clean up GitHub environment
+        uses: strumwolf/delete-deployment-environment@v2
+        if: ${{ github.event.action == 'closed' }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: pr-${{ github.event.number }}
+        continue-on-error: true
+
+  ci:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    
+    # Only run one deployment at a time per PR
+    concurrency:
+      group: pr-${{ github.event.number }}
+      cancel-in-progress: true
+
+    # Create a GitHub deployment environment per preview app
+    environment:
+      name: pr-${{ github.event.number }}
+      url: ${{ steps.deploy-web.outputs.deployment-url }}
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
+
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v8
+
+      - name: Create Neon Branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}
+          role: neondb_owner
+          api_key: ${{ env.NEON_API_KEY }}
+
+      - run: pnpm install
+
+      - name: SQLX setup
+        working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+        run: |
+          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          cargo sqlx database create && sqlx migrate run
+          cargo sqlx prepare --check -- --all-targets
+
+      - name: Build
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+        run: pnpm build
+
+      - run: pnpm check-types
+      - run: pnpm lint
+
+      - name: Test
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/test
+        run: pnpm test
+
+      - run: pnpm playwright install chromium
+        working-directory: apps/web
+
+      - name: E2E Tests
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+        run: pnpm test:e2e
+
+  deploy:
+    needs: ci
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    
+    concurrency:
+      group: pr-${{ github.event.number }}-deploy
+      cancel-in-progress: true
+
+    environment:
+      name: pr-${{ github.event.number }}
+      url: ${{ steps.deploy-web.outputs.deployment-url }}
+
+    outputs:
+      web-url: ${{ steps.deploy-web.outputs.deployment-url }}
+      admin-url: ${{ steps.deploy-admin.outputs.deployment-url }}
+      plugin-url: ${{ steps.deploy-plugin.outputs.deployment-url }}
+      api-url: ${{ steps.deploy-api.outputs.url }}
+      branch-id: ${{ steps.create-branch.outputs.branch_id }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Create Neon Branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}
+          role: neondb_owner
+          api_key: ${{ env.NEON_API_KEY }}
+
+      - run: pnpm install
+
+      - name: Build
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+        run: pnpm build
+
+      - name: Deploy web to Cloudflare
+        id: deploy-web
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/web"
+          command: pages deploy --project-name=frameruniversity-web-preview --branch=pr-${{ github.event.number }}
+
+      - name: Deploy admin to Cloudflare
+        id: deploy-admin
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/admin"
+          command: pages deploy --project-name=frameruniversity-admin-preview --branch=pr-${{ github.event.number }}
+
+      - name: Deploy plugin to Cloudflare
+        id: deploy-plugin
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/plugin"
+          command: pages deploy --project-name=frameruniversity-plugin-preview --branch=pr-${{ github.event.number }}
+
+      - name: Deploy API to Fly
+        id: deploy-api
+        uses: superfly/fly-pr-review-apps@1.5.0
+        with:
+          name: pr-${{ github.event.number }}-frameruniversity-api
+          secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
+          postgres: false
+          path: apps/api
+          region: lhr
+          org: personal
+
+  schema-diff:
+    needs: [ci, deploy]
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Schema Diff
+        uses: neondatabase/schema-diff-action@v1
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          compare_branch: preview/pr-${{ github.event.number }}
+          base_branch: main
+          api_key: ${{ env.NEON_API_KEY }}
+          database: neondb
+          username: neondb_owner
+
+  comment:
+    needs: [deploy, schema-diff]
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment on Pull Request
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ## 🚀 Preview Deployment Ready!
+            
+            Your preview environment has been successfully deployed:
+            
+            ### 🌐 Preview URLs
+            - **Web App**: ${{ needs.deploy.outputs.web-url }}
+            - **Admin Panel**: ${{ needs.deploy.outputs.admin-url }}  
+            - **Plugin**: ${{ needs.deploy.outputs.plugin-url }}
+            - **API**: ${{ needs.deploy.outputs.api-url }}
+            
+            ### 🐘 Database
+            - **Neon Branch**: https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.deploy.outputs.branch-id }}
+            - **Branch Name**: `preview/pr-${{ github.event.number }}`
+            
+            ### ℹ️ Info
+            - This preview will be automatically cleaned up when the PR is closed
+            - Database migrations have been applied to the preview branch
+            - All tests passed ✅
+            
+            ---
+            *This comment will be updated automatically when new commits are pushed*
+          comment_tag: preview-deployment
