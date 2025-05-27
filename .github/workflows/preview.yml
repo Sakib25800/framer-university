@@ -242,6 +242,7 @@ jobs:
           postgres: false
           path: apps/api
           region: lhr
+          org: framer-university
 
   schema-diff:
     needs: [ci, deploy]
@@ -338,13 +339,13 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            The latest updates on your project deployments. [Learn more about GitHub Actions ↗︎](https://docs.github.com/en/actions)
+            The latest updates on your projects ([inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
 
             | Name | Status | Preview | Updated (UTC) |
             |------|--------|---------|---------------|
-            | web | ${{ steps.statuses.outputs.web }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.web-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | database | ${{ steps.statuses.outputs.database }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | web | ${{ steps.statuses.outputs.web }} ([Inspect](https://dash.cloudflare.com/d47aab7d55d6a29134f932b532a830dd/workers/services/view/web-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.web-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://dash.cloudflare.com/d47aab7d55d6a29134f932b532a830dd/workers/services/view/admin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://dash.cloudflare.com/d47aab7d55d6a29134f932b532a830dd/workers/services/view/plugin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://fly.io/apps/pr-${{ github.event.number }}-frameruniversity-api/monitoring)) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | database | ${{ steps.statuses.outputs.database }} ([Inspect](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches)) | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
           comment_tag: preview-deployment
