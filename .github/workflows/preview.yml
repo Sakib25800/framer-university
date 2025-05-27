@@ -232,17 +232,25 @@ jobs:
           workingDirectory: "apps/plugin"
           command: deploy --name=plugin-preview-pr-${{ github.event.number }}
 
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
       - name: Deploy API to Fly
         id: deploy-api
-        uses: superfly/fly-pr-review-apps@1.5.0
         continue-on-error: true
-        with:
-          name: pr-${{ github.event.number }}-frameruniversity-api
-          secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
-          postgres: false
-          path: apps/api
-          region: lhr
-          org: personal
+        working-directory: apps/api
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+        run: |
+          # Create a unique app name for this PR
+          APP_NAME="pr-${{ github.event.number }}-frameruniversity-api"
+          
+          # Create fly.toml for this preview app
+          cp fly.toml fly-preview.toml
+          sed -i "s/app = 'framer-university-api'/app = '$APP_NAME'/" fly-preview.toml
+          
+          # Deploy using the preview config
+          flyctl deploy --config fly-preview.toml --build-secret DATABASE_URL="${DATABASE_URL}"
 
   schema-diff:
     needs: [ci, deploy]
