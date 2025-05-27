@@ -84,7 +84,7 @@ jobs:
 
       - run: pnpm install
 
-      - run: pnpm build
+      - run: pnpm build --force
       - name: Debug Turbo cache and build artifacts
         run: |
           echo "=== Turbo cache info ==="
