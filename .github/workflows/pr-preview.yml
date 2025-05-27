@@ -20,6 +20,29 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - name: Delete Cloudflare Workers
+        continue-on-error: true
+        run: |
+          # Delete preview workers
+          npx wrangler delete web-pr-${{ github.event.number }} --force || true
+          npx wrangler delete admin-pr-${{ github.event.number }} --force || true
+          npx wrangler delete plugin-pr-${{ github.event.number }} --force || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3
         with:
@@ -39,7 +62,7 @@ jobs:
   ci:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-    
+
     # Only run one deployment at a time per PR
     concurrency:
       group: pr-${{ github.event.number }}
@@ -132,7 +155,7 @@ jobs:
     needs: ci
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-    
+
     concurrency:
       group: pr-${{ github.event.number }}-deploy
       cancel-in-progress: true
@@ -147,6 +170,10 @@ jobs:
       plugin-url: ${{ steps.deploy-plugin.outputs.deployment-url }}
       api-url: ${{ steps.deploy-api.outputs.url }}
       branch-id: ${{ steps.create-branch.outputs.branch_id }}
+      web-status: ${{ steps.deploy-web.outcome }}
+      admin-status: ${{ steps.deploy-admin.outcome }}
+      plugin-status: ${{ steps.deploy-plugin.outcome }}
+      api-status: ${{ steps.deploy-api.outcome }}
 
     steps:
       - uses: actions/checkout@v4
@@ -181,30 +208,34 @@ jobs:
       - name: Deploy web to Cloudflare
         id: deploy-web
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
-          command: pages deploy --project-name=frameruniversity-web-preview --branch=pr-${{ github.event.number }}
+          command: deploy --name web-pr-${{ github.event.number }}
 
       - name: Deploy admin to Cloudflare
         id: deploy-admin
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
-          command: pages deploy --project-name=frameruniversity-admin-preview --branch=pr-${{ github.event.number }}
+          command: deploy --name admin-pr-${{ github.event.number }}
 
       - name: Deploy plugin to Cloudflare
         id: deploy-plugin
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
-          command: pages deploy --project-name=frameruniversity-plugin-preview --branch=pr-${{ github.event.number }}
+          command: deploy --name plugin-pr-${{ github.event.number }}
 
       - name: Deploy API to Fly
         id: deploy-api
         uses: superfly/fly-pr-review-apps@1.5.0
+        continue-on-error: true
         with:
           name: pr-${{ github.event.number }}-frameruniversity-api
           secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
@@ -233,34 +264,69 @@ jobs:
 
   comment:
     needs: [deploy, schema-diff]
-    if: github.event.action != 'closed'
+    if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
+      - name: Generate deployment status
+        id: status
+        run: |
+          # Generate status for each deployment
+          web_status="${{ needs.deploy.outputs.web-status }}"
+          admin_status="${{ needs.deploy.outputs.admin-status }}"
+          plugin_status="${{ needs.deploy.outputs.plugin-status }}"
+          api_status="${{ needs.deploy.outputs.api-status }}"
+
+          # Convert status to emoji and text
+          get_status_display() {
+            case "$1" in
+              "success") echo "✅ Ready" ;;
+              "failure") echo "❌ Failed" ;;
+              "cancelled") echo "⚠️ Cancelled" ;;
+              "skipped") echo "⏭️ Skipped" ;;
+              *) echo "🔄 Building" ;;
+            esac
+          }
+
+          # Generate preview links for successful deployments
+          get_preview_link() {
+            local status="$1"
+            local name="$2"
+            if [[ "$status" == "success" ]]; then
+              echo "[Visit Preview](https://$name.workers.dev)"
+            else
+              echo ""
+            fi
+          }
+
+          echo "web_display=$(get_status_display "$web_status")" >> $GITHUB_OUTPUT
+          echo "admin_display=$(get_status_display "$admin_status")" >> $GITHUB_OUTPUT
+          echo "plugin_display=$(get_status_display "$plugin_status")" >> $GITHUB_OUTPUT
+          echo "api_display=$(get_status_display "$api_status")" >> $GITHUB_OUTPUT
+
+          echo "web_link=$(get_preview_link "$web_status" "web-pr-${{ github.event.number }}")" >> $GITHUB_OUTPUT
+          echo "admin_link=$(get_preview_link "$admin_status" "admin-pr-${{ github.event.number }}")" >> $GITHUB_OUTPUT
+          echo "plugin_link=$(get_preview_link "$plugin_status" "plugin-pr-${{ github.event.number }}")" >> $GITHUB_OUTPUT
+
+          # Handle API URL differently since it comes from Fly.io
+          if [[ "$api_status" == "success" && -n "${{ needs.deploy.outputs.api-url }}" ]]; then
+            echo "api_link=[Visit Preview](${{ needs.deploy.outputs.api-url }})" >> $GITHUB_OUTPUT
+          else
+            echo "api_link=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Comment on Pull Request
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            ## 🚀 Preview Deployment Ready!
-            
-            Your preview environment has been successfully deployed:
-            
-            ### 🌐 Preview URLs
-            - **Web App**: ${{ needs.deploy.outputs.web-url }}
-            - **Admin Panel**: ${{ needs.deploy.outputs.admin-url }}  
-            - **Plugin**: ${{ needs.deploy.outputs.plugin-url }}
-            - **API**: ${{ needs.deploy.outputs.api-url }}
-            
-            ### 🐘 Database
-            - **Neon Branch**: https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.deploy.outputs.branch-id }}
-            - **Branch Name**: `preview/pr-${{ github.event.number }}`
-            
-            ### ℹ️ Info
-            - This preview will be automatically cleaned up when the PR is closed
-            - Database migrations have been applied to the preview branch
-            - All tests passed ✅
-            
-            ---
-            *This comment will be updated automatically when new commits are pushed*
+            The latest updates on your projects.
+
+            | Name | Status | Preview | Updated (UTC) |
+            |------|--------|---------|---------------|
+            | **web** | ${{ steps.status.outputs.web_display }} | ${{ steps.status.outputs.web_link }} | ${{ github.event.head_commit.timestamp }} |
+            | **admin** | ${{ steps.status.outputs.admin_display }} | ${{ steps.status.outputs.admin_link }} | ${{ github.event.head_commit.timestamp }} |
+            | **plugin** | ${{ steps.status.outputs.plugin_display }} | ${{ steps.status.outputs.plugin_link }} | ${{ github.event.head_commit.timestamp }} |
+            | **api** | ${{ steps.status.outputs.api_display }} | ${{ steps.status.outputs.api_link }} | ${{ github.event.head_commit.timestamp }} |
+            | **database** | ✅ Ready | [preview/pr-${{ github.event.number }}](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.deploy.outputs.branch-id }}) | ${{ github.event.head_commit.timestamp }} |
           comment_tag: preview-deployment

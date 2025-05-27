@@ -48,7 +48,8 @@ jobs:
           components: clippy, rustfmt
           cache-workspaces: apps/api
 
-      - run: pnpm install
+      - name: Install
+        run: pnpm install
 
       - name: SQLX setup
         working-directory: apps/api
@@ -57,15 +58,24 @@ jobs:
           cargo sqlx database create && sqlx migrate run
           cargo sqlx prepare --check -- --all-targets
 
-      - run: pnpm build
-      - run: pnpm check-types
-      - run: pnpm lint
-      - run: pnpm test
+      - name: Build
+        run: pnpm build
 
-      - run: pnpm playwright install chromium
+      - name: Check types
+        run: pnpm check-types
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Install Chromium
+        run: pnpm playwright install chromium
         working-directory: apps/web
 
-      - run: pnpm test:e2e
+      - name: Test E2E
+        run: pnpm test:e2e
 
   deploy:
     needs: ci
@@ -84,8 +94,11 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
-      - run: pnpm install
-      - run: pnpm build
+      - name: Install
+        run: pnpm install
+
+      - name: build
+        run: pnpm build
 
       - name: Deploy web to Cloudflare
         uses: cloudflare/wrangler-action@v3
