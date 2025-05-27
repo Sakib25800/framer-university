@@ -95,8 +95,6 @@ jobs:
 
       - name: SQLX setup
         working-directory: apps/api
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
         run: |
           cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           cargo sqlx database create && sqlx migrate run
