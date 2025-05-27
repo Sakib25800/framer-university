@@ -83,7 +83,17 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
+
       - run: pnpm build
+      - name: Debug Turbo cache and build artifacts
+        run: |
+          echo "=== Turbo cache info ==="
+          npx turbo run build --dry=json | jq '.tasks[] | select(.taskId | contains("web#build"))'
+          echo "=== Web app build artifacts ==="
+          ls -la apps/web/
+          ls -la apps/web/.open-next/ || echo ".open-next not found"
+          echo "=== Check if build actually ran ==="
+          find . -name ".open-next" -type d 2>/dev/null || echo "No .open-next directories found anywhere"
 
       - name: Debug web app before deployment
         run: |
