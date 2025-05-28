@@ -380,25 +380,8 @@ jobs:
           build_args: BUILDKIT_INLINE_CACHE=1
           config: Dockerfile.prebuilt
 
-  schema-diff:
-    needs: [ci, setup]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: read
-    steps:
-      - name: Schema Diff
-        uses: neondatabase/schema-diff-action@v1
-        with:
-          project_id: ${{ env.NEON_PROJECT_ID }}
-          compare_branch: preview/pr-${{ github.event.number }}
-          base_branch: production
-          api_key: ${{ env.NEON_API_KEY }}
-          database: neondb
-
   comment:
-    needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup, schema-diff]
+    needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
