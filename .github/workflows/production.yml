@@ -1,6 +1,9 @@
+name: Production
+
 on:
   push:
     branches: ["main"]
+
 env:
   PNPM_VERSION: 10.11.0
   TURBO_API: ${{ vars.TURBO_API }}
@@ -10,6 +13,7 @@ env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+  API_URL: http://localhost:8080
 
 jobs:
   ci:
@@ -50,12 +54,17 @@ jobs:
 
       - run: pnpm install
 
-      - name: SQLX setup
+      - name: Install SQLX CLI
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          fi
+
+      - name: SQLX check
         working-directory: apps/api
         run: |
-          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           cargo sqlx database create && sqlx migrate run
-          cargo sqlx prepare --check -- --all-targets
+          cargo sqlx prepare --check
 
       - run: pnpm build
       - run: pnpm check-types
@@ -67,9 +76,28 @@ jobs:
 
       - run: pnpm test:e2e
 
+      - name: Upload API binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: |
+            apps/api/target/release/api
+            apps/api/.sqlx/
+          retention-days: 1
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 30
+
   deploy:
     needs: ci
     runs-on: ubuntu-latest
+    environment:
+      name: Production - Web
+      url: https://frameruniversity.com
     steps:
       - uses: actions/checkout@v4
         with:
@@ -84,37 +112,109 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        if: steps.changed-files.outputs.api_any_changed == 'true'
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
+
       - run: pnpm install
-      - run: pnpm build --force
+
+      - name: Download API binary artifact
+        if: steps.changed-files.outputs.api_any_changed == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: apps/api/
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.changed-files.outputs.api_any_changed == 'true'
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.api_any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+            plugin:
+              - 'apps/plugin/**'
+              - 'packages/**'
+            storybook:
+              - 'apps/storybook/**'
+              - 'packages/**'
+            api:
+              - 'apps/api/**'
+
+      - name: Build changed applications
+        run: |
+          FILTERS=""
+          if [[ "${{ steps.changed-files.outputs.web_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=web"
+            echo "Will build web"
+          fi
+          if [[ "${{ steps.changed-files.outputs.admin_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=admin"
+            echo "Will build admin"
+          fi
+          if [[ "${{ steps.changed-files.outputs.plugin_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=plugin"
+            echo "Will build plugin"
+          fi
+          if [[ "${{ steps.changed-files.outputs.storybook_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=storybook"
+            echo "Will build storybook"
+          fi
+
+          if [ -n "$FILTERS" ]; then
+            echo "Building with filters:$FILTERS"
+            pnpm build$FILTERS
+          else
+            echo "No applications need building"
+          fi
 
       - name: Deploy web to Cloudflare
+        if: steps.changed-files.outputs.web_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
 
       - name: Deploy admin to Cloudflare
+        if: steps.changed-files.outputs.admin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
 
       - name: Deploy plugin to Cloudflare
+        if: steps.changed-files.outputs.plugin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
 
       - name: Deploy Storybook to Chromatic
+        if: steps.changed-files.outputs.storybook_any_changed == 'true'
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/storybook
           exitOnceUploaded: true
+          autoAcceptChanges: "main"
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy API to Fly
-        run: flyctl deploy
+        if: steps.changed-files.outputs.api_any_changed == 'true'
+        run: flyctl deploy --dockerfile Dockerfile.prebuilt --build-arg BUILDKIT_INLINE_CACHE=1
         working-directory: apps/api
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
