@@ -13,6 +13,7 @@ env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+  CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
   API_URL: http://localhost:8080
 
 jobs:
@@ -92,25 +93,18 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 30
 
-  deploy:
-    needs: ci
+  setup:
     runs-on: ubuntu-latest
-    environment:
-      name: Production - Web
-      url: https://frameruniversity.com
+    outputs:
+      web_changed: ${{ steps.changed-files.outputs.web_any_changed }}
+      admin_changed: ${{ steps.changed-files.outputs.admin_any_changed }}
+      plugin_changed: ${{ steps.changed-files.outputs.plugin_any_changed }}
+      storybook_changed: ${{ steps.changed-files.outputs.storybook_any_changed }}
+      api_changed: ${{ steps.changed-files.outputs.api_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
 
       - name: Get changed files
         id: changed-files
@@ -132,79 +126,117 @@ jobs:
             api:
               - 'apps/api/**'
 
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        if: steps.changed-files.outputs.api_any_changed == 'true'
+  deploy-web:
+    needs: [ci, setup]
+    if: needs.setup.outputs.web_changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - Web
+      url: https://frameruniversity.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
         with:
-          toolchain: 1.85.0
-          components: clippy, rustfmt
-          cache-workspaces: apps/api
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
 
       - run: pnpm install
 
-      - name: Download API binary artifact
-        if: steps.changed-files.outputs.api_any_changed == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: api-binary-${{ github.run_id }}
-          path: apps/api/
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-        if: steps.changed-files.outputs.api_any_changed == 'true'
-
-      - name: Set up Docker Buildx
-        if: steps.changed-files.outputs.api_any_changed == 'true'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build changed applications
-        run: |
-          FILTERS=""
-          if [[ "${{ steps.changed-files.outputs.web_any_changed }}" == "true" ]]; then
-            FILTERS="$FILTERS --filter=web"
-            echo "Will build web"
-          fi
-          if [[ "${{ steps.changed-files.outputs.admin_any_changed }}" == "true" ]]; then
-            FILTERS="$FILTERS --filter=admin"
-            echo "Will build admin"
-          fi
-          if [[ "${{ steps.changed-files.outputs.plugin_any_changed }}" == "true" ]]; then
-            FILTERS="$FILTERS --filter=plugin"
-            echo "Will build plugin"
-          fi
-          if [[ "${{ steps.changed-files.outputs.storybook_any_changed }}" == "true" ]]; then
-            FILTERS="$FILTERS --filter=storybook"
-            echo "Will build storybook"
-          fi
-
-          if [ -n "$FILTERS" ]; then
-            echo "Building with filters:$FILTERS"
-            pnpm build$FILTERS
-          else
-            echo "No applications need building"
-          fi
+      - run: pnpm build --filter=web
 
       - name: Deploy web to Cloudflare
-        if: steps.changed-files.outputs.web_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
 
+  deploy-admin:
+    needs: [ci, setup]
+    if: needs.setup.outputs.admin_changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - Admin
+      url: https://admin.frameruniversity.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - run: pnpm build --filter=admin
+
       - name: Deploy admin to Cloudflare
-        if: steps.changed-files.outputs.admin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
 
+  deploy-plugin:
+    needs: [ci, setup]
+    if: needs.setup.outputs.plugin_changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - Plugin
+      url: https://plugin.frameruniversity.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - run: pnpm build --filter=plugin
+
       - name: Deploy plugin to Cloudflare
-        if: steps.changed-files.outputs.plugin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
 
+  deploy-storybook:
+    needs: [ci, setup]
+    if: needs.setup.outputs.storybook_changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - Storybook
+      url: https://www.chromatic.com/library?appId=${{ vars.CHROMATIC_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - run: pnpm build --filter=storybook
+
       - name: Deploy Storybook to Chromatic
-        if: steps.changed-files.outputs.storybook_any_changed == 'true'
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
@@ -212,8 +244,34 @@ jobs:
           exitOnceUploaded: true
           autoAcceptChanges: "main"
 
+  deploy-api:
+    needs: [ci, setup]
+    if: needs.setup.outputs.api_changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production - API
+      url: https://framer-university-api.fly.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
+
+      - name: Download API binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: apps/api/
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Deploy API to Fly
-        if: steps.changed-files.outputs.api_any_changed == 'true'
         run: flyctl deploy --dockerfile Dockerfile.prebuilt --build-arg BUILDKIT_INLINE_CACHE=1
         working-directory: apps/api
         env:
