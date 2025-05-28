@@ -2,7 +2,7 @@ name: Preview
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [opened, synchronize]
 
 env:
   PNPM_VERSION: 10.11.0
@@ -17,15 +17,6 @@ env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
   FLY_ORG: ${{ vars.FLY_ORG }}
-  # Rust environment variables for cache consistency
-  CARGO_INCREMENTAL: 0
-  CARGO_PROFILE_DEV_DEBUG: 0
-  CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: short
-  RUSTFLAGS: -D warnings
-  CARGO_UNSTABLE_SPARSE_REGISTRY: true
-  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  CACHE_ON_FAILURE: true
   API_URL: http://localhost:8080
 
 jobs:
@@ -41,12 +32,12 @@ jobs:
           api_key: ${{ env.NEON_API_KEY }}
         continue-on-error: true
 
-      - name: Clean up GitHub environment
-        uses: strumwolf/delete-deployment-environment@v2
-        if: ${{ github.event.action == 'closed' }}
+      - name: Delete Fly Apps
+        uses: superfly/fly-pr-review-apps@1.2.0
+        if: github.event.action == 'closed'
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: pr-${{ github.event.number }}
+          token: ${{ env.FLY_API_TOKEN }}
+          environment: preview
         continue-on-error: true
 
   ci:
@@ -55,10 +46,10 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:password@localhost:5432/test
     concurrency:
-      group: pr-${{ github.event.number }}
+      group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
     environment:
-      name: pr-${{ github.event.number }}
+      name: preview
     services:
       postgres:
         image: postgres:16
@@ -106,23 +97,11 @@ jobs:
 
       - run: pnpm install
 
-      - name: Cache SQLX CLI
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/sqlx
-          key: sqlx-cli-0.7.4
-
       - name: Install SQLX CLI
         run: |
           if ! command -v sqlx &> /dev/null; then
             cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           fi
-
-      - name: Cache SQLX metadata
-        uses: actions/cache@v4
-        with:
-          path: apps/api/.sqlx
-          key: sqlx-${{ hashFiles('apps/api/migrations/**/*.sql') }}
 
       - name: SQLX setup
         working-directory: apps/api
@@ -131,18 +110,16 @@ jobs:
           pnpm generate-sqlx
 
       - run: pnpm build
-
       - run: pnpm check-types
       - run: pnpm lint
-
       - run: pnpm test
 
       - run: pnpm playwright install chromium
         working-directory: apps/web
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
 
-      - env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: pnpm test:e2e
+      - run: pnpm test:e2e
 
   setup:
     if: github.event.action != 'closed'
@@ -168,11 +145,11 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: pr-${{ github.event.number }}-web
-      url: ${{ steps.deploy-web.outputs.deployment-url }}
+      name: Preview - Web
+      url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy-web.outputs.deployment-url }}
-      status: ${{ steps.deploy-web.outcome }}
+      url: ${{ steps.deploy.outputs.url }}
+      status: ${{ steps.deploy.outputs.status }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -191,24 +168,24 @@ jobs:
       - run: pnpm build
 
       - name: Deploy web to Cloudflare
-        id: deploy-web
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
-          command: deploy --name=web-preview-pr-${{ github.event.number }}
+          command: deploy
 
   deploy-admin:
     needs: [ci, setup]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: pr-${{ github.event.number }}-admin
-      url: ${{ steps.deploy-admin.outputs.deployment-url }}
+      name: Preview - Admin
+      url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy-admin.outputs.deployment-url }}
-      status: ${{ steps.deploy-admin.outcome }}
+      url: ${{ steps.deploy.outputs.url }}
+      status: ${{ steps.deploy.outputs.status }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -227,24 +204,24 @@ jobs:
       - run: pnpm build
 
       - name: Deploy admin to Cloudflare
-        id: deploy-admin
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
-          command: deploy --name=admin-preview-pr-${{ github.event.number }}
+          command: deploy
 
   deploy-plugin:
     needs: [ci, setup]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: pr-${{ github.event.number }}-plugin
-      url: ${{ steps.deploy-plugin.outputs.deployment-url }}
+      name: Preview - Plugin
+      url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy-plugin.outputs.deployment-url }}
-      status: ${{ steps.deploy-plugin.outcome }}
+      url: ${{ steps.deploy.outputs.url }}
+      status: ${{ steps.deploy.outputs.status }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -263,20 +240,20 @@ jobs:
       - run: pnpm build
 
       - name: Deploy plugin to Cloudflare
-        id: deploy-plugin
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
-          command: deploy --name=plugin-preview-pr-${{ github.event.number }}
+          command: deploy
 
   deploy-storybook:
     needs: [ci, setup]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.deploy-storybook.outcome }}
+      status: ${{ steps.deploy.outputs.status }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -295,7 +272,7 @@ jobs:
       - run: pnpm build
 
       - name: Deploy Storybook to Chromatic
-        id: deploy-storybook
+        id: deploy
         uses: chromaui/action@latest
         continue-on-error: true
         with:
@@ -307,11 +284,11 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: pr-${{ github.event.number }}-api
-      url: ${{ steps.deploy-api.outputs.url }}
+      name: Preview - API
+      url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy-api.outputs.url }}
-      status: ${{ steps.deploy-api.outcome }}
+      url: ${{ steps.deploy.outputs.url }}
+      status: ${{ steps.deploy.outputs.status }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -334,20 +311,14 @@ jobs:
 
       - run: pnpm install
 
-      - name: Cache SQLX CLI
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/sqlx
-          key: sqlx-cli-0.7.4
-
       - name: Install SQLX CLI
         run: |
           if ! command -v sqlx &> /dev/null; then
             cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           fi
 
-      - name: Create Neon Branch for API
-        id: create-branch-api
+      - name: Create Neon Branch
+        id: create-branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
@@ -355,141 +326,101 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-      - name: SQLX setup for deployment
+      - name: SQLX setup
         working-directory: apps/api
         env:
-          DATABASE_URL: ${{ steps.create-branch-api.outputs.db_url }}
-        run: sqlx migrate run
+          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
+        run: |
+          cargo sqlx database create && sqlx migrate run
+          pnpm generate-sqlx
 
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+      - run: pnpm build
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
 
-      - run: pnpm install
+      - run: pnpm test
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
 
-      - env:
-          DATABASE_URL: ${{ steps.create-branch-api.outputs.db_url }}
-        run: pnpm build
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly
-        id: deploy-api
-        uses: superfly/fly-pr-review-apps@1.5.0
+        id: deploy
+        uses: superfly/fly-pr-review-apps@1.2.0
         continue-on-error: true
         with:
-          name: pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api
-          secrets: DATABASE_URL=${{ steps.create-branch-api.outputs.db_url }}
+          name: framer-university-api-pr-${{ github.event.number }}
+          secrets: DATABASE_URL=${{ steps.create-branch.outputs.connection_uri }}
           postgres: false
           path: apps/api
-          region: lhr
+          region: bos
           org: ${{ env.FLY_ORG }}
-          build_args: BUILDKIT_INLINE_CACHE=1
-          config: Dockerfile.prebuilt
+          build_args: |
+            DATABASE_URL=${{ steps.create-branch.outputs.connection_uri }}
+          config: apps/api/fly.toml
 
   comment:
-    needs:
-      [
-        deploy-web,
-        deploy-admin,
-        deploy-plugin,
-        deploy-storybook,
-        deploy-api,
-        setup
-      ]
+    needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-      - name: Get current timestamp
-        id: timestamp
-        run: echo "current=$(date -u +'%b %d, %Y %I:%M%p')" >> $GITHUB_OUTPUT
+      - name: Get PR number
+        id: pr-number
+        run: echo "number=${{ github.event.number }}" >> $GITHUB_OUTPUT
 
-      - name: Set deployment statuses
-        id: statuses
+      - name: Create comment body
+        id: comment-body
         run: |
-          # Web status
-          if [ "${{ needs.deploy-web.result }}" = "success" ]; then
-            echo "web=✅ Ready" >> $GITHUB_OUTPUT
-            echo "web-preview=[Visit Preview](${{ needs.deploy-web.outputs.url }})" >> $GITHUB_OUTPUT
-          elif [ "${{ needs.deploy-web.result }}" = "failure" ]; then
-            echo "web=❌ Failed" >> $GITHUB_OUTPUT
-            echo "web-preview=" >> $GITHUB_OUTPUT
-          else
-            echo "web=🔄 Building" >> $GITHUB_OUTPUT
-            echo "web-preview=" >> $GITHUB_OUTPUT
-          fi
+          cat << 'EOF' >> comment.md
+          ## 🚀 Preview Deployment Summary
 
-          # Admin status
-          if [ "${{ needs.deploy-admin.result }}" = "success" ]; then
-            echo "admin=✅ Ready" >> $GITHUB_OUTPUT
-            echo "admin-preview=[Visit Preview](${{ needs.deploy-admin.outputs.url }})" >> $GITHUB_OUTPUT
-          elif [ "${{ needs.deploy-admin.result }}" = "failure" ]; then
-            echo "admin=❌ Failed" >> $GITHUB_OUTPUT
-            echo "admin-preview=" >> $GITHUB_OUTPUT
-          else
-            echo "admin=🔄 Building" >> $GITHUB_OUTPUT
-            echo "admin-preview=" >> $GITHUB_OUTPUT
-          fi
+          | Service | Status | URL |
+          |---------|--------|-----|
+          | Web | ${{ needs.deploy-web.outputs.status || 'Failed' }} | ${{ needs.deploy-web.outputs.url || 'N/A' }} |
+          | Admin | ${{ needs.deploy-admin.outputs.status || 'Failed' }} | ${{ needs.deploy-admin.outputs.url || 'N/A' }} |
+          | Plugin | ${{ needs.deploy-plugin.outputs.status || 'Failed' }} | ${{ needs.deploy-plugin.outputs.url || 'N/A' }} |
+          | API | ${{ needs.deploy-api.outputs.status || 'Failed' }} | ${{ needs.deploy-api.outputs.url || 'N/A' }} |
+          | Storybook | ${{ needs.deploy-storybook.outputs.status || 'Failed' }} | [View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }}) |
 
-          # Plugin status
-          if [ "${{ needs.deploy-plugin.result }}" = "success" ]; then
-            echo "plugin=✅ Ready" >> $GITHUB_OUTPUT
-            echo "plugin-preview=[Visit Preview](${{ needs.deploy-plugin.outputs.url }})" >> $GITHUB_OUTPUT
-          elif [ "${{ needs.deploy-plugin.result }}" = "failure" ]; then
-            echo "plugin=❌ Failed" >> $GITHUB_OUTPUT
-            echo "plugin-preview=" >> $GITHUB_OUTPUT
-          else
-            echo "plugin=🔄 Building" >> $GITHUB_OUTPUT
-            echo "plugin-preview=" >> $GITHUB_OUTPUT
-          fi
+          **Database Branch**: `preview/pr-${{ steps.pr-number.outputs.number }}`
+          **Branch ID**: `${{ needs.setup.outputs.branch-id }}`
 
-          # API status
-          if [ "${{ needs.deploy-api.result }}" = "success" ]; then
-            echo "api=✅ Ready" >> $GITHUB_OUTPUT
-            echo "api-preview=[Visit Preview](https://pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api.fly.dev)" >> $GITHUB_OUTPUT
-          elif [ "${{ needs.deploy-api.result }}" = "failure" ]; then
-            echo "api=❌ Failed" >> $GITHUB_OUTPUT
-            echo "api-preview=" >> $GITHUB_OUTPUT
-          else
-            echo "api=🔄 Building" >> $GITHUB_OUTPUT
-            echo "api-preview=" >> $GITHUB_OUTPUT
-          fi
+          ---
+          *This comment will be updated automatically when the PR is updated.*
+          EOF
 
-          # Storybook status
-          if [ "${{ needs.deploy-storybook.result }}" = "success" ]; then
-            echo "storybook=✅ Ready" >> $GITHUB_OUTPUT
-            echo "storybook-preview=[View Builds](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
-          elif [ "${{ needs.deploy-storybook.result }}" = "failure" ]; then
-            echo "storybook=❌ Failed" >> $GITHUB_OUTPUT
-            echo "storybook-preview=" >> $GITHUB_OUTPUT
-          else
-            echo "storybook=🔄 Building" >> $GITHUB_OUTPUT
-            echo "storybook-preview=" >> $GITHUB_OUTPUT
-          fi
-
-          # Database status (always success since it's just setup)
-          echo "database=✅ Ready" >> $GITHUB_OUTPUT
-          echo "database-preview=[View Console](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches)" >> $GITHUB_OUTPUT
-
-      - name: Comment on Pull Request
-        uses: thollander/actions-comment-pull-request@v2
+      - name: Comment on PR
+        uses: actions/github-script@v7
         with:
-          message: |
-            Preview the latest updates on your projects ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+          script: |
+            const fs = require('fs');
+            const commentBody = fs.readFileSync('comment.md', 'utf8');
 
-            | Name | Status | Preview | Updated (UTC) |
-            |------|--------|---------|---------------|
-            | web | ${{ steps.statuses.outputs.web }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/web-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.web-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/admin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/plugin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://fly.io/apps/pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api/monitoring)) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | storybook | ${{ steps.statuses.outputs.storybook }} | ${{ steps.statuses.outputs.storybook-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | database | ${{ steps.statuses.outputs.database }} | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
-          comment_tag: preview-deployment
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment => 
+              comment.body.includes('Preview Deployment Summary')
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }

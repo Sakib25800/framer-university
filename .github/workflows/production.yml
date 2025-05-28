@@ -13,15 +13,6 @@ env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-  # Rust environment variables for cache consistency
-  CARGO_INCREMENTAL: 0
-  CARGO_PROFILE_DEV_DEBUG: 0
-  CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: short
-  RUSTFLAGS: -D warnings
-  CARGO_UNSTABLE_SPARSE_REGISTRY: true
-  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  CACHE_ON_FAILURE: true
   API_URL: http://localhost:8080
 
 jobs:
@@ -63,23 +54,11 @@ jobs:
 
       - run: pnpm install
 
-      - name: Cache SQLX CLI
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/sqlx
-          key: sqlx-cli-0.7.4
-
       - name: Install SQLX CLI
         run: |
           if ! command -v sqlx &> /dev/null; then
             cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           fi
-
-      - name: Cache SQLX metadata
-        uses: actions/cache@v4
-        with:
-          path: apps/api/.sqlx
-          key: sqlx-${{ hashFiles('apps/api/migrations/**/*.sql') }}
 
       - name: SQLX setup
         working-directory: apps/api
@@ -230,13 +209,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
+      - uses: pnpm/action-setup@v3
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
 
       - run: pnpm install
       - run: pnpm build

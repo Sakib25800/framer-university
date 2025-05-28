@@ -4,24 +4,19 @@
   "remoteCache": {
     "signature": true
   },
-  "globalPassThroughEnv": [],
-  "globalEnv": [
-    "DATABASE_URL",
-    "API_URL",
-    "CARGO_INCREMENTAL",
-    "CARGO_PROFILE_DEV_DEBUG", 
-    "CARGO_TERM_COLOR",
-    "RUST_BACKTRACE",
-    "RUSTFLAGS",
-    "CARGO_UNSTABLE_SPARSE_REGISTRY",
-    "CARGO_REGISTRIES_CRATES_IO_PROTOCOL",
-    "CACHE_ON_FAILURE"
-  ],
+  "globalDependencies": [".env"],
+  "globalEnv": ["DATABASE_URL"],
   "tasks": {
     "build": {
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "dependsOn": ["^build"],
-      "outputs": ["build/**", "dist/**", "storybook-static/**"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "!.env.local"],
+      "outputs": [
+        "build/**",
+        "dist/**", 
+        "storybook-static/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
     },
     "dev": {
       "dependsOn": ["^build"],
@@ -29,16 +24,26 @@
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^build", "^lint"]
+      "dependsOn": ["^build"],
+      "outputs": []
     },
     "check-types": {
-      "dependsOn": ["^build", "^check-types"]
+      "dependsOn": ["^build"],
+      "outputs": []
     },
     "test": {
-      "dependsOn": ["^build", "^test"]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
+      "outputs": ["coverage/**"]
     },
     "test:e2e": {
-      "outputs": ["playwright-report", "playwright-results"]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
+      "outputs": ["playwright-report/**", "test-results/**"]
+    },
+    "generate-sqlx": {
+      "inputs": ["migrations/**/*.sql", "sqlx-data.json"],
+      "outputs": [".sqlx/**"]
     },
     "clean": {
       "cache": false
