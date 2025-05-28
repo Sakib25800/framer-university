@@ -213,7 +213,7 @@ jobs:
     environment:
       name: pr-${{ github.event.number }}
     outputs:
-      web_url: ${{ steps.web-url.outputs.url }}
+      web_url: ${{ steps.web-deploy.outputs.deployment-url }}
       admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
       plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       api_url: ${{ steps.api-deploy.outputs.url }}
@@ -270,7 +270,7 @@ jobs:
 
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
-      - name: Create web preview version
+      - name: Deploy web to preview
         id: web-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
@@ -278,23 +278,7 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: versions upload
-
-      - name: Extract web preview URL
-        id: web-url
-        run: |
-          # Extract Worker Version ID from command output
-          VERSION_ID=$(echo '${{ steps.web-deploy.outputs.command-output }}' | grep -o 'Worker Version ID: [a-f0-9-]*' | cut -d' ' -f4)
-          if [ -n "$VERSION_ID" ]; then
-            # Use first 8 characters of version ID like admin/plugin pattern
-            SHORT_ID=${VERSION_ID:0:8}
-            WEB_URL="https://${SHORT_ID}-web.frameruniversity.workers.dev"
-            echo "url=$WEB_URL" >> $GITHUB_OUTPUT
-            echo "Web preview URL: $WEB_URL"
-          else
-            echo "url=" >> $GITHUB_OUTPUT
-            echo "Could not extract version ID for web worker"
-          fi
+          command: deploy
 
       - name: Create admin preview version
         id: admin-deploy
