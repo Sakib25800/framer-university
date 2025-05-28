@@ -359,22 +359,68 @@ jobs:
       - name: Create comment body
         id: comment-body
         run: |
-          cat << 'EOF' >> comment.md
-          ## 🚀 Preview Deployment Summary
-
-          | Service | Status | URL |
-          |---------|--------|-----|
-          | Web | ${{ needs.deploy-web.outputs.status || 'Failed' }} | ${{ needs.deploy-web.outputs.url || 'N/A' }} |
-          | Admin | ${{ needs.deploy-admin.outputs.status || 'Failed' }} | ${{ needs.deploy-admin.outputs.url || 'N/A' }} |
-          | Plugin | ${{ needs.deploy-plugin.outputs.status || 'Failed' }} | ${{ needs.deploy-plugin.outputs.url || 'N/A' }} |
-          | API | ${{ needs.deploy-api.outputs.status || 'Failed' }} | ${{ needs.deploy-api.outputs.url || 'N/A' }} |
-          | Storybook | ${{ needs.deploy-storybook.outputs.status || 'Failed' }} | [View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }}) |
-
-          **Database Branch**: `preview/pr-${{ steps.pr-number.outputs.number }}`
-          **Branch ID**: `${{ needs.setup.outputs.branch-id }}`
-
-          ---
-          *This comment will be updated automatically when the PR is updated.*
+          # Determine deployment statuses and emojis
+          web_status="${{ needs.deploy-web.result }}"
+          admin_status="${{ needs.deploy-admin.result }}"
+          plugin_status="${{ needs.deploy-plugin.result }}"
+          api_status="${{ needs.deploy-api.result }}"
+          storybook_status="${{ needs.deploy-storybook.result }}"
+          
+          # Function to get emoji based on status
+          get_emoji() {
+            case $1 in
+              success) echo "✅" ;;
+              failure) echo "❌" ;;
+              cancelled) echo "❌" ;;
+              skipped) echo "⏭️" ;;
+              *) echo "🔄" ;;
+            esac
+          }
+          
+          # Get URLs
+          web_url="${{ needs.deploy-web.outputs.url }}"
+          admin_url="${{ needs.deploy-admin.outputs.url }}"
+          plugin_url="${{ needs.deploy-plugin.outputs.url }}"
+          api_url="${{ needs.deploy-api.outputs.url }}"
+          
+          # Create inspect links for Cloudflare
+          web_inspect=""
+          admin_inspect=""
+          plugin_inspect=""
+          api_inspect=""
+          
+          if [[ "$web_status" == "success" && -n "$web_url" ]]; then
+            web_inspect=" ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/web/production/logs/live))"
+          fi
+          
+          if [[ "$admin_status" == "success" && -n "$admin_url" ]]; then
+            admin_inspect=" ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/admin/production/logs/live))"
+          fi
+          
+          if [[ "$plugin_status" == "success" && -n "$plugin_url" ]]; then
+            plugin_inspect=" ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/plugin/production/logs/live))"
+          fi
+          
+          if [[ "$api_status" == "success" && -n "$api_url" ]]; then
+            api_inspect=" ([Logs](https://fly.io/apps/framer-university-api-pr-${{ github.event.number }}/monitoring))"
+          fi
+          
+          cat << EOF > comment.md
+          ## ✅ Deploy Preview ready!
+          
+          |  | Name | Status | Preview | Updated |
+          |--|------|--------|---------|---------|
+          | $(get_emoji $web_status) | **web** | $web_status | ${web_url:-"—"} | $(date -u +'%b %d, %Y %H:%M UTC') |
+          | $(get_emoji $admin_status) | **admin** | $admin_status | ${admin_url:-"—"} | $(date -u +'%b %d, %Y %H:%M UTC') |
+          | $(get_emoji $plugin_status) | **plugin** | $plugin_status | ${plugin_url:-"—"} | $(date -u +'%b %d, %Y %H:%M UTC') |
+          | $(get_emoji $api_status) | **api** | $api_status | ${api_url:-"—"} | $(date -u +'%b %d, %Y %H:%M UTC') |
+          | $(get_emoji $storybook_status) | **storybook** | $storybook_status | [chromatic.com](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }}) | $(date -u +'%b %d, %Y %H:%M UTC') |
+          
+          ${web_inspect}${admin_inspect}${plugin_inspect}${api_inspect}
+          
+          **Database**: \`preview/pr-${{ github.event.number }}\` (Branch ID: \`${{ needs.setup.outputs.branch-id }}\`)
+          
+          <sub>Built with commit ${{ github.sha }}.</sub>
           EOF
 
       - name: Comment on PR
@@ -392,7 +438,7 @@ jobs:
             });
 
             const existingComment = comments.find(comment => 
-              comment.body.includes('Preview Deployment Summary')
+              comment.body.includes('Deploy Preview ready!')
             );
 
             if (existingComment) {
