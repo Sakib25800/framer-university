@@ -6,7 +6,7 @@
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
-  <!-- Cache test #2 - testing if remote cache works properly -->
+  <!-- Cache test #3 - local cache populated, testing CI performance -->
 </div>
 </edits>
 
