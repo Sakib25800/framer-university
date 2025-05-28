@@ -164,7 +164,7 @@ jobs:
     environment:
       name: pr-${{ github.event.number }}
     outputs:
-      web_url: ${{ steps.web-deploy.outputs.deployment-url }}
+      web_url: ${{ steps.web-url.outputs.url }}
       admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
       plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       api_url: ${{ steps.api-deploy.outputs.url }}
@@ -230,12 +230,20 @@ jobs:
           workingDirectory: apps/web
           command: versions upload
 
-      # Debug web deployment output
-      - name: Debug web deployment output
+      # Extract web preview URL manually since web worker doesn't generate preview URLs
+      - name: Extract web preview URL
+        id: web-url
         run: |
-          echo "Web deployment-url: '${{ steps.web-deploy.outputs.deployment-url }}'"
-          echo "Web command-output: '${{ steps.web-deploy.outputs.command-output }}'"
-          echo "Web command-stderr: '${{ steps.web-deploy.outputs.command-stderr }}'"
+          # Extract Worker Version ID from command output
+          VERSION_ID=$(echo '${{ steps.web-deploy.outputs.command-output }}' | grep -o 'Worker Version ID: [a-f0-9-]*' | cut -d' ' -f4)
+          if [ -n "$VERSION_ID" ]; then
+            WEB_URL="https://${VERSION_ID}-web.frameruniversity.workers.dev"
+            echo "url=$WEB_URL" >> $GITHUB_OUTPUT
+            echo "Web preview URL: $WEB_URL"
+          else
+            echo "url=" >> $GITHUB_OUTPUT
+            echo "Could not extract version ID for web worker"
+          fi
 
       # Create admin preview version
       - name: Create admin preview version
@@ -248,13 +256,6 @@ jobs:
           workingDirectory: apps/admin
           command: versions upload
 
-      # Debug admin deployment output
-      - name: Debug admin deployment output
-        run: |
-          echo "Admin deployment-url: '${{ steps.admin-deploy.outputs.deployment-url }}'"
-          echo "Admin command-output: '${{ steps.admin-deploy.outputs.command-output }}'"
-          echo "Admin command-stderr: '${{ steps.admin-deploy.outputs.command-stderr }}'"
-
       # Create plugin preview version
       - name: Create plugin preview version
         id: plugin-deploy
@@ -266,12 +267,7 @@ jobs:
           workingDirectory: apps/plugin
           command: versions upload
 
-      # Debug plugin deployment output
-      - name: Debug plugin deployment output
-        run: |
-          echo "Plugin deployment-url: '${{ steps.plugin-deploy.outputs.deployment-url }}'"
-          echo "Plugin command-output: '${{ steps.plugin-deploy.outputs.command-output }}'"
-          echo "Plugin command-stderr: '${{ steps.plugin-deploy.outputs.command-stderr }}'"
+
 
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
