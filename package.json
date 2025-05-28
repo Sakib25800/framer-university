@@ -2,7 +2,7 @@
   "name": "framer-university",
   "private": true,
   "scripts": {
-    "build": "dotenv -- turbo run build",
+    "build": "dotenv -- turbo run build $([ \"$CI\" != \"true\" ] && echo \"--filter=!web\" || echo \"\")",
     "clean": "turbo run clean && rm -rf .turbo node_modules",
     "dev": "dotenv -- turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
