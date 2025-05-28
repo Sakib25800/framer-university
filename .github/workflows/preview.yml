@@ -219,9 +219,6 @@ jobs:
 
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
-
-
-      # Create web preview version
       - name: Create web preview version
         id: web-deploy
         uses: cloudflare/wrangler-action@v3
@@ -232,7 +229,6 @@ jobs:
           workingDirectory: apps/web
           command: versions upload
 
-      # Create admin preview version
       - name: Create admin preview version
         id: admin-deploy
         uses: cloudflare/wrangler-action@v3
@@ -243,7 +239,6 @@ jobs:
           workingDirectory: apps/admin
           command: versions upload
 
-      # Create plugin preview version
       - name: Create plugin preview version
         id: plugin-deploy
         uses: cloudflare/wrangler-action@v3
