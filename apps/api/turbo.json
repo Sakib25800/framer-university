@@ -14,8 +14,15 @@
     },
     "test": {
       "dependsOn": ["build"],
-      "outputs": [],
-      "cache": false
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "crates/**"
+      ],
+      "outputs": ["target/release/deps/**"],
+      "cache": true
     },
     "generate-openapi": {
       "dependsOn": ["build"],
