@@ -5,6 +5,10 @@
     "signature": true
   },
   "globalDependencies": [".env"],
+  "globalPassThroughEnv": [
+    "CI",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
