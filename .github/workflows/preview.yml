@@ -333,16 +333,30 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v8
+
+      - name: Create Neon Branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ steps.branch-name.outputs.current_branch }}
+          role: neondb_owner
+          api_key: ${{ env.NEON_API_KEY }}
+
       - name: Deploy API to Fly
         id: deploy
         uses: superfly/fly-pr-review-apps@1.2.0
         with:
           name: framer-university-api-pr-${{ github.event.number }}
-          secrets: DATABASE_URL=${{ needs.setup.outputs.db-url }}
+          secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
           postgres: false
           path: apps/api
           org: ${{ env.FLY_ORG }}
           config: fly.toml
+          region: lhr
 
   comment:
     needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup]
