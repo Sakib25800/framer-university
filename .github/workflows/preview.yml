@@ -33,13 +33,17 @@ jobs:
           api_key: ${{ env.NEON_API_KEY }}
         continue-on-error: true
 
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
       - name: Delete Fly Apps
-        uses: superfly/fly-pr-review-apps@1.2.0
-        if: github.event.action == 'closed'
-        with:
-          token: ${{ env.FLY_API_TOKEN }}
-          environment: preview
         continue-on-error: true
+        run: |
+          if flyctl status --app framer-university-api-pr-${{ github.event.number }} >/dev/null 2>&1; then
+            flyctl apps destroy framer-university-api-pr-${{ github.event.number }} --yes
+          fi
+        env:
+          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
 
   ci:
     if: github.event.action != 'closed'
@@ -324,13 +328,14 @@ jobs:
 
       - run: pnpm install
 
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
       - name: Download API binary artifact
         uses: actions/download-artifact@v4
         with:
           name: api-binary-${{ github.run_id }}
           path: apps/api/
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Get branch name
         id: branch-name
@@ -347,14 +352,30 @@ jobs:
 
       - name: Deploy API to Fly
         id: deploy
-        uses: superfly/fly-pr-review-apps@1.2.0
-        with:
-          name: framer-university-api-pr-${{ github.event.number }}
-          secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
-          postgres: false
-          path: apps/api
-          org: ${{ env.FLY_ORG }}
-          config: fly.toml
+        working-directory: apps/api
+        run: |
+          # Set the app name
+          APP_NAME="framer-university-api-pr-${{ github.event.number }}"
+          
+          # Make the binary executable
+          chmod +x target/release/api
+          
+          # Check if app exists, create if not
+          if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
+            flyctl apps create $APP_NAME --org ${{ env.FLY_ORG }} --no-deploy
+          fi
+          
+          # Set secrets
+          echo "DATABASE_URL=${{ steps.create-branch.outputs.db_url }}" | flyctl secrets import --app $APP_NAME
+          
+          # Deploy the app using prebuilt Dockerfile
+          flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
+          
+          # Get the URL and set output
+          URL="https://${APP_NAME}.fly.dev"
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
 
   comment:
     needs:
