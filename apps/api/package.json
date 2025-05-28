@@ -5,7 +5,7 @@
     "dev": "cargo run",
     "lint": "cargo clippy -- -D warnings",
     "format": "cargo fmt --check",
-    "test": "cargo test",
+    "test": "cargo test --release",
     "clean": "rm -rf .turbo && cargo clean",
     "generate-openapi": "cargo run --bin gen_openapi",
     "generate-sqlx": "cargo sqlx prepare --workspace -- --all-targets"
