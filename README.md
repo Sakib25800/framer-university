@@ -6,7 +6,7 @@
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
-  <!-- Cache test #4 - remote cache optimized, expecting improved CI performance -->
+  <!-- Demo: Enhanced preview workflow with Vercel-style deployment table -->
 </div>
 </edits>
 
