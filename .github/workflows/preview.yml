@@ -217,10 +217,8 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-      # Build all apps
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
-      # Deploy web to Cloudflare
       - name: Deploy web to Cloudflare
         id: web-deploy
         uses: cloudflare/wrangler-action@v3
@@ -234,7 +232,6 @@ jobs:
         id: web-url
         run: echo "url=https://web.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
 
-      # Deploy admin to Cloudflare
       - name: Deploy admin to Cloudflare
         id: admin-deploy
         uses: cloudflare/wrangler-action@v3
@@ -248,7 +245,6 @@ jobs:
         id: admin-url
         run: echo "url=https://admin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
 
-      # Deploy plugin to Cloudflare
       - name: Deploy plugin to Cloudflare
         id: plugin-deploy
         uses: cloudflare/wrangler-action@v3
@@ -262,7 +258,6 @@ jobs:
         id: plugin-url
         run: echo "url=https://plugin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
 
-      # Deploy Storybook to Chromatic
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
         uses: chromaui/action@latest
@@ -271,7 +266,6 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/storybook
 
-      # Deploy API to Fly
       - name: Deploy API to Fly
         id: api-deploy
         working-directory: apps/api
@@ -279,21 +273,21 @@ jobs:
         run: |
           # Set the app name
           APP_NAME="framer-university-api-pr-${{ github.event.number }}"
-          
+
           # Make the binary executable
           chmod +x target/release/api
-          
+
           # Check if app exists, create if not
           if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
             flyctl apps create $APP_NAME --org framer-university-217 --yes
           fi
-          
+
           # Set secrets
           echo "DATABASE_URL=${{ steps.create-branch.outputs.db_url }}" | flyctl secrets import --app $APP_NAME
-          
+
           # Deploy the app using prebuilt Dockerfile
           flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
-          
+
           # Get the URL and set output
           URL="https://${APP_NAME}.fly.dev"
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -372,7 +366,7 @@ jobs:
           echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
           echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
-          
+
           # Get current timestamp for Updated column
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           echo "current_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
