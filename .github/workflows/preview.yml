@@ -282,18 +282,11 @@ jobs:
             flyctl apps create $APP_NAME --org framer-university-217 --yes
           fi
 
-          # Set secrets
+          # Set secrets (only actual secrets, fly.toml handles env vars)
           cat << EOF | flyctl secrets import --app $APP_NAME
           DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
           JWT_SECRET=$(openssl rand -base64 32)
-          JWT_ACCESS_TOKEN_EXPIRATION_HOURS=24
-          JWT_REFRESH_TOKEN_EXPIRATION_DAYS=7
-          EMAIL_VERIFICATION_EXPIRATION_HOURS=48
-          CONNECTION_TIMEOUT_SECONDS=10
-          POOL_SIZE=3
-          APP_URL=https://${APP_NAME}.fly.dev
-          DOMAIN_NAME=https://frameruniversity.com
-          ALLOWED_ORIGINS=*.frameruniversity.com,*.frameruniversity.workers.dev
+          MAILGUN_SMTP_PASSWORD=${{ secrets.MAILGUN_SMTP_PASSWORD }}
           EOF
 
           # Deploy the app using prebuilt Dockerfile
