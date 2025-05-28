@@ -341,10 +341,23 @@ jobs:
           DATABASE_URL: ${{ needs.setup.outputs.database-url }}
         run: sqlx migrate run
 
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+
+      - run: pnpm install
+      
       - env:
           DATABASE_URL: ${{ needs.setup.outputs.database-url }}
         run: pnpm build
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
       - name: Deploy API to Fly
         id: deploy-api
         uses: superfly/fly-pr-review-apps@1.5.0
@@ -356,6 +369,8 @@ jobs:
           path: apps/api
           region: lhr
           org: framer-university
+          build_args: BUILDKIT_INLINE_CACHE=1
+          config: Dockerfile.prebuilt
 
   schema-diff:
     needs: [ci, setup]
