@@ -213,7 +213,7 @@ jobs:
     environment:
       name: pr-${{ github.event.number }}
     outputs:
-      web_url: ${{ steps.web-deploy.outputs.deployment-url }}
+      web_url: https://web.frameruniversity.workers.dev
       admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
       plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       api_url: ${{ steps.api-deploy.outputs.url }}
@@ -270,15 +270,12 @@ jobs:
 
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
-      - name: Deploy web to preview
+      - name: Web preview placeholder
         id: web-deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/web
-          command: deploy
+        run: |
+          # For now, use production URL as fallback
+          # TODO: Fix preview deployment for complex workers
+          echo "Web preview not available - using production URL as fallback"
 
       - name: Create admin preview version
         id: admin-deploy
