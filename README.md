@@ -6,7 +6,9 @@
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
+  <!-- Cache test - this should trigger a rebuild -->
 </div>
+</edits>
 
 <div align="center">
   <a href="#overview">Overview</a> •
