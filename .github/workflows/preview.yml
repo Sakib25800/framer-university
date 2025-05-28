@@ -162,8 +162,8 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: Preview - Web
-      url: ${{ steps.deploy.outputs.url }}
+      name: pr-${{ github.event.number }}
+      url: ${{ steps.web-url.outputs.url }}
     outputs:
       url: ${{ steps.web-url.outputs.url }}
       status: ${{ job.status }}
@@ -202,8 +202,8 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: Preview - Admin
-      url: ${{ steps.deploy.outputs.url }}
+      name: pr-${{ github.event.number }}
+      url: ${{ steps.admin-url.outputs.url }}
     outputs:
       url: ${{ steps.admin-url.outputs.url }}
       status: ${{ job.status }}
@@ -242,8 +242,8 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: Preview - Plugin
-      url: ${{ steps.deploy.outputs.url }}
+      name: pr-${{ github.event.number }}
+      url: ${{ steps.plugin-url.outputs.url }}
     outputs:
       url: ${{ steps.plugin-url.outputs.url }}
       status: ${{ job.status }}
@@ -313,7 +313,7 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
-      name: Preview - API
+      name: pr-${{ github.event.number }}
       url: ${{ steps.deploy.outputs.url }}
     outputs:
       url: ${{ steps.deploy.outputs.url }}
