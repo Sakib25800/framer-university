@@ -14,6 +14,9 @@ env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
   NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
+  FLY_ORG: ${{ vars.FLY_ORG }}
 
 jobs:
   cleanup:
@@ -289,7 +292,6 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/storybook
 
-
   deploy-api:
     needs: [ci, setup]
     if: github.event.action != 'closed'
@@ -358,30 +360,38 @@ jobs:
           key: cargo-deps-${{ hashFiles('**/Cargo.lock') }}
 
       - run: pnpm install
-      
+
       - env:
           DATABASE_URL: ${{ steps.create-branch-api.outputs.db_url }}
         run: pnpm build
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Deploy API to Fly
         id: deploy-api
         uses: superfly/fly-pr-review-apps@1.5.0
         continue-on-error: true
         with:
-          name: pr-${{ github.event.number }}-frameruniversity-api
+          name: pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api
           secrets: DATABASE_URL=${{ steps.create-branch-api.outputs.db_url }}
           postgres: false
           path: apps/api
           region: lhr
-          org: framer-university
+          org: ${{ env.FLY_ORG }}
           build_args: BUILDKIT_INLINE_CACHE=1
           config: Dockerfile.prebuilt
 
   comment:
-    needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup]
+    needs:
+      [
+        deploy-web,
+        deploy-admin,
+        deploy-plugin,
+        deploy-storybook,
+        deploy-api,
+        setup
+      ]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
@@ -405,7 +415,7 @@ jobs:
             echo "web=🔄 Building" >> $GITHUB_OUTPUT
             echo "web-preview=" >> $GITHUB_OUTPUT
           fi
-          
+
           # Admin status
           if [ "${{ needs.deploy-admin.result }}" = "success" ]; then
             echo "admin=✅ Ready" >> $GITHUB_OUTPUT
@@ -417,7 +427,7 @@ jobs:
             echo "admin=🔄 Building" >> $GITHUB_OUTPUT
             echo "admin-preview=" >> $GITHUB_OUTPUT
           fi
-          
+
           # Plugin status
           if [ "${{ needs.deploy-plugin.result }}" = "success" ]; then
             echo "plugin=✅ Ready" >> $GITHUB_OUTPUT
@@ -429,7 +439,7 @@ jobs:
             echo "plugin=🔄 Building" >> $GITHUB_OUTPUT
             echo "plugin-preview=" >> $GITHUB_OUTPUT
           fi
-          
+
           # API status
           if [ "${{ needs.deploy-api.result }}" = "success" ]; then
             echo "api=✅ Ready" >> $GITHUB_OUTPUT
@@ -441,11 +451,11 @@ jobs:
             echo "api=🔄 Building" >> $GITHUB_OUTPUT
             echo "api-preview=" >> $GITHUB_OUTPUT
           fi
-          
+
           # Storybook status
           if [ "${{ needs.deploy-storybook.result }}" = "success" ]; then
             echo "storybook=✅ Ready" >> $GITHUB_OUTPUT
-            echo "storybook-preview=[View Builds](https://www.chromatic.com/builds?appId=682b64d98cd11e69605e4eae)" >> $GITHUB_OUTPUT
+            echo "storybook-preview=[View Builds](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
           elif [ "${{ needs.deploy-storybook.result }}" = "failure" ]; then
             echo "storybook=❌ Failed" >> $GITHUB_OUTPUT
             echo "storybook-preview=" >> $GITHUB_OUTPUT
@@ -453,7 +463,7 @@ jobs:
             echo "storybook=🔄 Building" >> $GITHUB_OUTPUT
             echo "storybook-preview=" >> $GITHUB_OUTPUT
           fi
-          
+
           # Database status (always success since it's just setup)
           echo "database=✅ Ready" >> $GITHUB_OUTPUT
           echo "database-preview=[View Console](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches)" >> $GITHUB_OUTPUT
@@ -462,14 +472,14 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            The latest updates on your projects ([inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+            Preview the latest updates on your projects ([inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
 
             | Name | Status | Preview | Updated (UTC) |
             |------|--------|---------|---------------|
-            | web | ${{ steps.statuses.outputs.web }} ([Inspect](https://dash.cloudflare.com/d47aab7d55d6a29134f932b532a830dd/workers/services/view/web-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.web-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://dash.cloudflare.com/d47aab7d55d6a29134f932b532a830dd/workers/services/view/admin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://dash.cloudflare.com/d47aab7d55d6a29134f932b532a830dd/workers/services/view/plugin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://fly.io/apps/pr-${{ github.event.number }}-frameruniversity-api/monitoring)) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | web | ${{ steps.statuses.outputs.web }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/web-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.web-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/admin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/plugin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://fly.io/apps/pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api/monitoring)) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
             | storybook | ${{ steps.statuses.outputs.storybook }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.storybook-preview }} | ${{ steps.timestamp.outputs.current }} |
             | database | ${{ steps.statuses.outputs.database }} ([Inspect](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches)) | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
           comment_tag: preview-deployment
