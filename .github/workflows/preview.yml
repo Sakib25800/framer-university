@@ -184,14 +184,29 @@ jobs:
       - run: pnpm install
       - run: pnpm build --filter=web
 
-      - name: Deploy web to Cloudflare
-        id: deploy
+      - name: Setup Wrangler
         uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/web"
-          command: deploy
+          wranglerVersion: "3.78.0"
+
+      - name: Deploy web to Cloudflare
+        id: deploy
+        working-directory: apps/web
+        continue-on-error: true
+        run: |
+          OUTPUT=$(wrangler deploy --env preview 2>&1)
+          echo "$OUTPUT"
+          
+          # Extract URL from wrangler output
+          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*\.workers\.dev' | head -1)
+          if [ -z "$URL" ]; then
+            URL="https://web.frameruniversity.workers.dev"
+          fi
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
 
   deploy-admin:
     needs: [ci, setup]
@@ -220,14 +235,29 @@ jobs:
       - run: pnpm install
       - run: pnpm build --filter=admin
 
-      - name: Deploy admin to Cloudflare
-        id: deploy
+      - name: Setup Wrangler
         uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/admin"
-          command: deploy
+          wranglerVersion: "3.78.0"
+
+      - name: Deploy admin to Cloudflare
+        id: deploy
+        working-directory: apps/admin
+        continue-on-error: true
+        run: |
+          OUTPUT=$(wrangler deploy --env preview 2>&1)
+          echo "$OUTPUT"
+          
+          # Extract URL from wrangler output
+          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*\.workers\.dev' | head -1)
+          if [ -z "$URL" ]; then
+            URL="https://admin.frameruniversity.workers.dev"
+          fi
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
 
   deploy-plugin:
     needs: [ci, setup]
@@ -256,14 +286,29 @@ jobs:
       - run: pnpm install
       - run: pnpm build --filter=plugin
 
-      - name: Deploy plugin to Cloudflare
-        id: deploy
+      - name: Setup Wrangler
         uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/plugin"
-          command: deploy
+          wranglerVersion: "3.78.0"
+
+      - name: Deploy plugin to Cloudflare
+        id: deploy
+        working-directory: apps/plugin
+        continue-on-error: true
+        run: |
+          OUTPUT=$(wrangler deploy --env preview 2>&1)
+          echo "$OUTPUT"
+          
+          # Extract URL from wrangler output
+          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*\.workers\.dev' | head -1)
+          if [ -z "$URL" ]; then
+            URL="https://plugin.frameruniversity.workers.dev"
+          fi
+          
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
 
   deploy-storybook:
     needs: [ci, setup]
@@ -362,7 +407,7 @@ jobs:
           
           # Check if app exists, create if not
           if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
-            flyctl apps create $APP_NAME --org ${{ env.FLY_ORG }} --no-deploy
+            flyctl apps create $APP_NAME --org ${{ env.FLY_ORG }} --yes
           fi
           
           # Set secrets
