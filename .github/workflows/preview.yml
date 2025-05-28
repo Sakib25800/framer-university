@@ -157,167 +157,22 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-  deploy-web:
+  deploy:
     needs: [ci, setup]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     environment:
       name: pr-${{ github.event.number }}
-      url: ${{ steps.web-url.outputs.url }}
     outputs:
-      url: ${{ steps.web-url.outputs.url }}
-      status: ${{ job.status }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-      - run: pnpm build --filter=web
-
-      - name: Deploy web to Cloudflare
-        id: deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/web"
-          command: deploy --env preview
-
-      - name: Set web URL output
-        id: web-url
-        run: echo "url=https://web.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-
-  deploy-admin:
-    needs: [ci, setup]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    environment:
-      name: pr-${{ github.event.number }}
-      url: ${{ steps.admin-url.outputs.url }}
-    outputs:
-      url: ${{ steps.admin-url.outputs.url }}
-      status: ${{ job.status }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-      - run: pnpm build --filter=admin
-
-      - name: Deploy admin to Cloudflare
-        id: deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/admin"
-          command: deploy --env preview
-
-      - name: Set admin URL output
-        id: admin-url
-        run: echo "url=https://admin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-
-  deploy-plugin:
-    needs: [ci, setup]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    environment:
-      name: pr-${{ github.event.number }}
-      url: ${{ steps.plugin-url.outputs.url }}
-    outputs:
-      url: ${{ steps.plugin-url.outputs.url }}
-      status: ${{ job.status }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-      - run: pnpm build --filter=plugin
-
-      - name: Deploy plugin to Cloudflare
-        id: deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/plugin"
-          command: deploy --env preview
-
-      - name: Set plugin URL output
-        id: plugin-url
-        run: echo "url=https://plugin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-
-  deploy-storybook:
-    needs: [ci, setup]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    outputs:
-      status: ${{ job.status }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-      - run: pnpm build --filter=storybook
-
-      - name: Deploy Storybook to Chromatic
-        id: deploy
-        uses: chromaui/action@latest
-        continue-on-error: true
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: apps/storybook
-
-  deploy-api:
-    needs: [ci, setup]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    environment:
-      name: pr-${{ github.event.number }}
-      url: ${{ steps.deploy.outputs.url }}
-    outputs:
-      url: ${{ steps.deploy.outputs.url }}
-      status: ${{ job.status }}
+      web_url: ${{ steps.web-url.outputs.url }}
+      admin_url: ${{ steps.admin-url.outputs.url }}
+      plugin_url: ${{ steps.plugin-url.outputs.url }}
+      api_url: ${{ steps.api-deploy.outputs.url }}
+      web_status: ${{ steps.web-deploy.outcome }}
+      admin_status: ${{ steps.admin-deploy.outcome }}
+      plugin_status: ${{ steps.plugin-deploy.outcome }}
+      api_status: ${{ steps.api-deploy.outcome }}
+      storybook_status: ${{ steps.storybook-deploy.outcome }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -362,9 +217,65 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
+      # Build all apps
+      - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
+
+      # Deploy web to Cloudflare
+      - name: Deploy web to Cloudflare
+        id: web-deploy
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/web"
+          command: deploy --env preview
+
+      - name: Set web URL output
+        id: web-url
+        run: echo "url=https://web.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+
+      # Deploy admin to Cloudflare
+      - name: Deploy admin to Cloudflare
+        id: admin-deploy
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/admin"
+          command: deploy --env preview
+
+      - name: Set admin URL output
+        id: admin-url
+        run: echo "url=https://admin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+
+      # Deploy plugin to Cloudflare
+      - name: Deploy plugin to Cloudflare
+        id: plugin-deploy
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/plugin"
+          command: deploy --env preview
+
+      - name: Set plugin URL output
+        id: plugin-url
+        run: echo "url=https://plugin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+
+      # Deploy Storybook to Chromatic
+      - name: Deploy Storybook to Chromatic
+        id: storybook-deploy
+        uses: chromaui/action@latest
+        continue-on-error: true
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/storybook
+
+      # Deploy API to Fly
       - name: Deploy API to Fly
-        id: deploy
+        id: api-deploy
         working-directory: apps/api
+        continue-on-error: true
         run: |
           # Set the app name
           APP_NAME="framer-university-api-pr-${{ github.event.number }}"
@@ -390,15 +301,7 @@ jobs:
           FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
 
   comment:
-    needs:
-      [
-        deploy-web,
-        deploy-admin,
-        deploy-plugin,
-        deploy-storybook,
-        deploy-api,
-        setup
-      ]
+    needs: [deploy, setup]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
@@ -412,11 +315,11 @@ jobs:
         id: status
         run: |
           # Generate status for each deployment
-          web_status="${{ needs.deploy-web.outputs.status }}"
-          admin_status="${{ needs.deploy-admin.outputs.status }}"
-          plugin_status="${{ needs.deploy-plugin.outputs.status }}"
-          api_status="${{ needs.deploy-api.outputs.status }}"
-          storybook_status="${{ needs.deploy-storybook.outputs.status }}"
+          web_status="${{ needs.deploy.outputs.web_status }}"
+          admin_status="${{ needs.deploy.outputs.admin_status }}"
+          plugin_status="${{ needs.deploy.outputs.plugin_status }}"
+          api_status="${{ needs.deploy.outputs.api_status }}"
+          storybook_status="${{ needs.deploy.outputs.storybook_status }}"
 
           # Convert status to emoji and text
           get_status_display() {
@@ -463,10 +366,10 @@ jobs:
           echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
           echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
 
-          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy-web.outputs.url }}")" >> $GITHUB_OUTPUT
-          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy-admin.outputs.url }}")" >> $GITHUB_OUTPUT
-          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy-plugin.outputs.url }}")" >> $GITHUB_OUTPUT
-          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy-api.outputs.url }}")" >> $GITHUB_OUTPUT
+          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
+          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
+          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
+          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
           echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
           
