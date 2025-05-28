@@ -1,5 +1,6 @@
 name: Preview
 
+# Test cache performance after optimizations
 on:
   pull_request:
     types: [opened, synchronize]
