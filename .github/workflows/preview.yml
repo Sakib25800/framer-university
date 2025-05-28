@@ -95,6 +95,8 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
+      - run: pnpm install
+
       - name: Install SQLX CLI
         run: |
           if ! command -v sqlx &> /dev/null; then
@@ -106,6 +108,7 @@ jobs:
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
         run: |
+          echo "Database URL: ${DATABASE_URL}"
           cargo sqlx database create && sqlx migrate run
           pnpm generate-sqlx
 
