@@ -91,11 +91,9 @@ jobs:
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}
+          branch_name: preview/pr-${{ steps.branch-name.outputs.current_branch }}
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
-
-      - run: pnpm install
 
       - name: Install SQLX CLI
         run: |
@@ -105,6 +103,8 @@ jobs:
 
       - name: SQLX setup
         working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
         run: |
           cargo sqlx database create && sqlx migrate run
           pnpm generate-sqlx
@@ -116,10 +116,10 @@ jobs:
 
       - run: pnpm playwright install chromium
         working-directory: apps/web
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
 
       - run: pnpm test:e2e
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.connection_uri }}
 
   setup:
     if: github.event.action != 'closed'
@@ -317,12 +317,16 @@ jobs:
             cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           fi
 
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v8
+
       - name: Create Neon Branch
         id: create-branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}
+          branch_name: preview/pr-${{ steps.branch-name.outputs.current_branch }}
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
