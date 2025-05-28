@@ -355,10 +355,17 @@ jobs:
           path: apps/api
           org: ${{ env.FLY_ORG }}
           config: fly.toml
-          region: lhr
 
   comment:
-    needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup]
+    needs:
+      [
+        deploy-web,
+        deploy-admin,
+        deploy-plugin,
+        deploy-storybook,
+        deploy-api,
+        setup
+      ]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
