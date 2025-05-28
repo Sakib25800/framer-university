@@ -4,7 +4,18 @@
   "remoteCache": {
     "signature": true
   },
-  "globalPassThroughEnv": ["DATABASE_URL"],
+  "globalPassThroughEnv": [
+    "DATABASE_URL",
+    "API_URL",
+    "CARGO_INCREMENTAL",
+    "CARGO_PROFILE_DEV_DEBUG", 
+    "CARGO_TERM_COLOR",
+    "RUST_BACKTRACE",
+    "RUSTFLAGS",
+    "CARGO_UNSTABLE_SPARSE_REGISTRY",
+    "CARGO_REGISTRIES_CRATES_IO_PROTOCOL",
+    "CACHE_ON_FAILURE"
+  ],
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -22,7 +33,9 @@
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
     },
-
+    "test": {
+      "dependsOn": ["^build", "^test"]
+    },
     "test:e2e": {
       "outputs": ["playwright-report", "playwright-results"]
     },
