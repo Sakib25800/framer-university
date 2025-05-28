@@ -13,7 +13,8 @@
       "outputs": ["target/release/api", "target/release/gen_openapi"]
     },
     "test": {
-      "outputs": ["target/debug/deps/**"],
+      "dependsOn": ["build"],
+      "outputs": [],
       "cache": false
     },
     "generate-openapi": {
