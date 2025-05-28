@@ -6,7 +6,7 @@
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
-  <!-- Cache test - this should trigger a rebuild -->
+  <!-- Cache test #2 - testing if remote cache works properly -->
 </div>
 </edits>
 
