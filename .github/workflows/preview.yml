@@ -125,6 +125,15 @@ jobs:
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
 
+      - name: Upload API binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: |
+            apps/api/target/release/api
+            apps/api/.sqlx/
+          retention-days: 1
+
   setup:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
@@ -315,40 +324,11 @@ jobs:
 
       - run: pnpm install
 
-      - name: Install SQLX CLI
-        run: |
-          if ! command -v sqlx &> /dev/null; then
-            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
-          fi
-
-      - name: Get branch name
-        id: branch-name
-        uses: tj-actions/branch-names@v8
-
-      - name: Create Neon Branch
-        id: create-branch
-        uses: neondatabase/create-branch-action@v6
+      - name: Download API binary artifact
+        uses: actions/download-artifact@v4
         with:
-          project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ steps.branch-name.outputs.current_branch }}
-          role: neondb_owner
-          api_key: ${{ env.NEON_API_KEY }}
-
-      - name: SQLX setup
-        working-directory: apps/api
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: |
-          cargo sqlx database create && sqlx migrate run
-          pnpm generate-sqlx
-
-      - run: pnpm build --filter=api
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-
-      - run: pnpm test --filter=api
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
+          name: api-binary-${{ github.run_id }}
+          path: apps/api/
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 

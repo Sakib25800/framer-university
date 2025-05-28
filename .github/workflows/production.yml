@@ -76,6 +76,15 @@ jobs:
 
       - run: pnpm test:e2e
 
+      - name: Upload API binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: |
+            apps/api/target/release/api
+            apps/api/.sqlx/
+          retention-days: 1
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
@@ -225,7 +234,12 @@ jobs:
           cache-workspaces: apps/api
 
       - run: pnpm install
-      - run: pnpm build --filter=api
+
+      - name: Download API binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: apps/api/
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
       
