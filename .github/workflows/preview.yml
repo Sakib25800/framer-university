@@ -232,6 +232,15 @@ jobs:
           workingDirectory: "apps/plugin"
           command: deploy --name=plugin-preview-pr-${{ github.event.number }}
 
+      - name: Deploy Storybook to Chromatic
+        id: deploy-storybook
+        uses: chromaui/action@latest
+        continue-on-error: true
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/storybook
+          onlyChanged: true
+
       - name: Deploy API to Fly
         id: deploy-api
         uses: superfly/fly-pr-review-apps@1.5.0
