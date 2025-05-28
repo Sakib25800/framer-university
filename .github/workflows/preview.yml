@@ -139,6 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch-id: ${{ steps.create-branch.outputs.branch_id }}
+      db-url: ${{ steps.create-branch.outputs.db_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -335,13 +336,11 @@ jobs:
       - name: Deploy API to Fly
         id: deploy
         uses: superfly/fly-pr-review-apps@1.2.0
-        continue-on-error: true
         with:
           name: framer-university-api-pr-${{ github.event.number }}
-          secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
+          secrets: DATABASE_URL=${{ needs.setup.outputs.db-url }}
           postgres: false
           path: apps/api
-          region: bos
           org: ${{ env.FLY_ORG }}
           config: fly.toml
 
