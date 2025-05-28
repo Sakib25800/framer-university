@@ -184,29 +184,18 @@ jobs:
       - run: pnpm install
       - run: pnpm build --filter=web
 
-      - name: Setup Wrangler
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: "3.78.0"
-
       - name: Deploy web to Cloudflare
         id: deploy
-        working-directory: apps/web
+        uses: cloudflare/wrangler-action@v3
         continue-on-error: true
-        run: |
-          OUTPUT=$(wrangler deploy --env preview 2>&1)
-          echo "$OUTPUT"
-          
-          # Extract URL from wrangler output
-          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*\.workers\.dev' | head -1)
-          if [ -z "$URL" ]; then
-            URL="https://web.frameruniversity.workers.dev"
-          fi
-          
-          echo "url=$URL" >> $GITHUB_OUTPUT
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/web"
+          command: deploy --env preview
+
+      - name: Set web URL output
+        run: echo "url=https://web.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+        if: steps.deploy.outcome == 'success'
 
   deploy-admin:
     needs: [ci, setup]
@@ -235,29 +224,18 @@ jobs:
       - run: pnpm install
       - run: pnpm build --filter=admin
 
-      - name: Setup Wrangler
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: "3.78.0"
-
       - name: Deploy admin to Cloudflare
         id: deploy
-        working-directory: apps/admin
+        uses: cloudflare/wrangler-action@v3
         continue-on-error: true
-        run: |
-          OUTPUT=$(wrangler deploy --env preview 2>&1)
-          echo "$OUTPUT"
-          
-          # Extract URL from wrangler output
-          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*\.workers\.dev' | head -1)
-          if [ -z "$URL" ]; then
-            URL="https://admin.frameruniversity.workers.dev"
-          fi
-          
-          echo "url=$URL" >> $GITHUB_OUTPUT
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/admin"
+          command: deploy --env preview
+
+      - name: Set admin URL output
+        run: echo "url=https://admin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+        if: steps.deploy.outcome == 'success'
 
   deploy-plugin:
     needs: [ci, setup]
@@ -286,29 +264,18 @@ jobs:
       - run: pnpm install
       - run: pnpm build --filter=plugin
 
-      - name: Setup Wrangler
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: "3.78.0"
-
       - name: Deploy plugin to Cloudflare
         id: deploy
-        working-directory: apps/plugin
+        uses: cloudflare/wrangler-action@v3
         continue-on-error: true
-        run: |
-          OUTPUT=$(wrangler deploy --env preview 2>&1)
-          echo "$OUTPUT"
-          
-          # Extract URL from wrangler output
-          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*\.workers\.dev' | head -1)
-          if [ -z "$URL" ]; then
-            URL="https://plugin.frameruniversity.workers.dev"
-          fi
-          
-          echo "url=$URL" >> $GITHUB_OUTPUT
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: "apps/plugin"
+          command: deploy --env preview
+
+      - name: Set plugin URL output
+        run: echo "url=https://plugin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+        if: steps.deploy.outcome == 'success'
 
   deploy-storybook:
     needs: [ci, setup]
@@ -407,7 +374,7 @@ jobs:
           
           # Check if app exists, create if not
           if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
-            flyctl apps create $APP_NAME --org ${{ env.FLY_ORG }} --yes
+            flyctl apps create $APP_NAME --org framer-university-217 --yes
           fi
           
           # Set secrets
