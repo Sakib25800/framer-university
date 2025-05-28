@@ -214,15 +214,15 @@ jobs:
       name: pr-${{ github.event.number }}
     outputs:
       web_url: ${{ steps.web-deploy.outputs.deployment-url }}
-      admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
-      plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
-      api_url: ${{ steps.api-deploy.outputs.url }}
-      storybook_url: ${{ steps.storybook-deploy.outputs.buildUrl }}
+      # admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
+      # plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
+      # api_url: ${{ steps.api-deploy.outputs.url }}
+      # storybook_url: ${{ steps.storybook-deploy.outputs.buildUrl }}
       web_status: ${{ steps.web-deploy.outcome }}
-      admin_status: ${{ steps.admin-deploy.outcome }}
-      plugin_status: ${{ steps.plugin-deploy.outcome }}
-      api_status: ${{ steps.api-deploy.outcome }}
-      storybook_status: ${{ steps.storybook-deploy.outcome }}
+      # admin_status: ${{ steps.admin-deploy.outcome }}
+      # plugin_status: ${{ steps.plugin-deploy.outcome }}
+      # api_status: ${{ steps.api-deploy.outcome }}
+      # storybook_status: ${{ steps.storybook-deploy.outcome }}
 
     steps:
       - uses: actions/checkout@v4
@@ -280,64 +280,64 @@ jobs:
           workingDirectory: apps/web
           command: deploy --name web-pr-${{ github.event.number }}
 
-      - name: Create admin preview version
-        id: admin-deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/admin
-          command: versions upload
+      # - name: Create admin preview version
+      #   id: admin-deploy
+      #   uses: cloudflare/wrangler-action@v3
+      #   continue-on-error: true
+      #   with:
+      #     apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+      #     accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+      #     workingDirectory: apps/admin
+      #     command: versions upload
 
-      - name: Create plugin preview version
-        id: plugin-deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/plugin
-          command: versions upload
+      # - name: Create plugin preview version
+      #   id: plugin-deploy
+      #   uses: cloudflare/wrangler-action@v3
+      #   continue-on-error: true
+      #   with:
+      #     apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+      #     accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+      #     workingDirectory: apps/plugin
+      #     command: versions upload
 
-      - name: Deploy Storybook to Chromatic
-        id: storybook-deploy
-        uses: chromaui/action@latest
-        continue-on-error: true
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: apps/storybook
+      # - name: Deploy Storybook to Chromatic
+      #   id: storybook-deploy
+      #   uses: chromaui/action@latest
+      #   continue-on-error: true
+      #   with:
+      #     projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+      #     workingDir: apps/storybook
 
-      - name: Deploy API to Fly
-        id: api-deploy
-        working-directory: apps/api
-        continue-on-error: true
-        run: |
-          # Set the app name
-          APP_NAME="framer-university-api-pr-${{ github.event.number }}"
-
-          # Make the binary executable
-          chmod +x target/release/api
-
-          # Check if app exists, create if not
-          if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
-            flyctl apps create $APP_NAME --org framer-university-217 --yes
-          fi
-
-          # Set secrets
-          flyctl secrets set --app $APP_NAME \
-            DATABASE_URL="${{ steps.create-branch.outputs.db_url }}" \
-            JWT_SECRET="$(openssl rand -base64 32)" \
-            MAILGUN_SMTP_PASSWORD="${{ secrets.MAILGUN_SMTP_PASSWORD }}"
-
-          # Deploy the app using prebuilt Dockerfile
-          flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
-
-          # Get the URL and set output
-          URL="https://${APP_NAME}.fly.dev"
-          echo "url=$URL" >> $GITHUB_OUTPUT
-        env:
-          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
+      # - name: Deploy API to Fly
+      #   id: api-deploy
+      #   working-directory: apps/api
+      #   continue-on-error: true
+      #   run: |
+      #     # Set the app name
+      #     APP_NAME="framer-university-api-pr-${{ github.event.number }}"
+      #
+      #     # Make the binary executable
+      #     chmod +x target/release/api
+      #
+      #     # Check if app exists, create if not
+      #     if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
+      #       flyctl apps create $APP_NAME --org framer-university-217 --yes
+      #     fi
+      #
+      #     # Set secrets
+      #     flyctl secrets set --app $APP_NAME \
+      #       DATABASE_URL="${{ steps.create-branch.outputs.db_url }}" \
+      #       JWT_SECRET="$(openssl rand -base64 32)" \
+      #       MAILGUN_SMTP_PASSWORD="${{ secrets.MAILGUN_SMTP_PASSWORD }}"
+      #
+      #     # Deploy the app using prebuilt Dockerfile
+      #     flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
+      #
+      #     # Get the URL and set output
+      #     URL="https://${APP_NAME}.fly.dev"
+      #     echo "url=$URL" >> $GITHUB_OUTPUT
+      #   env:
+      #     FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
 
   comment:
     needs: [deploy, setup]
@@ -406,10 +406,10 @@ jobs:
           echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
 
           echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
-          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
-          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
-          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
-          echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy.outputs.storybook_url }}")" >> $GITHUB_OUTPUT
+          # echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
+          # echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
+          # echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
+          # echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy.outputs.storybook_url }}")" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
 
           # Get current timestamp for Updated column
@@ -425,9 +425,5 @@ jobs:
             | Name | Status | Preview | Updated (UTC) |
             |------|--------|---------|---------------|
             | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ steps.status.outputs.current_timestamp }} |
             | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ steps.status.outputs.current_timestamp }} |
           comment_tag: preview-deployment
