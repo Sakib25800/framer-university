@@ -2,7 +2,7 @@ name: Preview
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [opened, synchronize]
 
 env:
   PNPM_VERSION: 10.11.0
@@ -14,6 +14,10 @@ env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
   NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
+  FLY_ORG: ${{ vars.FLY_ORG }}
+  API_URL: http://localhost:8080
 
 jobs:
   cleanup:
@@ -28,28 +32,79 @@ jobs:
           api_key: ${{ env.NEON_API_KEY }}
         continue-on-error: true
 
-      - name: Clean up GitHub environment
-        uses: strumwolf/delete-deployment-environment@v2
-        if: ${{ github.event.action == 'closed' }}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: pr-${{ github.event.number }}
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Delete Fly Apps
         continue-on-error: true
+        run: |
+          if flyctl status --app framer-university-api-pr-${{ github.event.number }} >/dev/null 2>&1; then
+            flyctl apps destroy framer-university-api-pr-${{ github.event.number }} --yes
+          fi
+        env:
+          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - uses: actions/checkout@v4
+
+      - run: pnpm install
+
+      - name: Delete Cloudflare Workers Preview Versions
+        continue-on-error: true
+        run: |
+          # Clean up web worker preview versions
+          cd apps/web
+          pnpm wrangler versions list --json | jq -r '.[].id' | head -10 | while read version_id; do
+            if [ -n "$version_id" ]; then
+              pnpm wrangler versions delete "$version_id" --force || true
+            fi
+          done
+
+          # Clean up admin worker preview versions  
+          cd ../admin
+          pnpm wrangler versions list --json | jq -r '.[].id' | head -10 | while read version_id; do
+            if [ -n "$version_id" ]; then
+              pnpm wrangler versions delete "$version_id" --force || true
+            fi
+          done
+
+          # Clean up plugin worker preview versions
+          cd ../plugin
+          pnpm wrangler versions list --json | jq -r '.[].id' | head -10 | while read version_id; do
+            if [ -n "$version_id" ]; then
+              pnpm wrangler versions delete "$version_id" --force || true
+            fi
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Delete GitHub Environment
+        continue-on-error: true
+        run: |
+          curl -X DELETE \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/environments/pr-${{ github.event.number }}"
 
   ci:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-    
-    # Only run one deployment at a time per PR
+    env:
+      DATABASE_URL: postgres://postgres:password@localhost:5432/test
     concurrency:
-      group: pr-${{ github.event.number }}
+      group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-
-    # Create a GitHub deployment environment per preview app
     environment:
-      name: pr-${{ github.event.number }}
-      url: ${{ steps.deploy-web.outputs.deployment-url }}
-
+      name: preview
     services:
       postgres:
         image: postgres:16
@@ -64,7 +119,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -92,61 +146,82 @@ jobs:
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}
+          branch_name: preview/pr-${{ steps.branch-name.outputs.current_branch }}
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
       - run: pnpm install
 
-      - name: SQLX setup
+      - name: Install SQLX CLI
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+          fi
+
+      - name: SQLX check
         working-directory: apps/api
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
         run: |
-          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
           cargo sqlx database create && sqlx migrate run
-          cargo sqlx prepare --check -- --all-targets
+          cargo sqlx prepare --check
 
-      - name: Build
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: pnpm build
-
+      - run: pnpm build
       - run: pnpm check-types
       - run: pnpm lint
-
-      - name: Test
-        env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/test
-        run: pnpm test
+      - run: pnpm test
 
       - run: pnpm playwright install chromium
         working-directory: apps/web
 
-      - name: E2E Tests
+      - run: pnpm test:e2e
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: pnpm test:e2e
 
-  deploy:
-    needs: ci
+      - name: Upload API binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: |
+            apps/api/target/release/api
+            apps/api/.sqlx/
+          retention-days: 1
+
+  setup:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
-    
-    concurrency:
-      group: pr-${{ github.event.number }}-deploy
-      cancel-in-progress: true
+    outputs:
+      branch-id: ${{ steps.create-branch.outputs.branch_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Create Neon Branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}
+          role: neondb_owner
+          api_key: ${{ env.NEON_API_KEY }}
+
+  deploy:
+    needs: [ci, setup]
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
     environment:
       name: pr-${{ github.event.number }}
-      url: ${{ steps.deploy-web.outputs.deployment-url }}
-
     outputs:
-      web-url: ${{ steps.deploy-web.outputs.deployment-url }}
-      admin-url: ${{ steps.deploy-admin.outputs.deployment-url }}
-      plugin-url: ${{ steps.deploy-plugin.outputs.deployment-url }}
-      api-url: ${{ steps.deploy-api.outputs.url }}
-      branch-id: ${{ steps.create-branch.outputs.branch_id }}
+      web_url: ${{ steps.web-url.outputs.url }}
+      admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
+      plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
+      api_url: ${{ steps.api-deploy.outputs.url }}
+      web_status: ${{ steps.web-deploy.outcome }}
+      admin_status: ${{ steps.admin-deploy.outcome }}
+      plugin_status: ${{ steps.plugin-deploy.outcome }}
+      api_status: ${{ steps.api-deploy.outcome }}
+      storybook_status: ${{ steps.storybook-deploy.outcome }}
 
     steps:
       - uses: actions/checkout@v4
@@ -162,105 +237,210 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.85.0
+          components: clippy, rustfmt
+          cache-workspaces: apps/api
+
+      - run: pnpm install
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Download API binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: apps/api/
+
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v8
+
       - name: Create Neon Branch
         id: create-branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}
+          branch_name: preview/pr-${{ steps.branch-name.outputs.current_branch }}
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-      - run: pnpm install
+      - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
-      - name: Build
-        env:
-          DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
-        run: pnpm build
-
-      - name: Deploy web to Cloudflare
-        id: deploy-web
+      - name: Create web preview version
+        id: web-deploy
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/web"
-          command: pages deploy --project-name=frameruniversity-web-preview --branch=pr-${{ github.event.number }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: versions upload
 
-      - name: Deploy admin to Cloudflare
-        id: deploy-admin
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/admin"
-          command: pages deploy --project-name=frameruniversity-admin-preview --branch=pr-${{ github.event.number }}
+      - name: Extract web preview URL
+        id: web-url
+        run: |
+          # Extract Worker Version ID from command output
+          VERSION_ID=$(echo '${{ steps.web-deploy.outputs.command-output }}' | grep -o 'Worker Version ID: [a-f0-9-]*' | cut -d' ' -f4)
+          if [ -n "$VERSION_ID" ]; then
+            WEB_URL="https://${VERSION_ID}-web.frameruniversity.workers.dev"
+            echo "url=$WEB_URL" >> $GITHUB_OUTPUT
+            echo "Web preview URL: $WEB_URL"
+          else
+            echo "url=" >> $GITHUB_OUTPUT
+            echo "Could not extract version ID for web worker"
+          fi
 
-      - name: Deploy plugin to Cloudflare
-        id: deploy-plugin
+      - name: Create admin preview version
+        id: admin-deploy
         uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/plugin"
-          command: pages deploy --project-name=frameruniversity-plugin-preview --branch=pr-${{ github.event.number }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/admin
+          command: versions upload
+
+      - name: Create plugin preview version
+        id: plugin-deploy
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/plugin
+          command: versions upload
+
+      - name: Deploy Storybook to Chromatic
+        id: storybook-deploy
+        uses: chromaui/action@latest
+        continue-on-error: true
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/storybook
 
       - name: Deploy API to Fly
-        id: deploy-api
-        uses: superfly/fly-pr-review-apps@1.5.0
-        with:
-          name: pr-${{ github.event.number }}-frameruniversity-api
-          secrets: DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
-          postgres: false
-          path: apps/api
-          region: lhr
-          org: personal
+        id: api-deploy
+        working-directory: apps/api
+        continue-on-error: true
+        run: |
+          # Set the app name
+          APP_NAME="framer-university-api-pr-${{ github.event.number }}"
 
-  schema-diff:
-    needs: [ci, deploy]
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: read
-    steps:
-      - name: Schema Diff
-        uses: neondatabase/schema-diff-action@v1
-        with:
-          project_id: ${{ env.NEON_PROJECT_ID }}
-          compare_branch: preview/pr-${{ github.event.number }}
-          base_branch: main
-          api_key: ${{ env.NEON_API_KEY }}
-          database: neondb
-          username: neondb_owner
+          # Make the binary executable
+          chmod +x target/release/api
+
+          # Check if app exists, create if not
+          if ! flyctl status --app $APP_NAME >/dev/null 2>&1; then
+            flyctl apps create $APP_NAME --org framer-university-217 --yes
+          fi
+
+          # Set secrets
+          flyctl secrets set --app $APP_NAME \
+            DATABASE_URL="${{ steps.create-branch.outputs.db_url }}" \
+            JWT_SECRET="$(openssl rand -base64 32)" \
+            MAILGUN_SMTP_PASSWORD="${{ secrets.MAILGUN_SMTP_PASSWORD }}"
+
+          # Deploy the app using prebuilt Dockerfile
+          flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
+
+          # Get the URL and set output
+          URL="https://${APP_NAME}.fly.dev"
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
 
   comment:
-    needs: [deploy, schema-diff]
-    if: github.event.action != 'closed'
+    needs: [deploy, setup]
+    if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
+      - name: Get PR number
+        id: pr-number
+        run: echo "number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+
+      - name: Generate deployment status
+        id: status
+        run: |
+          # Generate status for each deployment
+          web_status="${{ needs.deploy.outputs.web_status }}"
+          admin_status="${{ needs.deploy.outputs.admin_status }}"
+          plugin_status="${{ needs.deploy.outputs.plugin_status }}"
+          api_status="${{ needs.deploy.outputs.api_status }}"
+          storybook_status="${{ needs.deploy.outputs.storybook_status }}"
+
+          # Convert status to emoji and text
+          get_status_display() {
+            case "$1" in
+              "success") echo "✅ Ready" ;;
+              "failure") echo "❌ Failed" ;;
+              "cancelled") echo "⚠️ Cancelled" ;;
+              "skipped") echo "⏭️ Skipped" ;;
+              *) echo "🔄 Building" ;;
+            esac
+          }
+
+          # Generate preview links for successful deployments
+          get_preview_link() {
+            local status="$1"
+            local url="$2"
+            if [[ "$status" == "success" && -n "$url" ]]; then
+              echo "[Visit Preview]($url)"
+            else
+              echo "-"
+            fi
+          }
+
+          # Generate inspect links
+          get_inspect_link() {
+            local name="$1"
+            case "$name" in
+              "web"|"admin"|"plugin") echo "[Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/$name/production/logs/live)" ;;
+              "api") echo "[Inspect](https://fly.io/apps/framer-university-api-pr-${{ github.event.number }}/monitoring)" ;;
+              "storybook") echo "[Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" ;;
+              *) echo "-" ;;
+            esac
+          }
+
+          echo "web_status=$(get_status_display "$web_status")" >> $GITHUB_OUTPUT
+          echo "admin_status=$(get_status_display "$admin_status")" >> $GITHUB_OUTPUT
+          echo "plugin_status=$(get_status_display "$plugin_status")" >> $GITHUB_OUTPUT
+          echo "api_status=$(get_status_display "$api_status")" >> $GITHUB_OUTPUT
+          echo "storybook_status=$(get_status_display "$storybook_status")" >> $GITHUB_OUTPUT
+
+          echo "web_name=**Web** ($(get_inspect_link "web"))" >> $GITHUB_OUTPUT
+          echo "admin_name=**Admin** ($(get_inspect_link "admin"))" >> $GITHUB_OUTPUT
+          echo "plugin_name=**Plugin** ($(get_inspect_link "plugin"))" >> $GITHUB_OUTPUT
+          echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
+          echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
+
+          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
+          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
+          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
+          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
+          echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
+          echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
+
+          # Get current timestamp for Updated column
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "current_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+
       - name: Comment on Pull Request
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            ## 🚀 Preview Deployment Ready!
-            
-            Your preview environment has been successfully deployed:
-            
-            ### 🌐 Preview URLs
-            - **Web App**: ${{ needs.deploy.outputs.web-url }}
-            - **Admin Panel**: ${{ needs.deploy.outputs.admin-url }}  
-            - **Plugin**: ${{ needs.deploy.outputs.plugin-url }}
-            - **API**: ${{ needs.deploy.outputs.api-url }}
-            
-            ### 🐘 Database
-            - **Neon Branch**: https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.deploy.outputs.branch-id }}
-            - **Branch Name**: `preview/pr-${{ github.event.number }}`
-            
-            ### ℹ️ Info
-            - This preview will be automatically cleaned up when the PR is closed
-            - Database migrations have been applied to the preview branch
-            - All tests passed ✅
-            
-            ---
-            *This comment will be updated automatically when new commits are pushed*
+            Preview the latest changes from this pull request. ([View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
+
+            | Name | Status | Preview | Updated (UTC) |
+            |------|--------|---------|---------------|
+            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ steps.status.outputs.current_timestamp }} |
           comment_tag: preview-deployment

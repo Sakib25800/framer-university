@@ -4,12 +4,22 @@
   "remoteCache": {
     "signature": true
   },
-  "globalPassThroughEnv": ["DATABASE_URL"],
+  "globalDependencies": [".env"],
+  "globalPassThroughEnv": [
+    "CI",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "dependsOn": ["^build"],
-      "outputs": ["build/**", "dist/**", "storybook-static/**"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "!.env.local"],
+      "outputs": [
+        "build/**",
+        "dist/**", 
+        "storybook-static/**",
+        ".next/**",
+        "!.next/cache/**"
+      ]
     },
     "dev": {
       "dependsOn": ["^build"],
@@ -17,13 +27,28 @@
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^build", "^lint"]
+      "dependsOn": ["^build"],
+      "outputs": []
     },
     "check-types": {
-      "dependsOn": ["^build", "^check-types"]
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
+      "outputs": ["coverage/**"],
+      "env": ["DATABASE_URL"]
     },
     "test:e2e": {
-      "outputs": ["playwright-report", "playwright-results"]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md"],
+      "outputs": ["playwright-report/**", "test-results/**"]
+    },
+    "generate-sqlx": {
+      "inputs": ["migrations/**/*.sql", "sqlx-data.json"],
+      "outputs": [".sqlx/**"],
+      "env": ["DATABASE_URL"]
     },
     "clean": {
       "cache": false

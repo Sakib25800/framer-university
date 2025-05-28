@@ -13,8 +13,15 @@
       "outputs": ["target/release/api", "target/release/gen_openapi"]
     },
     "test": {
-      "outputs": ["target/debug/deps/**"],
-      "cache": false
+      "dependsOn": ["build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "crates/**"
+      ],
+      "outputs": []
     },
     "generate-openapi": {
       "dependsOn": ["build"],
