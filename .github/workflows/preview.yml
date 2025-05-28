@@ -1,6 +1,5 @@
 name: Preview
 
-# Test cache performance after optimizations
 on:
   pull_request:
     types: [opened, synchronize]
@@ -262,7 +261,7 @@ jobs:
             FILTERS="$FILTERS --filter=storybook"
             echo "Will build storybook"
           fi
-          
+
           if [ -n "$FILTERS" ]; then
             echo "Building with filters:$FILTERS"
             pnpm build$FILTERS
@@ -270,7 +269,6 @@ jobs:
             echo "No applications need building"
           fi
 
-      # Create web preview version
       - name: Create web preview version
         id: web-deploy
         if: steps.changed-files.outputs.web_any_changed == 'true'
@@ -282,7 +280,6 @@ jobs:
           workingDirectory: apps/web
           command: versions upload
 
-      # Extract web preview URL manually since web worker doesn't generate preview URLs
       - name: Extract web preview URL
         id: web-url
         if: steps.changed-files.outputs.web_any_changed == 'true'
@@ -298,7 +295,6 @@ jobs:
             echo "Could not extract version ID for web worker"
           fi
 
-      # Create admin preview version
       - name: Create admin preview version
         id: admin-deploy
         if: steps.changed-files.outputs.admin_any_changed == 'true'
@@ -310,7 +306,6 @@ jobs:
           workingDirectory: apps/admin
           command: versions upload
 
-      # Create plugin preview version
       - name: Create plugin preview version
         id: plugin-deploy
         if: steps.changed-files.outputs.plugin_any_changed == 'true'
@@ -321,7 +316,6 @@ jobs:
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/plugin
           command: versions upload
-
 
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
@@ -438,7 +432,7 @@ jobs:
           admin_changed="${{ needs.deploy.outputs.admin_changed || 'false' }}"
           plugin_changed="${{ needs.deploy.outputs.plugin_changed || 'false' }}"
           api_changed="${{ needs.deploy.outputs.api_changed || 'false' }}"
-          
+
           echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}" "$web_changed")" >> $GITHUB_OUTPUT
           echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}" "$admin_changed")" >> $GITHUB_OUTPUT
           echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}" "$plugin_changed")" >> $GITHUB_OUTPUT
