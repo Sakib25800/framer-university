@@ -21,8 +21,7 @@
         "src/**",
         "crates/**"
       ],
-      "outputs": ["target/release/deps/**"],
-      "cache": true
+      "cache": false
     },
     "generate-openapi": {
       "dependsOn": ["build"],

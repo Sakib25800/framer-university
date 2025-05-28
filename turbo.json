@@ -22,9 +22,6 @@
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
     },
-    "test": {
-      "cache": false
-    },
     "test:e2e": {
       "outputs": ["playwright-report", "playwright-results"]
     },
