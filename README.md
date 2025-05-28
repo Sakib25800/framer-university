@@ -6,7 +6,9 @@
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
+  <!-- Demo: Enhanced preview workflow with Vercel-style deployment table -->
 </div>
+</edits>
 
 <div align="center">
   <a href="#overview">Overview</a> •
