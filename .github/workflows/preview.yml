@@ -343,9 +343,7 @@ jobs:
           path: apps/api
           region: bos
           org: ${{ env.FLY_ORG }}
-          build_args: |
-            DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
-          config: apps/api/fly.toml
+          config: fly.toml
 
   comment:
     needs: [deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api, setup]
