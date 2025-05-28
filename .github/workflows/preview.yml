@@ -221,8 +221,8 @@ jobs:
 
 
 
-      # Deploy web to Cloudflare
-      - name: Deploy web to Cloudflare
+      # Create web preview version
+      - name: Create web preview version
         id: web-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
@@ -230,10 +230,10 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: deploy
+          command: versions upload
 
-      # Deploy admin to Cloudflare
-      - name: Deploy admin to Cloudflare
+      # Create admin preview version
+      - name: Create admin preview version
         id: admin-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
@@ -241,10 +241,10 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/admin
-          command: deploy
+          command: versions upload
 
-      # Deploy plugin to Cloudflare
-      - name: Deploy plugin to Cloudflare
+      # Create plugin preview version
+      - name: Create plugin preview version
         id: plugin-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
@@ -252,7 +252,7 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/plugin
-          command: deploy
+          command: versions upload
 
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
