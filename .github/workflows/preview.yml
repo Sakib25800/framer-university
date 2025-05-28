@@ -165,7 +165,7 @@ jobs:
       name: Preview - Web
       url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.web-url.outputs.url }}
       status: ${{ job.status }}
     steps:
       - uses: actions/checkout@v4
@@ -194,8 +194,8 @@ jobs:
           command: deploy --env preview
 
       - name: Set web URL output
+        id: web-url
         run: echo "url=https://web.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-        if: steps.deploy.outcome == 'success'
 
   deploy-admin:
     needs: [ci, setup]
@@ -205,7 +205,7 @@ jobs:
       name: Preview - Admin
       url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.admin-url.outputs.url }}
       status: ${{ job.status }}
     steps:
       - uses: actions/checkout@v4
@@ -234,8 +234,8 @@ jobs:
           command: deploy --env preview
 
       - name: Set admin URL output
+        id: admin-url
         run: echo "url=https://admin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-        if: steps.deploy.outcome == 'success'
 
   deploy-plugin:
     needs: [ci, setup]
@@ -245,7 +245,7 @@ jobs:
       name: Preview - Plugin
       url: ${{ steps.deploy.outputs.url }}
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.plugin-url.outputs.url }}
       status: ${{ job.status }}
     steps:
       - uses: actions/checkout@v4
@@ -274,8 +274,8 @@ jobs:
           command: deploy --env preview
 
       - name: Set plugin URL output
+        id: plugin-url
         run: echo "url=https://plugin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-        if: steps.deploy.outcome == 'success'
 
   deploy-storybook:
     needs: [ci, setup]
@@ -469,6 +469,10 @@ jobs:
           echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy-api.outputs.url }}")" >> $GITHUB_OUTPUT
           echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
+          
+          # Get current timestamp for Updated column
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "current_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
 
       - name: Comment on Pull Request
         uses: thollander/actions-comment-pull-request@v2
@@ -478,10 +482,10 @@ jobs:
 
             | Name | Status | Preview | Updated (UTC) |
             |------|--------|---------|---------------|
-            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ github.event.head_commit.timestamp }} |
-            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ github.event.head_commit.timestamp }} |
-            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ github.event.head_commit.timestamp }} |
-            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ github.event.head_commit.timestamp }} |
-            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ github.event.head_commit.timestamp }} |
-            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ github.event.head_commit.timestamp }} |
+            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ steps.status.outputs.current_timestamp }} |
           comment_tag: preview-deployment
