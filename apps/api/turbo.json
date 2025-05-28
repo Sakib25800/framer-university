@@ -21,7 +21,7 @@
         "src/**",
         "crates/**"
       ],
-      "outputs": ["target/release/deps/**"]
+      "outputs": []
     },
     "generate-openapi": {
       "dependsOn": ["build"],
