@@ -112,6 +112,26 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+            plugin:
+              - 'apps/plugin/**'
+              - 'packages/**'
+            storybook:
+              - 'apps/storybook/**'
+              - 'packages/**'
+            api:
+              - 'apps/api/**'
+
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         if: steps.changed-files.outputs.api_any_changed == 'true'
         with:
@@ -134,26 +154,6 @@ jobs:
       - name: Set up Docker Buildx
         if: steps.changed-files.outputs.api_any_changed == 'true'
         uses: docker/setup-buildx-action@v3
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files_yaml: |
-            web:
-              - 'apps/web/**'
-              - 'packages/**'
-            admin:
-              - 'apps/admin/**'
-              - 'packages/**'
-            plugin:
-              - 'apps/plugin/**'
-              - 'packages/**'
-            storybook:
-              - 'apps/storybook/**'
-              - 'packages/**'
-            api:
-              - 'apps/api/**'
 
       - name: Build changed applications
         run: |
