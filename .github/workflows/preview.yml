@@ -464,14 +464,12 @@ jobs:
           message: |
             Preview the latest changes from this pull request. ([View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
 
-            | Name | Status | Preview |
-            |------|--------|---------|
-            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} |
-            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} |
-            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} |
-            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} |
-            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} |
-            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} |
-
-            > Updated: ${{ github.event.head_commit.timestamp }}
+            | Name | Status | Preview | Updated (UTC) |
+            |------|--------|---------|---------------|
+            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ github.event.head_commit.timestamp }} |
+            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ github.event.head_commit.timestamp }} |
+            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ github.event.head_commit.timestamp }} |
+            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ github.event.head_commit.timestamp }} |
+            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ github.event.head_commit.timestamp }} |
+            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ github.event.head_commit.timestamp }} |
           comment_tag: preview-deployment
