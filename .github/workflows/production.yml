@@ -131,27 +131,78 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
+      # Detect changed files to skip unnecessary deployments
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+            plugin:
+              - 'apps/plugin/**'
+              - 'packages/**'
+            storybook:
+              - 'apps/storybook/**'
+              - 'packages/**'
+            api:
+              - 'apps/api/**'
+
+      # Build only changed applications
+      - name: Build changed applications
+        run: |
+          FILTERS=""
+          if [[ "${{ steps.changed-files.outputs.web_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=web"
+            echo "Will build web"
+          fi
+          if [[ "${{ steps.changed-files.outputs.admin_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=admin"
+            echo "Will build admin"
+          fi
+          if [[ "${{ steps.changed-files.outputs.plugin_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=plugin"
+            echo "Will build plugin"
+          fi
+          if [[ "${{ steps.changed-files.outputs.storybook_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=storybook"
+            echo "Will build storybook"
+          fi
+          
+          if [ -n "$FILTERS" ]; then
+            echo "Building with filters:$FILTERS"
+            pnpm build$FILTERS
+          else
+            echo "No applications need building"
+          fi
 
       - name: Deploy web to Cloudflare
+        if: steps.changed-files.outputs.web_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/web"
 
       - name: Deploy admin to Cloudflare
+        if: steps.changed-files.outputs.admin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/admin"
 
       - name: Deploy plugin to Cloudflare
+        if: steps.changed-files.outputs.plugin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: "apps/plugin"
 
       - name: Deploy Storybook to Chromatic
+        if: steps.changed-files.outputs.storybook_any_changed == 'true'
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
@@ -160,6 +211,7 @@ jobs:
           autoAcceptChanges: "main"
 
       - name: Deploy API to Fly
+        if: steps.changed-files.outputs.api_any_changed == 'true'
         run: flyctl deploy --dockerfile Dockerfile.prebuilt --build-arg BUILDKIT_INLINE_CACHE=1
         working-directory: apps/api
         env:

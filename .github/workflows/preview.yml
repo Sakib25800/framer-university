@@ -173,6 +173,10 @@ jobs:
       plugin_status: ${{ steps.plugin-deploy.outcome }}
       api_status: ${{ steps.api-deploy.outcome }}
       storybook_status: ${{ steps.storybook-deploy.outcome }}
+      web_changed: ${{ steps.changed-files.outputs.web_any_changed }}
+      admin_changed: ${{ steps.changed-files.outputs.admin_any_changed }}
+      plugin_changed: ${{ steps.changed-files.outputs.plugin_any_changed }}
+      api_changed: ${{ steps.changed-files.outputs.api_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -217,11 +221,59 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-      - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
+      # Detect changed files to skip unnecessary deployments
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+            plugin:
+              - 'apps/plugin/**'
+              - 'packages/**'
+            storybook:
+              - 'apps/storybook/**'
+              - 'packages/**'
+            api:
+              - 'apps/api/**'
+
+      # Build only changed applications
+      - name: Build changed applications
+        run: |
+          FILTERS=""
+          if [[ "${{ steps.changed-files.outputs.web_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=web"
+            echo "Will build web"
+          fi
+          if [[ "${{ steps.changed-files.outputs.admin_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=admin"
+            echo "Will build admin"
+          fi
+          if [[ "${{ steps.changed-files.outputs.plugin_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=plugin"
+            echo "Will build plugin"
+          fi
+          if [[ "${{ steps.changed-files.outputs.storybook_any_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=storybook"
+            echo "Will build storybook"
+          fi
+          
+          if [ -n "$FILTERS" ]; then
+            echo "Building with filters:$FILTERS"
+            pnpm build$FILTERS
+          else
+            echo "No applications need building"
+          fi
 
       # Create web preview version
       - name: Create web preview version
         id: web-deploy
+        if: steps.changed-files.outputs.web_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
@@ -233,6 +285,7 @@ jobs:
       # Extract web preview URL manually since web worker doesn't generate preview URLs
       - name: Extract web preview URL
         id: web-url
+        if: steps.changed-files.outputs.web_any_changed == 'true'
         run: |
           # Extract Worker Version ID from command output
           VERSION_ID=$(echo '${{ steps.web-deploy.outputs.command-output }}' | grep -o 'Worker Version ID: [a-f0-9-]*' | cut -d' ' -f4)
@@ -248,6 +301,7 @@ jobs:
       # Create admin preview version
       - name: Create admin preview version
         id: admin-deploy
+        if: steps.changed-files.outputs.admin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
@@ -259,6 +313,7 @@ jobs:
       # Create plugin preview version
       - name: Create plugin preview version
         id: plugin-deploy
+        if: steps.changed-files.outputs.plugin_any_changed == 'true'
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
@@ -268,9 +323,9 @@ jobs:
           command: versions upload
 
 
-
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
+        if: steps.changed-files.outputs.storybook_any_changed == 'true'
         uses: chromaui/action@latest
         continue-on-error: true
         with:
@@ -279,6 +334,7 @@ jobs:
 
       - name: Deploy API to Fly
         id: api-deploy
+        if: steps.changed-files.outputs.api_any_changed == 'true'
         working-directory: apps/api
         continue-on-error: true
         run: |
@@ -344,7 +400,10 @@ jobs:
           get_preview_link() {
             local status="$1"
             local url="$2"
-            if [[ "$status" == "success" && -n "$url" ]]; then
+            local changed="$3"
+            if [[ "$changed" == "false" ]]; then
+              echo "⏭️ No changes"
+            elif [[ "$status" == "success" && -n "$url" ]]; then
               echo "[Visit Preview]($url)"
             else
               echo "-"
@@ -374,10 +433,16 @@ jobs:
           echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
           echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
 
-          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
-          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
-          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
-          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
+          # Check if each app was changed and deployed
+          web_changed="${{ needs.deploy.outputs.web_changed || 'false' }}"
+          admin_changed="${{ needs.deploy.outputs.admin_changed || 'false' }}"
+          plugin_changed="${{ needs.deploy.outputs.plugin_changed || 'false' }}"
+          api_changed="${{ needs.deploy.outputs.api_changed || 'false' }}"
+          
+          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}" "$web_changed")" >> $GITHUB_OUTPUT
+          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}" "$admin_changed")" >> $GITHUB_OUTPUT
+          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}" "$plugin_changed")" >> $GITHUB_OUTPUT
+          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}" "$api_changed")" >> $GITHUB_OUTPUT
           echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
 
