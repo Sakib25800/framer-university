@@ -219,6 +219,7 @@ jobs:
 
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
+      # Create web preview version
       - name: Create web preview version
         id: web-deploy
         uses: cloudflare/wrangler-action@v3
@@ -229,6 +230,14 @@ jobs:
           workingDirectory: apps/web
           command: versions upload
 
+      # Debug web deployment output
+      - name: Debug web deployment output
+        run: |
+          echo "Web deployment-url: '${{ steps.web-deploy.outputs.deployment-url }}'"
+          echo "Web command-output: '${{ steps.web-deploy.outputs.command-output }}'"
+          echo "Web command-stderr: '${{ steps.web-deploy.outputs.command-stderr }}'"
+
+      # Create admin preview version
       - name: Create admin preview version
         id: admin-deploy
         uses: cloudflare/wrangler-action@v3
@@ -239,6 +248,14 @@ jobs:
           workingDirectory: apps/admin
           command: versions upload
 
+      # Debug admin deployment output
+      - name: Debug admin deployment output
+        run: |
+          echo "Admin deployment-url: '${{ steps.admin-deploy.outputs.deployment-url }}'"
+          echo "Admin command-output: '${{ steps.admin-deploy.outputs.command-output }}'"
+          echo "Admin command-stderr: '${{ steps.admin-deploy.outputs.command-stderr }}'"
+
+      # Create plugin preview version
       - name: Create plugin preview version
         id: plugin-deploy
         uses: cloudflare/wrangler-action@v3
@@ -248,6 +265,13 @@ jobs:
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/plugin
           command: versions upload
+
+      # Debug plugin deployment output
+      - name: Debug plugin deployment output
+        run: |
+          echo "Plugin deployment-url: '${{ steps.plugin-deploy.outputs.deployment-url }}'"
+          echo "Plugin command-output: '${{ steps.plugin-deploy.outputs.command-output }}'"
+          echo "Plugin command-stderr: '${{ steps.plugin-deploy.outputs.command-stderr }}'"
 
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
