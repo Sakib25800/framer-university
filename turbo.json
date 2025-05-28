@@ -9,7 +9,7 @@
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "dependsOn": ["^build"],
-      "outputs": ["build/**", "dist/**", "storybook-static/**", "target/release/**"]
+      "outputs": ["build/**", "dist/**", "storybook-static/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
@@ -22,11 +22,7 @@
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
     },
-    "test": {
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "dependsOn": ["^build"],
-      "outputs": ["target/**"]
-    },
+
     "test:e2e": {
       "outputs": ["playwright-report", "playwright-results"]
     },
