@@ -403,7 +403,7 @@ jobs:
             if [[ "$status" == "success" && -n "$url" ]]; then
               echo "[Visit Preview]($url)"
             else
-              echo ""
+              echo "-"
             fi
           }
 
@@ -411,36 +411,46 @@ jobs:
           get_inspect_link() {
             local name="$1"
             case "$name" in
-              "web"|"admin"|"plugin") echo "([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/$name/production/logs/live))" ;;
-              "api") echo "([Inspect](https://fly.io/apps/framer-university-api-pr-${{ github.event.number }}/monitoring))" ;;
-              "storybook") echo "([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))" ;;
-              *) echo "" ;;
+              "web"|"admin"|"plugin") echo "[Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/$name/production/logs/live)" ;;
+              "api") echo "[Inspect](https://fly.io/apps/framer-university-api-pr-${{ github.event.number }}/monitoring)" ;;
+              "storybook") echo "[Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" ;;
+              *) echo "-" ;;
             esac
           }
 
-          echo "web_display=$(get_status_display "$web_status") $(get_inspect_link "web")" >> $GITHUB_OUTPUT
-          echo "admin_display=$(get_status_display "$admin_status") $(get_inspect_link "admin")" >> $GITHUB_OUTPUT
-          echo "plugin_display=$(get_status_display "$plugin_status") $(get_inspect_link "plugin")" >> $GITHUB_OUTPUT
-          echo "api_display=$(get_status_display "$api_status") $(get_inspect_link "api")" >> $GITHUB_OUTPUT
-          echo "storybook_display=$(get_status_display "$storybook_status") $(get_inspect_link "storybook")" >> $GITHUB_OUTPUT
+          echo "web_status=$(get_status_display "$web_status")" >> $GITHUB_OUTPUT
+          echo "admin_status=$(get_status_display "$admin_status")" >> $GITHUB_OUTPUT
+          echo "plugin_status=$(get_status_display "$plugin_status")" >> $GITHUB_OUTPUT
+          echo "api_status=$(get_status_display "$api_status")" >> $GITHUB_OUTPUT
+          echo "storybook_status=$(get_status_display "$storybook_status")" >> $GITHUB_OUTPUT
 
-          echo "web_link=$(get_preview_link "$web_status" "${{ needs.deploy-web.outputs.url }}")" >> $GITHUB_OUTPUT
-          echo "admin_link=$(get_preview_link "$admin_status" "${{ needs.deploy-admin.outputs.url }}")" >> $GITHUB_OUTPUT
-          echo "plugin_link=$(get_preview_link "$plugin_status" "${{ needs.deploy-plugin.outputs.url }}")" >> $GITHUB_OUTPUT
-          echo "api_link=$(get_preview_link "$api_status" "${{ needs.deploy-api.outputs.url }}")" >> $GITHUB_OUTPUT
+          echo "web_name=**Web** ($(get_inspect_link "web"))" >> $GITHUB_OUTPUT
+          echo "admin_name=**Admin** ($(get_inspect_link "admin"))" >> $GITHUB_OUTPUT
+          echo "plugin_name=**Plugin** ($(get_inspect_link "plugin"))" >> $GITHUB_OUTPUT
+          echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
+          echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
+
+          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy-web.outputs.url }}")" >> $GITHUB_OUTPUT
+          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy-admin.outputs.url }}")" >> $GITHUB_OUTPUT
+          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy-plugin.outputs.url }}")" >> $GITHUB_OUTPUT
+          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy-api.outputs.url }}")" >> $GITHUB_OUTPUT
+          echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
+          echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
 
       - name: Comment on Pull Request
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            The latest updates on your projects. ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
+            Preview the latest changes from this pull request. ([View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
 
-            | Name | Status | Preview | Updated (UTC) |
-            |------|--------|---------|---------------|
-            | **web** | ${{ steps.status.outputs.web_display }} | ${{ steps.status.outputs.web_link }} | ${{ github.event.head_commit.timestamp }} |
-            | **admin** | ${{ steps.status.outputs.admin_display }} | ${{ steps.status.outputs.admin_link }} | ${{ github.event.head_commit.timestamp }} |
-            | **plugin** | ${{ steps.status.outputs.plugin_display }} | ${{ steps.status.outputs.plugin_link }} | ${{ github.event.head_commit.timestamp }} |
-            | **api** | ${{ steps.status.outputs.api_display }} | ${{ steps.status.outputs.api_link }} | ${{ github.event.head_commit.timestamp }} |
-            | **storybook** | ${{ steps.status.outputs.storybook_display }} | [View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }}) | ${{ github.event.head_commit.timestamp }} |
-            | **database** | ✅ Ready | [preview/pr-${{ github.event.number }}](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }}) | ${{ github.event.head_commit.timestamp }} |
+            | Name | Status | Preview |
+            |------|--------|---------|
+            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} |
+            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} |
+            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} |
+            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} |
+            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} |
+            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} |
+
+            > Updated: ${{ github.event.head_commit.timestamp }}
           comment_tag: preview-deployment
