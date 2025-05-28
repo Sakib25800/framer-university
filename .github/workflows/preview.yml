@@ -164,9 +164,9 @@ jobs:
     environment:
       name: pr-${{ github.event.number }}
     outputs:
-      web_url: ${{ steps.web-url.outputs.url }}
-      admin_url: ${{ steps.admin-url.outputs.url }}
-      plugin_url: ${{ steps.plugin-url.outputs.url }}
+      web_url: ${{ steps.web-deploy.outputs.deployment-url }}
+      admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
+      plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       api_url: ${{ steps.api-deploy.outputs.url }}
       web_status: ${{ steps.web-deploy.outcome }}
       admin_status: ${{ steps.admin-deploy.outcome }}
@@ -219,44 +219,40 @@ jobs:
 
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
+
+
+      # Deploy web to Cloudflare
       - name: Deploy web to Cloudflare
         id: web-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/web"
-          command: deploy --env preview
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: deploy
 
-      - name: Set web URL output
-        id: web-url
-        run: echo "url=https://web-pr-${{ github.event.number }}.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-
+      # Deploy admin to Cloudflare
       - name: Deploy admin to Cloudflare
         id: admin-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/admin"
-          command: deploy --env preview
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/admin
+          command: deploy
 
-      - name: Set admin URL output
-        id: admin-url
-        run: echo "url=https://admin-pr-${{ github.event.number }}.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
-
+      # Deploy plugin to Cloudflare
       - name: Deploy plugin to Cloudflare
         id: plugin-deploy
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/plugin"
-          command: deploy --env preview
-
-      - name: Set plugin URL output
-        id: plugin-url
-        run: echo "url=https://plugin-pr-${{ github.event.number }}.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/plugin
+          command: deploy
 
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
@@ -282,12 +278,11 @@ jobs:
             flyctl apps create $APP_NAME --org framer-university-217 --yes
           fi
 
-          # Set secrets (only actual secrets, fly.toml handles env vars)
-          cat << EOF | flyctl secrets import --app $APP_NAME
-          DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
-          JWT_SECRET=$(openssl rand -base64 32)
-          MAILGUN_SMTP_PASSWORD=${{ secrets.MAILGUN_SMTP_PASSWORD }}
-          EOF
+          # Set secrets
+          flyctl secrets set --app $APP_NAME \
+            DATABASE_URL="${{ steps.create-branch.outputs.db_url }}" \
+            JWT_SECRET="$(openssl rand -base64 32)" \
+            MAILGUN_SMTP_PASSWORD="${{ secrets.MAILGUN_SMTP_PASSWORD }}"
 
           # Deploy the app using prebuilt Dockerfile
           flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
