@@ -139,7 +139,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch-id: ${{ steps.create-branch.outputs.branch_id }}
-      db-url: ${{ steps.create-branch.outputs.db_url }}
     steps:
       - uses: actions/checkout@v4
         with:
