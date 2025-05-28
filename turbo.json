@@ -4,8 +4,8 @@
   "remoteCache": {
     "signature": true
   },
-  "globalPassThroughEnv": [
-    "DATABASE_URL",
+  "globalPassThroughEnv": ["DATABASE_URL"],
+  "globalEnv": [
     "API_URL",
     "CARGO_INCREMENTAL",
     "CARGO_PROFILE_DEV_DEBUG", 

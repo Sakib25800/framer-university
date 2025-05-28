@@ -453,7 +453,7 @@ jobs:
           # API status
           if [ "${{ needs.deploy-api.result }}" = "success" ]; then
             echo "api=✅ Ready" >> $GITHUB_OUTPUT
-            echo "api-preview=[Visit Preview](${{ needs.deploy-api.outputs.url }})" >> $GITHUB_OUTPUT
+            echo "api-preview=[Visit Preview](https://pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api.fly.dev)" >> $GITHUB_OUTPUT
           elif [ "${{ needs.deploy-api.result }}" = "failure" ]; then
             echo "api=❌ Failed" >> $GITHUB_OUTPUT
             echo "api-preview=" >> $GITHUB_OUTPUT
@@ -482,7 +482,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            Preview the latest updates on your projects ([inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+            Preview the latest updates on your projects ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
 
             | Name | Status | Preview | Updated (UTC) |
             |------|--------|---------|---------------|
@@ -490,6 +490,6 @@ jobs:
             | admin | ${{ steps.statuses.outputs.admin }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/admin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.admin-preview }} | ${{ steps.timestamp.outputs.current }} |
             | plugin | ${{ steps.statuses.outputs.plugin }} ([Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/plugin-preview-pr-${{ github.event.number }}/production/observability/logs)) | ${{ steps.statuses.outputs.plugin-preview }} | ${{ steps.timestamp.outputs.current }} |
             | api | ${{ steps.statuses.outputs.api }} ([Inspect](https://fly.io/apps/pr-${{ github.event.number }}-${{ env.FLY_ORG }}-api/monitoring)) | ${{ steps.statuses.outputs.api-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | storybook | ${{ steps.statuses.outputs.storybook }} ([Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})) | ${{ steps.statuses.outputs.storybook-preview }} | ${{ steps.timestamp.outputs.current }} |
-            | database | ${{ steps.statuses.outputs.database }} ([Inspect](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches)) | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | storybook | ${{ steps.statuses.outputs.storybook }} | ${{ steps.statuses.outputs.storybook-preview }} | ${{ steps.timestamp.outputs.current }} |
+            | database | ${{ steps.statuses.outputs.database }} | ${{ steps.statuses.outputs.database-preview }} | ${{ steps.timestamp.outputs.current }} |
           comment_tag: preview-deployment
