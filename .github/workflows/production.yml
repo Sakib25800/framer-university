@@ -207,7 +207,6 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/storybook
           exitOnceUploaded: true
-          onlyChanged: true
           autoAcceptChanges: "main"
 
   deploy-api:
