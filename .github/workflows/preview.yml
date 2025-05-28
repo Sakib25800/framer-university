@@ -230,7 +230,7 @@ jobs:
 
       - name: Set web URL output
         id: web-url
-        run: echo "url=https://web.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+        run: echo "url=https://web-pr-${{ github.event.number }}.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Deploy admin to Cloudflare
         id: admin-deploy
@@ -243,7 +243,7 @@ jobs:
 
       - name: Set admin URL output
         id: admin-url
-        run: echo "url=https://admin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+        run: echo "url=https://admin-pr-${{ github.event.number }}.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Deploy plugin to Cloudflare
         id: plugin-deploy
@@ -256,7 +256,7 @@ jobs:
 
       - name: Set plugin URL output
         id: plugin-url
-        run: echo "url=https://plugin.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
+        run: echo "url=https://plugin-pr-${{ github.event.number }}.frameruniversity.workers.dev" >> $GITHUB_OUTPUT
 
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
@@ -283,7 +283,18 @@ jobs:
           fi
 
           # Set secrets
-          echo "DATABASE_URL=${{ steps.create-branch.outputs.db_url }}" | flyctl secrets import --app $APP_NAME
+          cat << EOF | flyctl secrets import --app $APP_NAME
+          DATABASE_URL=${{ steps.create-branch.outputs.db_url }}
+          JWT_SECRET=$(openssl rand -base64 32)
+          JWT_ACCESS_TOKEN_EXPIRATION_HOURS=24
+          JWT_REFRESH_TOKEN_EXPIRATION_DAYS=7
+          EMAIL_VERIFICATION_EXPIRATION_HOURS=48
+          CONNECTION_TIMEOUT_SECONDS=10
+          POOL_SIZE=3
+          APP_URL=https://${APP_NAME}.fly.dev
+          DOMAIN_NAME=https://frameruniversity.com
+          ALLOWED_ORIGINS=*.frameruniversity.com,*.frameruniversity.workers.dev
+          EOF
 
           # Deploy the app using prebuilt Dockerfile
           flyctl deploy --app $APP_NAME --strategy immediate --dockerfile Dockerfile.prebuilt
