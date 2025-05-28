@@ -30,18 +30,9 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Timestamptz",
-        "Text"
-      ]
+      "Left": ["Timestamptz", "Text"]
     },
-    "nullable": [
-      false,
-      false,
-      false,
-      false,
-      false
-    ]
+    "nullable": [false, false, false, false, false]
   },
   "hash": "69094b0b20be4b7519e7fa036bbdf02c018a9751e2b11100b98b9b2a79c2a5a5"
 }
