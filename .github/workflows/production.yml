@@ -104,7 +104,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=web
 
       - name: Deploy web to Cloudflare
         uses: cloudflare/wrangler-action@v3
@@ -133,7 +133,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=admin
 
       - name: Deploy admin to Cloudflare
         uses: cloudflare/wrangler-action@v3
@@ -162,7 +162,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=plugin
 
       - name: Deploy plugin to Cloudflare
         uses: cloudflare/wrangler-action@v3
@@ -188,7 +188,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=storybook
 
       - name: Deploy Storybook to Chromatic
         uses: chromaui/action@latest
@@ -225,7 +225,7 @@ jobs:
           cache-workspaces: apps/api
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=api
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
       

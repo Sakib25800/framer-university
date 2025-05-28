@@ -169,7 +169,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=web
 
       - name: Deploy web to Cloudflare
         id: deploy
@@ -205,7 +205,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=admin
 
       - name: Deploy admin to Cloudflare
         id: deploy
@@ -241,7 +241,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=plugin
 
       - name: Deploy plugin to Cloudflare
         id: deploy
@@ -273,7 +273,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm build --filter=storybook
 
       - name: Deploy Storybook to Chromatic
         id: deploy
@@ -342,11 +342,11 @@ jobs:
           cargo sqlx database create && sqlx migrate run
           pnpm generate-sqlx
 
-      - run: pnpm build
+      - run: pnpm build --filter=api
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
 
-      - run: pnpm test
+      - run: pnpm test --filter=api
         env:
           DATABASE_URL: ${{ steps.create-branch.outputs.db_url }}
 
