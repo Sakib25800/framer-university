@@ -445,7 +445,7 @@ jobs:
           # Storybook status
           if [ "${{ needs.deploy-storybook.result }}" = "success" ]; then
             echo "storybook=✅ Ready" >> $GITHUB_OUTPUT
-            echo "storybook-preview=" >> $GITHUB_OUTPUT
+            echo "storybook-preview=[View Builds](https://www.chromatic.com/builds?appId=682b64d98cd11e69605e4eae)" >> $GITHUB_OUTPUT
           elif [ "${{ needs.deploy-storybook.result }}" = "failure" ]; then
             echo "storybook=❌ Failed" >> $GITHUB_OUTPUT
             echo "storybook-preview=" >> $GITHUB_OUTPUT
