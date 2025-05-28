@@ -217,6 +217,7 @@ jobs:
       admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
       plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       api_url: ${{ steps.api-deploy.outputs.url }}
+      storybook_url: ${{ steps.storybook-deploy.outputs.buildUrl }}
       web_status: ${{ steps.web-deploy.outcome }}
       admin_status: ${{ steps.admin-deploy.outcome }}
       plugin_status: ${{ steps.plugin-deploy.outcome }}
@@ -422,7 +423,7 @@ jobs:
           echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
           echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
           echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
-          echo "storybook_preview=[View on Chromatic](https://www.chromatic.com/builds?appId=${{ env.CHROMATIC_APP_ID }})" >> $GITHUB_OUTPUT
+          echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy.outputs.storybook_url }}")" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
 
           # Get current timestamp for Updated column
