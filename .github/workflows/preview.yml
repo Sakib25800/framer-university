@@ -125,8 +125,6 @@ jobs:
       api_changed: ${{ steps.detect-changes.outputs.api_changed }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Detect changes
         id: detect-changes
@@ -146,7 +144,8 @@ jobs:
     if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.web_changed == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-${{ github.event.number }}-web
+      group: pr-${{ github.event.number }}
+      cancel-in-progress: true
     environment:
       name: pr-${{ github.event.number }}-web
       url: ${{ steps.web-deploy.outputs.deployment-url }}
@@ -182,11 +181,12 @@ jobs:
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-admin:
-    needs: [ci, setup]
+    needs: [ci, setup, deploy-web]
     if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.admin_changed == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-${{ github.event.number }}-admin
+      group: pr-${{ github.event.number }}
+      cancel-in-progress: true
     environment:
       name: pr-${{ github.event.number }}-admin
       url: ${{ steps.admin-deploy.outputs.deployment-url }}
@@ -211,11 +211,12 @@ jobs:
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-plugin:
-    needs: [ci, setup]
+    needs: [ci, setup, deploy-admin]
     if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.plugin_changed == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-${{ github.event.number }}-plugin
+      group: pr-${{ github.event.number }}
+      cancel-in-progress: true
     environment:
       name: pr-${{ github.event.number }}-plugin
       url: ${{ steps.plugin-deploy.outputs.deployment-url }}
@@ -240,11 +241,12 @@ jobs:
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-storybook:
-    needs: [ci, setup]
+    needs: [ci, setup, deploy-plugin]
     if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.storybook_changed == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-${{ github.event.number }}-storybook
+      group: pr-${{ github.event.number }}
+      cancel-in-progress: true
     environment:
       name: pr-${{ github.event.number }}-storybook
       url: ${{ steps.storybook-deploy.outputs.build-url }}
@@ -253,6 +255,8 @@ jobs:
       storybook_status: ${{ steps.storybook-deploy.outcome }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -267,11 +271,12 @@ jobs:
           chromatic-project-token: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
 
   deploy-api:
-    needs: [ci, setup]
+    needs: [ci, setup, deploy-storybook]
     if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.api_changed == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-${{ github.event.number }}-api
+      group: pr-${{ github.event.number }}
+      cancel-in-progress: true
     environment:
       name: pr-${{ github.event.number }}-api
       url: ${{ steps.api-deploy.outputs.deployment-url }}
