@@ -68,7 +68,7 @@ jobs:
             fi
           done
 
-          # Clean up admin worker preview versions  
+          # Clean up admin worker preview versions
           cd ../admin
           pnpm wrangler versions list --json | jq -r '.[].id' | head -10 | while read version_id; do
             if [ -n "$version_id" ]; then
@@ -278,7 +278,7 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: deploy --name web-pr-${{ github.event.number }}
+          command: versions upload
 
       # - name: Create admin preview version
       #   id: admin-deploy
