@@ -1,8 +1,10 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/readme-logo-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="assets/readme-logo-light.png">
-  <img alt="Framer University logo" src="assets/readme-logo-dark.png" width="150">
-</picture>
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/readme-logo-light.png">
+    <img alt="Framer University logo" src="assets/readme-logo-dark.png" width="150">
+  </picture>
+</div>
 
 # Framer University
 
