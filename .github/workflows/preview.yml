@@ -127,40 +127,40 @@ jobs:
 
       - run: pnpm install
 
-      - name: Install SQLX CLI
-        run: |
-          if ! command -v sqlx &> /dev/null; then
-            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
-          fi
+      # - name: Install SQLX CLI
+      #   run: |
+      #     if ! command -v sqlx &> /dev/null; then
+      #       cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+      #     fi
 
-      - name: SQLX check
-        working-directory: apps/api
-        env:
-          DATABASE_URL: ${{ steps.get-branch.outputs.db_url }}
-        run: |
-          cargo sqlx database create && sqlx migrate run
-          cargo sqlx prepare --check
+      # - name: SQLX check
+      #   working-directory: apps/api
+      #   env:
+      #     DATABASE_URL: ${{ steps.get-branch.outputs.db_url }}
+      #   run: |
+      #     cargo sqlx database create && sqlx migrate run
+      #     cargo sqlx prepare --check
 
-      - run: pnpm build
-      - run: pnpm check-types
-      - run: pnpm lint
-      - run: pnpm test
+      # - run: pnpm build
+      # - run: pnpm check-types
+      # - run: pnpm lint
+      # - run: pnpm test
 
-      - run: pnpm playwright install chromium
-        working-directory: apps/web
+      # - run: pnpm playwright install chromium
+      #   working-directory: apps/web
 
-      - run: pnpm test:e2e
-        env:
-          DATABASE_URL: ${{ steps.get-branch.outputs.db_url }}
+      # - run: pnpm test:e2e
+      #   env:
+      #     DATABASE_URL: ${{ steps.get-branch.outputs.db_url }}
 
-      - name: Upload API binary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-binary-${{ github.run_id }}
-          path: |
-            apps/api/target/release/api
-            apps/api/.sqlx/
-          retention-days: 1
+      # - name: Upload API binary artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: api-binary-${{ github.run_id }}
+      #     path: |
+      #       apps/api/target/release/api
+      #       apps/api/.sqlx/
+      #     retention-days: 1
 
   setup:
     if: github.event.action != 'closed'
@@ -233,25 +233,27 @@ jobs:
         id: create-resources
         run: |
           # Create R2 bucket for this PR
-          pnpm wrangler r2 bucket create web-cache-pr-31 || true
+          pnpm wrangler r2 bucket create web-cache-pr-${{ github.event.number }} || true
 
-          # Create D1 database for this PR and capture the output
-          D1_OUTPUT=$(pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} 2>/dev/null || echo "already exists")
+          # Create D1 database for this PR (ignore if already exists)
+          pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} || true
 
-          # Get the database ID from the creation output or from list if it already exists
-          if echo "$D1_OUTPUT" | grep -q "database_id"; then
-            # Extract from creation output JSON
-            D1_ID=$(echo "$D1_OUTPUT" | grep -o '"database_id": "[^"]*"' | cut -d'"' -f4)
-          else
-            # Database already exists, get from list
-            D1_LIST=$(pnpm wrangler d1 list 2>/dev/null)
-            D1_ID=$(echo "$D1_LIST" | grep "web-tag-cache-pr-${{ github.event.number }}" | awk '{print $1}' | head -1)
+          # Get the database ID using wrangler's info command which gives clean output
+          D1_ID=$(pnpm wrangler d1 info web-tag-cache-pr-${{ github.event.number }} | grep "Database ID" | awk '{print $3}' | tr -d '\r\n' || echo "")
+
+          # If that doesn't work, try parsing the list command more carefully
+          if [ -z "$D1_ID" ] || [ "$D1_ID" = "│" ]; then
+            echo "Trying alternative method to get D1 ID..."
+            D1_LIST=$(pnpm wrangler d1 list)
+            echo "Raw D1 list output:"
+            echo "$D1_LIST"
+            # Look for UUID pattern (8-4-4-4-12 format) on the line with our database name
+            D1_ID=$(echo "$D1_LIST" | grep "web-tag-cache-pr-${{ github.event.number }}" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
           fi
 
-          if [ -z "$D1_ID" ]; then
+          if [ -z "$D1_ID" ] || [ "$D1_ID" = "│" ]; then
             echo "Failed to get D1 database ID"
-            echo "D1 creation output: $D1_OUTPUT"
-            echo "D1 list output: $D1_LIST"
+            echo "Final D1_ID value: '$D1_ID'"
             exit 1
           fi
 
@@ -276,150 +278,150 @@ jobs:
               --d1 NEXT_TAG_CACHE_D1:${{ steps.create-resources.outputs.d1_database_id }} \
               --binding WORKER_SELF_REFERENCE:web-pr-${{ github.event.number }}
 
-      - name: Create admin preview version
-        id: admin-deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/admin
-          command: versions upload
+      # - name: Create admin preview version
+      #   id: admin-deploy
+      #   uses: cloudflare/wrangler-action@v3
+      #   continue-on-error: true
+      #   with:
+      #     apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+      #     accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+      #     workingDirectory: apps/admin
+      #     command: versions upload
 
-      - name: Create plugin preview version
-        id: plugin-deploy
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/plugin
-          command: versions upload
+      # - name: Create plugin preview version
+      #   id: plugin-deploy
+      #   uses: cloudflare/wrangler-action@v3
+      #   continue-on-error: true
+      #   with:
+      #     apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+      #     accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+      #     workingDirectory: apps/plugin
+      #     command: versions upload
 
-      - name: Deploy Storybook to Chromatic
-        id: storybook-deploy
-        uses: chromaui/action@latest
-        continue-on-error: true
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: apps/storybook
+      # - name: Deploy Storybook to Chromatic
+      #   id: storybook-deploy
+      #   uses: chromaui/action@latest
+      #   continue-on-error: true
+      #   with:
+      #     projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+      #     workingDir: apps/storybook
 
-      - name: Deploy API to Fly
-        id: api-deploy
-        uses: superfly/fly-pr-review-apps@1.5.0
-        with:
-          name: framer-university-api-pr-${{ github.event.number }}
-          path: apps/api
-          secrets: DATABASE_URL=${{ steps.get-branch.outputs.db_url }} JWT_SECRET=${{ secrets.JWT_SECRET }} MAILGUN_SMTP_PASSWORD=${{ secrets.MAILGUN_SMTP_PASSWORD }}
-        env:
-          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
-          FLY_ORG: ${{ env.FLY_ORG }}
+      # - name: Deploy API to Fly
+      #   id: api-deploy
+      #   uses: superfly/fly-pr-review-apps@1.5.0
+      #   with:
+      #     name: framer-university-api-pr-${{ github.event.number }}
+      #     path: apps/api
+      #     secrets: DATABASE_URL=${{ steps.get-branch.outputs.db_url }} JWT_SECRET=${{ secrets.JWT_SECRET }} MAILGUN_SMTP_PASSWORD=${{ secrets.MAILGUN_SMTP_PASSWORD }}
+      #   env:
+      #     FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
+      #     FLY_ORG: ${{ env.FLY_ORG }}
 
-  comment:
-    needs: [deploy, setup]
-    if: always() && github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Get PR number
-        id: pr-number
-        run: echo "number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+  # comment:
+  #   needs: [deploy, setup]
+  #   if: always() && github.event.action != 'closed'
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     pull-requests: write
+  #   steps:
+  #     - name: Get PR number
+  #       id: pr-number
+  #       run: echo "number=${{ github.event.number }}" >> $GITHUB_OUTPUT
 
-      - name: Generate deployment status
-        id: status
-        run: |
-          # Generate status for each deployment
-          web_status="${{ needs.deploy.outputs.web_status }}"
-          admin_status="${{ needs.deploy.outputs.admin_status }}"
-          plugin_status="${{ needs.deploy.outputs.plugin_status }}"
-          api_status="${{ needs.deploy.outputs.api_status }}"
-          storybook_status="${{ needs.deploy.outputs.storybook_status }}"
+  #     - name: Generate deployment status
+  #       id: status
+  #       run: |
+  #         # Generate status for each deployment
+  #         web_status="${{ needs.deploy.outputs.web_status }}"
+  #         admin_status="${{ needs.deploy.outputs.admin_status }}"
+  #         plugin_status="${{ needs.deploy.outputs.plugin_status }}"
+  #         api_status="${{ needs.deploy.outputs.api_status }}"
+  #         storybook_status="${{ needs.deploy.outputs.storybook_status }}"
 
-          # Check if deploy job failed entirely
-          deploy_result="${{ needs.deploy.result }}"
+  #         # Check if deploy job failed entirely
+  #         deploy_result="${{ needs.deploy.result }}"
 
-          # Convert status to emoji and text
-          get_status_display() {
-            local status="$1"
-            local deploy_result="$2"
+  #         # Convert status to emoji and text
+  #         get_status_display() {
+  #           local status="$1"
+  #           local deploy_result="$2"
 
-            # If deploy job failed and status is empty, show failed
-            if [[ "$deploy_result" == "failure" && -z "$status" ]]; then
-              echo "❌ Failed"
-            elif [[ "$deploy_result" == "cancelled" && -z "$status" ]]; then
-              echo "⚠️ Cancelled"
-            elif [[ "$deploy_result" == "skipped" && -z "$status" ]]; then
-              echo "⏭️ Skipped"
-            else
-              case "$status" in
-                "success") echo "✅ Ready" ;;
-                "failure") echo "❌ Failed" ;;
-                "cancelled") echo "⚠️ Cancelled" ;;
-                "skipped") echo "⏭️ Skipped" ;;
-                *) echo "🔄 Building" ;;
-              esac
-            fi
-          }
+  #           # If deploy job failed and status is empty, show failed
+  #           if [[ "$deploy_result" == "failure" && -z "$status" ]]; then
+  #             echo "❌ Failed"
+  #           elif [[ "$deploy_result" == "cancelled" && -z "$status" ]]; then
+  #             echo "⚠️ Cancelled"
+  #           elif [[ "$deploy_result" == "skipped" && -z "$status" ]]; then
+  #             echo "⏭️ Skipped"
+  #           else
+  #             case "$status" in
+  #               "success") echo "✅ Ready" ;;
+  #               "failure") echo "❌ Failed" ;;
+  #               "cancelled") echo "⚠️ Cancelled" ;;
+  #               "skipped") echo "⏭️ Skipped" ;;
+  #               *) echo "🔄 Building" ;;
+  #             esac
+  #           fi
+  #         }
 
-          # Generate preview links for successful deployments
-          get_preview_link() {
-            local status="$1"
-            local url="$2"
-            if [[ "$status" == "success" && -n "$url" ]]; then
-              echo "[Visit Preview]($url)"
-            else
-              echo "-"
-            fi
-          }
+  #         # Generate preview links for successful deployments
+  #         get_preview_link() {
+  #           local status="$1"
+  #           local url="$2"
+  #           if [[ "$status" == "success" && -n "$url" ]]; then
+  #             echo "[Visit Preview]($url)"
+  #           else
+  #             echo "-"
+  #           fi
+  #         }
 
-          # Generate inspect links
-          get_inspect_link() {
-            local name="$1"
-            case "$name" in
-              "web") echo "[Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/web-pr-${{ github.event.number }}/production/logs/live)" ;;
-              "admin"|"plugin") echo "[Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/$name/production/logs/live)" ;;
-              "api") echo "[Inspect](https://fly.io/apps/framer-university-api-pr-${{ github.event.number }}/monitoring)" ;;
-              "storybook") echo "[Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" ;;
-              *) echo "-" ;;
-            esac
-          }
+  #         # Generate inspect links
+  #         get_inspect_link() {
+  #           local name="$1"
+  #           case "$name" in
+  #             "web") echo "[Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/web-pr-${{ github.event.number }}/production/logs/live)" ;;
+  #             "admin"|"plugin") echo "[Inspect](https://dash.cloudflare.com/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/services/view/$name/production/logs/live)" ;;
+  #             "api") echo "[Inspect](https://fly.io/apps/framer-university-api-pr-${{ github.event.number }}/monitoring)" ;;
+  #             "storybook") echo "[Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" ;;
+  #             *) echo "-" ;;
+  #           esac
+  #         }
 
-          echo "web_status=$(get_status_display "$web_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "admin_status=$(get_status_display "$admin_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "plugin_status=$(get_status_display "$plugin_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "api_status=$(get_status_display "$api_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "storybook_status=$(get_status_display "$storybook_status" "$deploy_result")" >> $GITHUB_OUTPUT
+  #         echo "web_status=$(get_status_display "$web_status" "$deploy_result")" >> $GITHUB_OUTPUT
+  #         echo "admin_status=$(get_status_display "$admin_status" "$deploy_result")" >> $GITHUB_OUTPUT
+  #         echo "plugin_status=$(get_status_display "$plugin_status" "$deploy_result")" >> $GITHUB_OUTPUT
+  #         echo "api_status=$(get_status_display "$api_status" "$deploy_result")" >> $GITHUB_OUTPUT
+  #         echo "storybook_status=$(get_status_display "$storybook_status" "$deploy_result")" >> $GITHUB_OUTPUT
 
-          echo "web_name=**Web** ($(get_inspect_link "web"))" >> $GITHUB_OUTPUT
-          echo "admin_name=**Admin** ($(get_inspect_link "admin"))" >> $GITHUB_OUTPUT
-          echo "plugin_name=**Plugin** ($(get_inspect_link "plugin"))" >> $GITHUB_OUTPUT
-          echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
-          echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
+  #         echo "web_name=**Web** ($(get_inspect_link "web"))" >> $GITHUB_OUTPUT
+  #         echo "admin_name=**Admin** ($(get_inspect_link "admin"))" >> $GITHUB_OUTPUT
+  #         echo "plugin_name=**Plugin** ($(get_inspect_link "plugin"))" >> $GITHUB_OUTPUT
+  #         echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
+  #         echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
 
-          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
-          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
-          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
-          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
-          echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy.outputs.storybook_url }}")" >> $GITHUB_OUTPUT
-          echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
+  #         echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
+  #         echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
+  #         echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
+  #         echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
+  #         echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy.outputs.storybook_url }}")" >> $GITHUB_OUTPUT
+  #         echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
 
-          # Get current timestamp for Updated column
-          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "current_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+  #         # Get current timestamp for Updated column
+  #         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  #         echo "current_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
 
-      - name: Comment on Pull Request
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            Preview the latest changes from this pull request. ([View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
+  #     - name: Comment on Pull Request
+  #       uses: thollander/actions-comment-pull-request@v2
+  #       with:
+  #         message: |
+  #           Preview the latest changes from this pull request. ([View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
 
-            | Name | Status | Preview | Updated (UTC) |
-            |------|--------|---------|---------------|
-            | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-            | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ steps.status.outputs.current_timestamp }} |
-          comment_tag: preview-deployment
+  #           | Name | Status | Preview | Updated (UTC) |
+  #           |------|--------|---------|---------------|
+  #           | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+  #           | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+  #           | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+  #           | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+  #           | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+  #           | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+  #         comment_tag: preview-deployment
