@@ -74,6 +74,7 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/environments/pr-${{ github.event.number }}"
 
   ci:
+    needs: [setup]
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     env:
