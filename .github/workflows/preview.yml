@@ -165,10 +165,35 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch-id: ${{ steps.create-branch.outputs.branch_id }}
+      web_changed: ${{ steps.changed-files.outputs.web_any_changed }}
+      admin_changed: ${{ steps.changed-files.outputs.admin_any_changed }}
+      plugin_changed: ${{ steps.changed-files.outputs.plugin_any_changed }}
+      storybook_changed: ${{ steps.changed-files.outputs.storybook_any_changed }}
+      api_changed: ${{ steps.changed-files.outputs.api_any_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/**'
+            plugin:
+              - 'apps/plugin/**'
+              - 'packages/**'
+            storybook:
+              - 'apps/storybook/**'
+              - 'packages/**'
+            api:
+              - 'apps/api/**'
 
       - name: Create Neon Branch
         id: create-branch
@@ -179,26 +204,18 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-  deploy:
+  deploy-web:
     needs: [ci, setup]
-    if: github.event.action != 'closed'
+    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.web_changed == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-${{ github.event.number }}
+      group: pr-${{ github.event.number }}-web
     environment:
-      name: pr-${{ github.event.number }}
-      url: ${{ steps.set-outputs.outputs.web_url }}
+      name: pr-${{ github.event.number }}-web
+      url: ${{ steps.web-deploy.outputs.deployment-url }}
     outputs:
-      web_url: ${{ steps.set-outputs.outputs.web_url }}
-      admin_url: ${{ steps.set-outputs.outputs.admin_url }}
-      plugin_url: ${{ steps.set-outputs.outputs.plugin_url }}
-      api_url: ${{ steps.set-outputs.outputs.api_url }}
-      storybook_url: ${{ steps.set-outputs.outputs.storybook_url }}
-      web_status: ${{ steps.set-outputs.outputs.web_status }}
-      admin_status: ${{ steps.set-outputs.outputs.admin_status }}
-      plugin_status: ${{ steps.set-outputs.outputs.plugin_status }}
-      api_status: ${{ steps.set-outputs.outputs.api_status }}
-      storybook_status: ${{ steps.set-outputs.outputs.storybook_status }}
+      web_url: ${{ steps.web-deploy.outputs.deployment-url }}
+      web_status: ${{ steps.web-deploy.outputs.deploy_status }}
 
     steps:
       - uses: actions/checkout@v4
@@ -216,16 +233,7 @@ jobs:
 
       - run: pnpm install
 
-      - name: Get existing Neon Branch
-        id: get-branch
-        uses: neondatabase/create-branch-action@v6
-        with:
-          project_id: ${{ env.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}
-          role: neondb_owner
-          api_key: ${{ env.NEON_API_KEY }}
-
-      - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
+      - run: pnpm build --filter=web
 
       - name: Create Cloudflare resources
         id: create-resources
@@ -310,33 +318,142 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
+  deploy-admin:
+    needs: [ci, setup]
+    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.admin_changed == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-${{ github.event.number }}-admin
+    environment:
+      name: pr-${{ github.event.number }}-admin
+      url: ${{ steps.admin-deploy.outputs.deployment-url }}
+    outputs:
+      admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
+      admin_status: ${{ steps.admin-deploy.outcome }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - run: pnpm build --filter=admin
+
       - name: Create admin preview version
         id: admin-deploy
         uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/admin
           command: versions upload
 
+  deploy-plugin:
+    needs: [ci, setup]
+    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.plugin_changed == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-${{ github.event.number }}-plugin
+    environment:
+      name: pr-${{ github.event.number }}-plugin
+      url: ${{ steps.plugin-deploy.outputs.deployment-url }}
+    outputs:
+      plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
+      plugin_status: ${{ steps.plugin-deploy.outcome }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - run: pnpm build --filter=plugin
+
       - name: Create plugin preview version
         id: plugin-deploy
         uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/plugin
           command: versions upload
 
+  deploy-storybook:
+    needs: [ci, setup]
+    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.storybook_changed == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-${{ github.event.number }}-storybook
+    environment:
+      name: pr-${{ github.event.number }}-storybook
+      url: ${{ steps.storybook-deploy.outputs.buildUrl }}
+    outputs:
+      storybook_url: ${{ steps.storybook-deploy.outputs.buildUrl }}
+      storybook_status: ${{ steps.storybook-deploy.outcome }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - run: pnpm install
+
+      - run: pnpm build --filter=storybook
+
       - name: Deploy Storybook to Chromatic
         id: storybook-deploy
         uses: chromaui/action@latest
-        continue-on-error: true
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: apps/storybook
+
+  deploy-api:
+    needs: [ci, setup]
+    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.api_changed == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-${{ github.event.number }}-api
+    environment:
+      name: pr-${{ github.event.number }}-api
+      url: ${{ steps.api-deploy.outputs.url }}
+    outputs:
+      api_url: ${{ steps.api-deploy.outputs.url }}
+      api_status: ${{ steps.api-deploy.outcome }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get existing Neon Branch
+        id: get-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: preview/pr-${{ github.event.number }}
+          role: neondb_owner
+          api_key: ${{ env.NEON_API_KEY }}
 
       - name: Deploy API to Fly
         id: api-deploy
@@ -349,34 +466,8 @@ jobs:
           FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
           FLY_ORG: ${{ env.FLY_ORG }}
 
-      - name: Set deployment outputs
-        id: set-outputs
-        if: always()
-        run: |
-          # Set web outputs based on custom status from the step
-          if [ "${{ steps.web-deploy.outputs.deploy_status }}" = "success" ]; then
-            echo "web_status=success" >> $GITHUB_OUTPUT
-            echo "web_url=${{ steps.web-deploy.outputs.deployment-url }}" >> $GITHUB_OUTPUT
-          else
-            echo "web_status=failure" >> $GITHUB_OUTPUT
-            echo "web_url=" >> $GITHUB_OUTPUT
-          fi
-
-          # Set other outputs using outcome
-          echo "admin_status=${{ steps.admin-deploy.outcome }}" >> $GITHUB_OUTPUT
-          echo "admin_url=${{ steps.admin-deploy.outputs.deployment-url }}" >> $GITHUB_OUTPUT
-
-          echo "plugin_status=${{ steps.plugin-deploy.outcome }}" >> $GITHUB_OUTPUT
-          echo "plugin_url=${{ steps.plugin-deploy.outputs.deployment-url }}" >> $GITHUB_OUTPUT
-
-          echo "api_status=${{ steps.api-deploy.outcome }}" >> $GITHUB_OUTPUT
-          echo "api_url=${{ steps.api-deploy.outputs.url }}" >> $GITHUB_OUTPUT
-
-          echo "storybook_status=${{ steps.storybook-deploy.outcome }}" >> $GITHUB_OUTPUT
-          echo "storybook_url=${{ steps.storybook-deploy.outputs.buildUrl }}" >> $GITHUB_OUTPUT
-
   comment:
-    needs: [deploy, setup]
+    needs: [setup, deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
@@ -389,28 +480,33 @@ jobs:
       - name: Generate deployment status
         id: status
         run: |
-          # Get status from the deploy job outputs
-          web_status="${{ needs.deploy.outputs.web_status }}"
-          admin_status="${{ needs.deploy.outputs.admin_status }}"
-          plugin_status="${{ needs.deploy.outputs.plugin_status }}"
-          api_status="${{ needs.deploy.outputs.api_status }}"
-          storybook_status="${{ needs.deploy.outputs.storybook_status }}"
+          # Get status from the deploy job outputs (using GitHub Actions conditional syntax)
+          web_status="${{ needs.deploy-web.outputs.web_status }}"
+          admin_status="${{ needs.deploy-admin.outputs.admin_status }}"
+          plugin_status="${{ needs.deploy-plugin.outputs.plugin_status }}"
+          api_status="${{ needs.deploy-api.outputs.api_status }}"
+          storybook_status="${{ needs.deploy-storybook.outputs.storybook_status }}"
 
-          # Check if deploy job failed entirely
-          deploy_result="${{ needs.deploy.result }}"
+          # Check if any deploy job failed entirely
+          web_result="${{ needs.deploy-web.result }}"
+          admin_result="${{ needs.deploy-admin.result }}"
+          plugin_result="${{ needs.deploy-plugin.result }}"
+          api_result="${{ needs.deploy-api.result }}"
+          storybook_result="${{ needs.deploy-storybook.result }}"
 
           # Convert status to emoji and text
           get_status_display() {
             local status="$1"
             local deploy_result="$2"
 
+            # Handle skipped jobs (when conditions aren't met)
+            if [[ "$deploy_result" == "skipped" ]]; then
+              echo "⏭️ Skipped (no changes)"
             # If deploy job failed and status is empty, show failed
-            if [[ "$deploy_result" == "failure" && -z "$status" ]]; then
+            elif [[ "$deploy_result" == "failure" && -z "$status" ]]; then
               echo "❌ Failed"
             elif [[ "$deploy_result" == "cancelled" && -z "$status" ]]; then
               echo "⚠️ Cancelled"
-            elif [[ "$deploy_result" == "skipped" && -z "$status" ]]; then
-              echo "⏭️ Skipped"
             else
               case "$status" in
                 "success") echo "✅ Ready" ;;
@@ -426,7 +522,10 @@ jobs:
           get_preview_link() {
             local status="$1"
             local url="$2"
-            if [[ "$status" == "success" && -n "$url" ]]; then
+            local deploy_result="$3"
+            if [[ "$deploy_result" == "skipped" ]]; then
+              echo "-"
+            elif [[ "$status" == "success" && -n "$url" ]]; then
               echo "[Visit Preview]($url)"
             else
               echo "-"
@@ -445,11 +544,11 @@ jobs:
             esac
           }
 
-          echo "web_status=$(get_status_display "$web_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "admin_status=$(get_status_display "$admin_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "plugin_status=$(get_status_display "$plugin_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "api_status=$(get_status_display "$api_status" "$deploy_result")" >> $GITHUB_OUTPUT
-          echo "storybook_status=$(get_status_display "$storybook_status" "$deploy_result")" >> $GITHUB_OUTPUT
+          echo "web_status=$(get_status_display "$web_status" "$web_result")" >> $GITHUB_OUTPUT
+          echo "admin_status=$(get_status_display "$admin_status" "$admin_result")" >> $GITHUB_OUTPUT
+          echo "plugin_status=$(get_status_display "$plugin_status" "$plugin_result")" >> $GITHUB_OUTPUT
+          echo "api_status=$(get_status_display "$api_status" "$api_result")" >> $GITHUB_OUTPUT
+          echo "storybook_status=$(get_status_display "$storybook_status" "$storybook_result")" >> $GITHUB_OUTPUT
 
           echo "web_name=**Web** ($(get_inspect_link "web"))" >> $GITHUB_OUTPUT
           echo "admin_name=**Admin** ($(get_inspect_link "admin"))" >> $GITHUB_OUTPUT
@@ -457,11 +556,11 @@ jobs:
           echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
           echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
 
-          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy.outputs.web_url }}")" >> $GITHUB_OUTPUT
-          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy.outputs.admin_url }}")" >> $GITHUB_OUTPUT
-          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy.outputs.plugin_url }}")" >> $GITHUB_OUTPUT
-          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy.outputs.api_url }}")" >> $GITHUB_OUTPUT
-          echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy.outputs.storybook_url }}")" >> $GITHUB_OUTPUT
+          echo "web_preview=$(get_preview_link "$web_status" "${{ needs.deploy-web.outputs.web_url }}" "$web_result")" >> $GITHUB_OUTPUT
+          echo "admin_preview=$(get_preview_link "$admin_status" "${{ needs.deploy-admin.outputs.admin_url }}" "$admin_result")" >> $GITHUB_OUTPUT
+          echo "plugin_preview=$(get_preview_link "$plugin_status" "${{ needs.deploy-plugin.outputs.plugin_url }}" "$plugin_result")" >> $GITHUB_OUTPUT
+          echo "api_preview=$(get_preview_link "$api_status" "${{ needs.deploy-api.outputs.api_url }}" "$api_result")" >> $GITHUB_OUTPUT
+          echo "storybook_preview=$(get_preview_link "$storybook_status" "${{ needs.deploy-storybook.outputs.storybook_url }}" "$storybook_result")" >> $GITHUB_OUTPUT
           echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ env.NEON_PROJECT_ID }}/branches/${{ needs.setup.outputs.branch-id }})" >> $GITHUB_OUTPUT
 
           # Get current timestamp for Updated column
