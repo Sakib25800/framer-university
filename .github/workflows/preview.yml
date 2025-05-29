@@ -139,152 +139,35 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
-  deploy-web:
+  deploy:
     needs: [ci, setup]
-    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.web_changed == 'true')
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     concurrency:
       group: pr-${{ github.event.number }}
       cancel-in-progress: true
     environment:
-      name: pr-${{ github.event.number }}-web
-      url: ${{ steps.web-deploy.outputs.deployment-url }}
+      name: pr-${{ github.event.number }}
     outputs:
       web_url: ${{ steps.web-deploy.outputs.deployment-url }}
       web_status: ${{ steps.web-deploy.outputs.deploy-status }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Create Cloudflare resources
-        id: create-resources
-        uses: ./.github/actions/create-cloudflare-resources
-        with:
-          pr-number: ${{ github.event.number }}
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Deploy web to preview environment
-        id: web-deploy
-        uses: ./.github/actions/deploy-web
-        with:
-          mode: preview
-          pr-number: ${{ github.event.number }}
-          d1-database-id: ${{ steps.create-resources.outputs.d1-database-id }}
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-admin:
-    needs: [ci, setup, deploy-web]
-    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.admin_changed == 'true')
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pr-${{ github.event.number }}
-      cancel-in-progress: true
-    environment:
-      name: pr-${{ github.event.number }}-admin
-      url: ${{ steps.admin-deploy.outputs.deployment-url }}
-    outputs:
       admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
       admin_status: ${{ steps.admin-deploy.outcome }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy admin
-        id: admin-deploy
-        uses: ./.github/actions/deploy-cloudflare-app
-        with:
-          app-name: admin
-          mode: preview
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-plugin:
-    needs: [ci, setup, deploy-admin]
-    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.plugin_changed == 'true')
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pr-${{ github.event.number }}
-      cancel-in-progress: true
-    environment:
-      name: pr-${{ github.event.number }}-plugin
-      url: ${{ steps.plugin-deploy.outputs.deployment-url }}
-    outputs:
       plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       plugin_status: ${{ steps.plugin-deploy.outcome }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy plugin
-        id: plugin-deploy
-        uses: ./.github/actions/deploy-cloudflare-app
-        with:
-          app-name: plugin
-          mode: preview
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-storybook:
-    needs: [ci, setup, deploy-plugin]
-    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.storybook_changed == 'true')
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pr-${{ github.event.number }}
-      cancel-in-progress: true
-    environment:
-      name: pr-${{ github.event.number }}-storybook
-      url: ${{ steps.storybook-deploy.outputs.build-url }}
-    outputs:
       storybook_url: ${{ steps.storybook-deploy.outputs.build-url }}
       storybook_status: ${{ steps.storybook-deploy.outcome }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy Storybook
-        id: storybook-deploy
-        uses: ./.github/actions/deploy-storybook
-        with:
-          mode: preview
-          chromatic-project-token: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-
-  deploy-api:
-    needs: [ci, setup, deploy-storybook]
-    if: github.event.action != 'closed' && (github.event.action == 'opened' || needs.setup.outputs.api_changed == 'true')
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pr-${{ github.event.number }}
-      cancel-in-progress: true
-    environment:
-      name: pr-${{ github.event.number }}-api
-      url: ${{ steps.api-deploy.outputs.deployment-url }}
-    outputs:
       api_url: ${{ steps.api-deploy.outputs.deployment-url }}
       api_status: ${{ steps.api-deploy.outcome }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Get existing Neon Branch
         id: get-branch
@@ -295,8 +178,57 @@ jobs:
           role: neondb_owner
           api_key: ${{ env.NEON_API_KEY }}
 
+      - name: Create Cloudflare resources
+        id: create-resources
+        if: github.event.action == 'opened' || needs.setup.outputs.web_changed == 'true'
+        uses: ./.github/actions/create-cloudflare-resources
+        with:
+          pr-number: ${{ github.event.number }}
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy web
+        id: web-deploy
+        if: github.event.action == 'opened' || needs.setup.outputs.web_changed == 'true'
+        uses: ./.github/actions/deploy-web
+        with:
+          mode: preview
+          pr-number: ${{ github.event.number }}
+          d1-database-id: ${{ steps.create-resources.outputs.d1-database-id }}
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy admin
+        id: admin-deploy
+        if: github.event.action == 'opened' || needs.setup.outputs.admin_changed == 'true'
+        uses: ./.github/actions/deploy-cloudflare-app
+        with:
+          app-name: admin
+          mode: preview
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy plugin
+        id: plugin-deploy
+        if: github.event.action == 'opened' || needs.setup.outputs.plugin_changed == 'true'
+        uses: ./.github/actions/deploy-cloudflare-app
+        with:
+          app-name: plugin
+          mode: preview
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy Storybook
+        id: storybook-deploy
+        if: github.event.action == 'opened' || needs.setup.outputs.storybook_changed == 'true'
+        uses: ./.github/actions/deploy-storybook
+        with:
+          mode: preview
+          chromatic-project-token: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+
       - name: Deploy API
         id: api-deploy
+        if: github.event.action == 'opened' || needs.setup.outputs.api_changed == 'true'
         uses: ./.github/actions/deploy-api
         with:
           mode: preview
@@ -308,7 +240,7 @@ jobs:
           fly-org: ${{ env.FLY_ORG }}
 
   comment:
-    needs: [setup, deploy-web, deploy-admin, deploy-plugin, deploy-storybook, deploy-api]
+    needs: [setup, deploy]
     if: always() && github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
@@ -320,21 +252,21 @@ jobs:
         uses: ./.github/actions/comment-pr-status
         with:
           pr-number: ${{ github.event.number }}
-          web-url: ${{ needs.deploy-web.outputs.web_url }}
-          web-status: ${{ needs.deploy-web.outputs.web_status }}
-          web-result: ${{ needs.deploy-web.result }}
-          admin-url: ${{ needs.deploy-admin.outputs.admin_url }}
-          admin-status: ${{ needs.deploy-admin.outputs.admin_status }}
-          admin-result: ${{ needs.deploy-admin.result }}
-          plugin-url: ${{ needs.deploy-plugin.outputs.plugin_url }}
-          plugin-status: ${{ needs.deploy-plugin.outputs.plugin_status }}
-          plugin-result: ${{ needs.deploy-plugin.result }}
-          api-url: ${{ needs.deploy-api.outputs.api_url }}
-          api-status: ${{ needs.deploy-api.outputs.api_status }}
-          api-result: ${{ needs.deploy-api.result }}
-          storybook-url: ${{ needs.deploy-storybook.outputs.storybook_url }}
-          storybook-status: ${{ needs.deploy-storybook.outputs.storybook_status }}
-          storybook-result: ${{ needs.deploy-storybook.result }}
+          web-url: ${{ needs.deploy.outputs.web_url }}
+          web-status: ${{ needs.deploy.outputs.web_status }}
+          web-result: ${{ needs.deploy.result }}
+          admin-url: ${{ needs.deploy.outputs.admin_url }}
+          admin-status: ${{ needs.deploy.outputs.admin_status }}
+          admin-result: ${{ needs.deploy.result }}
+          plugin-url: ${{ needs.deploy.outputs.plugin_url }}
+          plugin-status: ${{ needs.deploy.outputs.plugin_status }}
+          plugin-result: ${{ needs.deploy.result }}
+          api-url: ${{ needs.deploy.outputs.api_url }}
+          api-status: ${{ needs.deploy.outputs.api_status }}
+          api-result: ${{ needs.deploy.result }}
+          storybook-url: ${{ needs.deploy.outputs.storybook_url }}
+          storybook-status: ${{ needs.deploy.outputs.storybook_status }}
+          storybook-result: ${{ needs.deploy.result }}
           branch-id: ${{ needs.setup.outputs.branch-id }}
           neon-project-id: ${{ env.NEON_PROJECT_ID }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
