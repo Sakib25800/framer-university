@@ -233,21 +233,29 @@ jobs:
         id: create-resources
         run: |
           # Create R2 bucket for this PR
-          pnpm wrangler r2 bucket create web-cache-pr-${{ github.event.number }} || true
+          pnpm wrangler r2 bucket create web-cache-pr-31 || true
 
-          # Create D1 database for this PR
-          pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} || true
+          # Create D1 database for this PR and capture the output
+          D1_OUTPUT=$(pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} 2>/dev/null || echo "already exists")
 
-          # Get the database ID from the list (no --output json flag)
-          D1_LIST=$(pnpm wrangler d1 list)
-          D1_ID=$(echo "$D1_LIST" | grep "web-tag-cache-pr-${{ github.event.number }}" | awk '{print $1}' || echo "")
+          # Get the database ID from the creation output or from list if it already exists
+          if echo "$D1_OUTPUT" | grep -q "database_id"; then
+            # Extract from creation output JSON
+            D1_ID=$(echo "$D1_OUTPUT" | grep -o '"database_id": "[^"]*"' | cut -d'"' -f4)
+          else
+            # Database already exists, get from list
+            D1_LIST=$(pnpm wrangler d1 list 2>/dev/null)
+            D1_ID=$(echo "$D1_LIST" | grep "web-tag-cache-pr-${{ github.event.number }}" | awk '{print $1}' | head -1)
+          fi
 
           if [ -z "$D1_ID" ]; then
-            echo "Failed to get D1 database ID from list:"
-            echo "$D1_LIST"
+            echo "Failed to get D1 database ID"
+            echo "D1 creation output: $D1_OUTPUT"
+            echo "D1 list output: $D1_LIST"
             exit 1
           fi
 
+          echo "D1 Database ID: $D1_ID"
           echo "d1_database_id=$D1_ID" >> $GITHUB_OUTPUT
         working-directory: apps/web
         env:
