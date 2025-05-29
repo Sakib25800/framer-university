@@ -59,13 +59,45 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Delete GitHub Environment
+      - name: Delete Cloudflare Preview Versions
+        continue-on-error: true
+        working-directory: apps/admin
+        run: |
+          # Delete admin preview versions (cleanup recent versions)
+          pnpm wrangler versions list --output json | jq -r '.[].id' | head -3 | xargs -I {} pnpm wrangler versions delete {} --force || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Delete Plugin Preview Versions
+        continue-on-error: true
+        working-directory: apps/plugin
+        run: |
+          # Delete plugin preview versions (cleanup recent versions)
+          pnpm wrangler versions list --output json | jq -r '.[].id' | head -3 | xargs -I {} pnpm wrangler versions delete {} --force || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Delete Fly App
         continue-on-error: true
         run: |
+          # Delete the Fly app for this PR
+          flyctl apps destroy framer-university-api-pr-${{ github.event.number }} --yes || true
+        env:
+          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
+
+      - name: Delete GitHub Environments
+        continue-on-error: true
+        run: |
+          # Delete the main PR environment
           curl -X DELETE \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/environments/pr-${{ github.event.number }}"
+            "https://api.github.com/repos/${{ github.repository }}/environments/pr-${{ github.event.number }}" || true
 
   ci:
     needs: [setup]
