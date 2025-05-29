@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./app";
 import "./globals.css";
 
+// trigger re-deployment
 const el = document.getElementById("root");
 if (el) {
   const root = createRoot(el);

@@ -1,0 +1,97 @@
+name: "Deploy Web Application"
+description: "Deploy web application to Cloudflare Workers"
+inputs:
+  mode:
+    description: "Deployment mode: preview or production"
+    required: true
+  pr-number:
+    description: "Pull request number (required for preview mode)"
+    required: false
+  d1-database-id:
+    description: "D1 database ID (required for preview mode)"
+    required: false
+  cloudflare-api-token:
+    description: "Cloudflare API token"
+    required: true
+  cloudflare-account-id:
+    description: "Cloudflare account ID"
+    required: true
+outputs:
+  deployment-url:
+    description: "Deployment URL"
+    value: ${{ steps.set-url.outputs.deployment-url }}
+  deploy-status:
+    description: "Deployment status"
+    value: ${{ steps.set-url.outputs.deploy-status }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build web application
+      shell: bash
+      run: pnpm build --filter=web
+
+    - name: Deploy web application (preview)
+      id: deploy
+      if: inputs.mode == 'preview'
+      shell: bash
+      working-directory: apps/web
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+      run: |
+        # Preview deployment with custom configuration
+        export WORKER_NAME="web-pr-${{ inputs.pr-number }}"
+        export R2_BUCKET_NAME="web-cache-pr-${{ inputs.pr-number }}"
+        export D1_DATABASE_ID="${{ inputs.d1-database-id }}"
+        export D1_DATABASE_NAME="web-tag-cache-pr-${{ inputs.pr-number }}"
+
+        # Generate wrangler.json from template
+        envsubst < wrangler.template.json > wrangler-pr.json
+
+        # Deploy using the generated config
+        set +e
+        DEPLOY_OUTPUT=$(pnpm wrangler deploy --config wrangler-pr.json 2>&1)
+        DEPLOY_EXIT_CODE=$?
+        set -e
+
+        echo "$DEPLOY_OUTPUT"
+
+        # Clean up
+        rm -f wrangler-pr.json
+
+        if [ $DEPLOY_EXIT_CODE -eq 0 ]; then
+          # Extract URL from output
+          DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[^ ]*' | grep -E '(workers\.dev|pages\.dev)' | head -1)
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            DEPLOYMENT_URL="https://web-pr-${{ inputs.pr-number }}.frameruniversity.workers.dev"
+          fi
+          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deploy_status=success" >> $GITHUB_OUTPUT
+        else
+          echo "deployment-url=" >> $GITHUB_OUTPUT
+          echo "deploy_status=failure" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Deploy web application (production)
+      if: inputs.mode == 'production'
+      shell: bash
+      working-directory: apps/web
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+      run: |
+        # Production deployment
+        pnpm wrangler deploy
+
+    - name: Set deployment URL
+      id: set-url
+      shell: bash
+      run: |
+        if [ "${{ inputs.mode }}" = "preview" ]; then
+          echo "deployment-url=${{ steps.deploy.outputs.deployment-url }}" >> $GITHUB_OUTPUT
+          echo "deploy-status=${{ steps.deploy.outputs.deploy_status }}" >> $GITHUB_OUTPUT
+        else
+          echo "deployment-url=https://frameruniversity.com" >> $GITHUB_OUTPUT
+          echo "deploy-status=success" >> $GITHUB_OUTPUT
+        fi

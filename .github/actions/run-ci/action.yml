@@ -1,0 +1,71 @@
+name: "Run CI Pipeline"
+description: "Run the complete CI pipeline including build, test, and e2e tests"
+inputs:
+  database-url:
+    description: "Database URL for testing"
+    required: true
+    default: "postgres://postgres:password@localhost:5432/test"
+  neon-database-url:
+    description: "Neon database URL for e2e tests"
+    required: false
+  upload-artifacts:
+    description: "Whether to upload artifacts"
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: SQLX check
+      shell: bash
+      working-directory: apps/api
+      env:
+        DATABASE_URL: ${{ inputs.database-url }}
+      run: |
+        cargo sqlx database create && sqlx migrate run
+        cargo sqlx prepare --check
+
+    - name: Build
+      shell: bash
+      run: pnpm build
+
+    - name: Check types
+      shell: bash
+      run: pnpm check-types
+
+    - name: Lint
+      shell: bash
+      run: pnpm lint
+
+    - name: Test
+      shell: bash
+      run: pnpm test
+
+    - name: Install Playwright
+      shell: bash
+      working-directory: apps/web
+      run: pnpm playwright install chromium
+
+    - name: Run E2E tests
+      shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.neon-database-url || inputs.database-url }}
+      run: pnpm test:e2e
+
+    - name: Upload API binary artifact
+      if: inputs.upload-artifacts == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-binary-${{ github.run_id }}
+        path: |
+          apps/api/target/release/api
+          apps/api/.sqlx/
+        retention-days: 1
+
+    - name: Upload Playwright report
+      if: inputs.upload-artifacts == 'true' && !cancelled()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: apps/web/playwright-report/
+        retention-days: 30
