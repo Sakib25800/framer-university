@@ -231,35 +231,39 @@ jobs:
 
       - name: Create Cloudflare resources
         id: create-resources
+        working-directory: apps/web
         run: |
-          # Create R2 bucket for this PR
-          pnpm wrangler r2 bucket create web-cache-pr-${{ github.event.number }} || true
-
-          # Create D1 database for this PR (ignore if already exists)
-          pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} || true
-
-          # Get the database ID using wrangler's info command which gives clean output
-          D1_ID=$(pnpm wrangler d1 info web-tag-cache-pr-${{ github.event.number }} | grep "Database ID" | awk '{print $3}' | tr -d '\r\n' || echo "")
-
-          # If that doesn't work, try parsing the list command more carefully
-          if [ -z "$D1_ID" ] || [ "$D1_ID" = "│" ]; then
-            echo "Trying alternative method to get D1 ID..."
-            D1_LIST=$(pnpm wrangler d1 list)
-            echo "Raw D1 list output:"
-            echo "$D1_LIST"
-            # Look for UUID pattern (8-4-4-4-12 format) on the line with our database name
-            D1_ID=$(echo "$D1_LIST" | grep "web-tag-cache-pr-${{ github.event.number }}" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
+          # Create R2 bucket for this PR (check if exists first)
+          if ! pnpm wrangler r2 bucket list | grep -q "web-cache-pr-${{ github.event.number }}"; then
+            echo "Creating R2 bucket..."
+            pnpm wrangler r2 bucket create web-cache-pr-${{ github.event.number }}
+          else
+            echo "R2 bucket already exists"
           fi
 
-          if [ -z "$D1_ID" ] || [ "$D1_ID" = "│" ]; then
+          # Create D1 database for this PR (check if exists first)
+          if ! pnpm wrangler d1 list | grep -q "web-tag-cache-pr-${{ github.event.number }}"; then
+            echo "Creating D1 database..."
+            pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }}
+          else
+            echo "D1 database already exists"
+          fi
+
+          # Get the database ID
+          echo "Getting D1 database ID..."
+          D1_ID=$(pnpm wrangler d1 list | grep "web-tag-cache-pr-${{ github.event.number }}" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
+
+          if [ -z "$D1_ID" ]; then
             echo "Failed to get D1 database ID"
-            echo "Final D1_ID value: '$D1_ID'"
             exit 1
           fi
 
           echo "D1 Database ID: $D1_ID"
           echo "d1_database_id=$D1_ID" >> $GITHUB_OUTPUT
-        working-directory: apps/web
+
+          # Create the D1 schema if needed
+          echo "Creating D1 schema..."
+          pnpm wrangler d1 execute web-tag-cache-pr-${{ github.event.number }} --command "CREATE TABLE IF NOT EXISTS tags (tag TEXT PRIMARY KEY, paths TEXT)"
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
@@ -272,12 +276,12 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: |
-            deploy --name web-pr-${{ github.event.number }} \
-              --r2 NEXT_INC_CACHE_R2_BUCKET:web-cache-pr-${{ github.event.number }} \
-              --d1 NEXT_TAG_CACHE_D1:${{ steps.create-resources.outputs.d1_database_id }} \
-              --binding WORKER_SELF_REFERENCE:web-pr-${{ github.event.number }}
-
+          command: >
+            deploy
+            --name web-pr-${{ github.event.number }}
+            --r2 NEXT_INC_CACHE_R2_BUCKET=web-cache-pr-${{ github.event.number }}
+            --d1 NEXT_TAG_CACHE_D1=${{ steps.create-resources.outputs.d1_database_id }}
+            --var WORKER_SELF_REFERENCE=web-pr-${{ github.event.number }}
       # - name: Create admin preview version
       #   id: admin-deploy
       #   uses: cloudflare/wrangler-action@v3
