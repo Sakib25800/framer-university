@@ -275,58 +275,16 @@ jobs:
         id: web-deploy
         working-directory: apps/web
         run: |
-          # Create a temporary wrangler.json for this PR deployment
-          cat > wrangler-pr.json << EOF
-          {
-            "name": "web-pr-${{ github.event.number }}",
-            "main": ".open-next/worker.js",
-            "compatibility_date": "2024-09-23",
-            "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-            "assets": {
-              "directory": ".open-next/assets",
-              "binding": "ASSETS"
-            },
-            "services": [
-              {
-                "binding": "WORKER_SELF_REFERENCE",
-                "service": "web-pr-${{ github.event.number }}"
-              }
-            ],
-            "r2_buckets": [
-              {
-                "binding": "NEXT_INC_CACHE_R2_BUCKET",
-                "bucket_name": "web-cache-pr-${{ github.event.number }}"
-              }
-            ],
-            "d1_databases": [
-              {
-                "binding": "NEXT_TAG_CACHE_D1",
-                "database_id": "${{ steps.create-resources.outputs.d1_database_id }}",
-                "database_name": "web-tag-cache-pr-${{ github.event.number }}"
-              }
-            ],
-            "durable_objects": {
-              "bindings": [
-                {
-                  "name": "NEXT_CACHE_DO_QUEUE",
-                  "class_name": "DOQueueHandler"
-                }
-              ]
-            },
-            "migrations": [
-              {
-                "tag": "v1",
-                "new_sqlite_classes": ["DOQueueHandler"]
-              }
-            ],
-            "observability": {
-              "enabled": true,
-              "head_sampling_rate": 0.01
-            }
-          }
-          EOF
+          # Set environment variables for substitution
+          export WORKER_NAME="web-pr-${{ github.event.number }}"
+          export R2_BUCKET_NAME="web-cache-pr-${{ github.event.number }}"
+          export D1_DATABASE_ID="${{ steps.create-resources.outputs.d1_database_id }}"
+          export D1_DATABASE_NAME="web-tag-cache-pr-${{ github.event.number }}"
 
-          # Deploy using the temporary config
+          # Generate wrangler.json from template
+          envsubst < wrangler.template.json > wrangler-pr.json
+
+          # Deploy using the generated config
           set +e
           DEPLOY_OUTPUT=$(pnpm wrangler deploy --config wrangler-pr.json 2>&1)
           DEPLOY_EXIT_CODE=$?
