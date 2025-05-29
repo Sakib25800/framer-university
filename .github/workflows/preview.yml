@@ -297,7 +297,7 @@ jobs:
             # Extract URL from output
             DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[^ ]*' | grep -E '(workers\.dev|pages\.dev)' | head -1)
             if [ -z "$DEPLOYMENT_URL" ]; then
-              DEPLOYMENT_URL="https://web-pr-${{ github.event.number }}.framer-university.workers.dev"
+              DEPLOYMENT_URL="https://web-pr-${{ github.event.number }}.frameruniversity.workers.dev"
             fi
             echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
             echo "deploy_status=success" >> $GITHUB_OUTPUT

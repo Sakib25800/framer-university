@@ -250,7 +250,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production - API
-      url: https://framer-university-api.fly.dev
+      url: https://api.frameruniversity.com
     steps:
       - uses: actions/checkout@v4
 
