@@ -273,18 +273,69 @@ jobs:
 
       - name: Deploy web to preview environment
         id: web-deploy
-        uses: cloudflare/wrangler-action@v3
         continue-on-error: true
-        with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/web
-          command: >
-            deploy
-            --name web-pr-${{ github.event.number }}
-            --r2 NEXT_INC_CACHE_R2_BUCKET=web-cache-pr-${{ github.event.number }}
-            --d1 NEXT_TAG_CACHE_D1=${{ steps.create-resources.outputs.d1_database_id }}
-            --var WORKER_SELF_REFERENCE=web-pr-${{ github.event.number }}
+        working-directory: apps/web
+        run: |
+          # Create a temporary wrangler.json for this PR deployment
+          cat > wrangler-pr.json << EOF
+          {
+            "name": "web-pr-${{ github.event.number }}",
+            "main": ".open-next/worker.js",
+            "compatibility_date": "2024-09-23",
+            "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+            "assets": {
+              "directory": ".open-next/assets",
+              "binding": "ASSETS"
+            },
+            "vars": {
+              "WORKER_SELF_REFERENCE": "web-pr-${{ github.event.number }}"
+            },
+            "r2_buckets": [
+              {
+                "binding": "NEXT_INC_CACHE_R2_BUCKET",
+                "bucket_name": "web-cache-pr-${{ github.event.number }}"
+              }
+            ],
+            "d1_databases": [
+              {
+                "binding": "NEXT_TAG_CACHE_D1",
+                "database_id": "${{ steps.create-resources.outputs.d1_database_id }}",
+                "database_name": "web-tag-cache-pr-${{ github.event.number }}"
+              }
+            ],
+            "durable_objects": {
+              "bindings": [
+                {
+                  "name": "NEXT_CACHE_DO_QUEUE",
+                  "class_name": "DOQueueHandler"
+                }
+              ]
+            },
+            "migrations": [
+              {
+                "tag": "v1",
+                "new_sqlite_classes": ["DOQueueHandler"]
+              }
+            ],
+            "observability": {
+              "enabled": true,
+              "head_sampling_rate": 0.01
+            }
+          }
+          EOF
+
+          # Deploy using the temporary config
+          pnpm wrangler deploy --config wrangler-pr.json
+
+          # Clean up
+          rm wrangler-pr.json
+
+          # Get the deployment URL
+          DEPLOYMENT_URL="https://web-pr-${{ github.event.number }}.framer-university.workers.dev"
+          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
       # - name: Create admin preview version
       #   id: admin-deploy
       #   uses: cloudflare/wrangler-action@v3
