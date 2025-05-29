@@ -82,8 +82,6 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    environment:
-      name: preview
     services:
       postgres:
         image: postgres:16
