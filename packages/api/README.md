@@ -1,3 +1,3 @@
 # API Package
 
-TODO.
+Shared react-query API client.
