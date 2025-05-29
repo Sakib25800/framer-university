@@ -1,0 +1,41 @@
+name: 'Detect Changes'
+description: 'Detect which applications have changed files'
+outputs:
+  web_changed:
+    description: 'Whether web app files changed'
+    value: ${{ steps.changed-files.outputs.web_any_changed }}
+  admin_changed:
+    description: 'Whether admin app files changed'
+    value: ${{ steps.changed-files.outputs.admin_any_changed }}
+  plugin_changed:
+    description: 'Whether plugin app files changed'
+    value: ${{ steps.changed-files.outputs.plugin_any_changed }}
+  storybook_changed:
+    description: 'Whether storybook app files changed'
+    value: ${{ steps.changed-files.outputs.storybook_any_changed }}
+  api_changed:
+    description: 'Whether api app files changed'
+    value: ${{ steps.changed-files.outputs.api_any_changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v45
+      with:
+        files_yaml: |
+          web:
+            - 'apps/web/**'
+            - 'packages/**'
+          admin:
+            - 'apps/admin/**'
+            - 'packages/**'
+          plugin:
+            - 'apps/plugin/**'
+            - 'packages/**'
+          storybook:
+            - 'apps/storybook/**'
+            - 'packages/**'
+          api:
+            - 'apps/api/**'
