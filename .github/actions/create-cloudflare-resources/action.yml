@@ -1,0 +1,62 @@
+name: 'Create Cloudflare Resources'
+description: 'Create R2 bucket and D1 database for preview deployments'
+inputs:
+  pr-number:
+    description: 'Pull request number'
+    required: true
+  cloudflare-api-token:
+    description: 'Cloudflare API token'
+    required: true
+  cloudflare-account-id:
+    description: 'Cloudflare account ID'
+    required: true
+outputs:
+  d1-database-id:
+    description: 'D1 database ID'
+    value: ${{ steps.create-resources.outputs.d1_database_id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create Cloudflare resources
+      id: create-resources
+      shell: bash
+      working-directory: apps/web
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+      run: |
+        # Create R2 bucket for this PR (check if exists first)
+        if ! pnpm wrangler r2 bucket list | grep -q "web-cache-pr-${{ inputs.pr-number }}"; then
+          echo "Creating R2 bucket..."
+          pnpm wrangler r2 bucket create web-cache-pr-${{ inputs.pr-number }}
+        else
+          echo "R2 bucket already exists"
+        fi
+
+        # Create D1 database for this PR (check if exists first)
+        if ! pnpm wrangler d1 list | grep -q "web-tag-cache-pr-${{ inputs.pr-number }}"; then
+          echo "Creating D1 database..."
+          pnpm wrangler d1 create web-tag-cache-pr-${{ inputs.pr-number }}
+        else
+          echo "D1 database already exists"
+        fi
+
+        # Get the database ID
+        echo "Getting D1 database ID..."
+        D1_ID=$(pnpm wrangler d1 list | grep "web-tag-cache-pr-${{ inputs.pr-number }}" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
+
+        if [ -z "$D1_ID" ]; then
+          echo "Failed to get D1 database ID"
+          exit 1
+        fi
+
+        echo "D1 Database ID: $D1_ID"
+        echo "d1_database_id=$D1_ID" >> $GITHUB_OUTPUT
+
+        # Create the D1 schema using the Cloudflare API
+        echo "Creating D1 schema..."
+        curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ inputs.cloudflare-account-id }}/d1/database/$D1_ID/query" \
+          -H "Authorization: Bearer ${{ inputs.cloudflare-api-token }}" \
+          -H "Content-Type: application/json" \
+          -d '{"sql": "CREATE TABLE IF NOT EXISTS tags (tag TEXT PRIMARY KEY, paths TEXT)"}' || echo "Schema creation skipped"

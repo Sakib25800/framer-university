@@ -1,0 +1,156 @@
+name: 'Comment PR Status'
+description: 'Generate and post deployment status comment on pull request'
+inputs:
+  pr-number:
+    description: 'Pull request number'
+    required: true
+  web-url:
+    description: 'Web deployment URL'
+    required: false
+  web-status:
+    description: 'Web deployment status'
+    required: false
+  admin-url:
+    description: 'Admin deployment URL'
+    required: false
+  admin-status:
+    description: 'Admin deployment status'
+    required: false
+  plugin-url:
+    description: 'Plugin deployment URL'
+    required: false
+  plugin-status:
+    description: 'Plugin deployment status'
+    required: false
+  api-url:
+    description: 'API deployment URL'
+    required: false
+  api-status:
+    description: 'API deployment status'
+    required: false
+  storybook-url:
+    description: 'Storybook deployment URL'
+    required: false
+  storybook-status:
+    description: 'Storybook deployment status'
+    required: false
+  web-result:
+    description: 'Web job result'
+    required: false
+  admin-result:
+    description: 'Admin job result'
+    required: false
+  plugin-result:
+    description: 'Plugin job result'
+    required: false
+  api-result:
+    description: 'API job result'
+    required: false
+  storybook-result:
+    description: 'Storybook job result'
+    required: false
+  branch-id:
+    description: 'Neon branch ID'
+    required: true
+  neon-project-id:
+    description: 'Neon project ID'
+    required: true
+  cloudflare-account-id:
+    description: 'Cloudflare account ID'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Generate deployment status
+      id: status
+      shell: bash
+      run: |
+        # Convert status to emoji and text
+        get_status_display() {
+          local status="$1"
+          local deploy_result="$2"
+
+          # Handle skipped jobs (when conditions aren't met)
+          if [[ "$deploy_result" == "skipped" ]]; then
+            echo "⏭️ Skipped (no changes)"
+          # If deploy job failed and status is empty, show failed
+          elif [[ "$deploy_result" == "failure" && -z "$status" ]]; then
+            echo "❌ Failed"
+          elif [[ "$deploy_result" == "cancelled" && -z "$status" ]]; then
+            echo "⚠️ Cancelled"
+          else
+            case "$status" in
+              "success") echo "✅ Ready" ;;
+              "failure") echo "❌ Failed" ;;
+              "cancelled") echo "⚠️ Cancelled" ;;
+              "skipped") echo "⏭️ Skipped" ;;
+              *) echo "🔄 Building" ;;
+            esac
+          fi
+        }
+
+        # Generate preview links for successful deployments
+        get_preview_link() {
+          local status="$1"
+          local url="$2"
+          local deploy_result="$3"
+          if [[ "$deploy_result" == "skipped" ]]; then
+            echo "-"
+          elif [[ "$status" == "success" && -n "$url" ]]; then
+            echo "[Visit Preview]($url)"
+          else
+            echo "-"
+          fi
+        }
+
+        # Generate inspect links
+        get_inspect_link() {
+          local name="$1"
+          case "$name" in
+            "web") echo "[Inspect](https://dash.cloudflare.com/${{ inputs.cloudflare-account-id }}/workers/services/view/web-pr-${{ inputs.pr-number }}/production/logs/live)" ;;
+            "admin"|"plugin") echo "[Inspect](https://dash.cloudflare.com/${{ inputs.cloudflare-account-id }}/workers/services/view/$name/production/logs/live)" ;;
+            "api") echo "[Inspect](https://fly.io/apps/framer-university-api-pr-${{ inputs.pr-number }}/monitoring)" ;;
+            "storybook") echo "[Inspect](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" ;;
+            *) echo "-" ;;
+          esac
+        }
+
+        echo "web_status=$(get_status_display "${{ inputs.web-status }}" "${{ inputs.web-result }}")" >> $GITHUB_OUTPUT
+        echo "admin_status=$(get_status_display "${{ inputs.admin-status }}" "${{ inputs.admin-result }}")" >> $GITHUB_OUTPUT
+        echo "plugin_status=$(get_status_display "${{ inputs.plugin-status }}" "${{ inputs.plugin-result }}")" >> $GITHUB_OUTPUT
+        echo "api_status=$(get_status_display "${{ inputs.api-status }}" "${{ inputs.api-result }}")" >> $GITHUB_OUTPUT
+        echo "storybook_status=$(get_status_display "${{ inputs.storybook-status }}" "${{ inputs.storybook-result }}")" >> $GITHUB_OUTPUT
+
+        echo "web_name=**Web** ($(get_inspect_link "web"))" >> $GITHUB_OUTPUT
+        echo "admin_name=**Admin** ($(get_inspect_link "admin"))" >> $GITHUB_OUTPUT
+        echo "plugin_name=**Plugin** ($(get_inspect_link "plugin"))" >> $GITHUB_OUTPUT
+        echo "api_name=**API** ($(get_inspect_link "api"))" >> $GITHUB_OUTPUT
+        echo "storybook_name=**Storybook** ($(get_inspect_link "storybook"))" >> $GITHUB_OUTPUT
+
+        echo "web_preview=$(get_preview_link "${{ inputs.web-status }}" "${{ inputs.web-url }}" "${{ inputs.web-result }}")" >> $GITHUB_OUTPUT
+        echo "admin_preview=$(get_preview_link "${{ inputs.admin-status }}" "${{ inputs.admin-url }}" "${{ inputs.admin-result }}")" >> $GITHUB_OUTPUT
+        echo "plugin_preview=$(get_preview_link "${{ inputs.plugin-status }}" "${{ inputs.plugin-url }}" "${{ inputs.plugin-result }}")" >> $GITHUB_OUTPUT
+        echo "api_preview=$(get_preview_link "${{ inputs.api-status }}" "${{ inputs.api-url }}" "${{ inputs.api-result }}")" >> $GITHUB_OUTPUT
+        echo "storybook_preview=$(get_preview_link "${{ inputs.storybook-status }}" "${{ inputs.storybook-url }}" "${{ inputs.storybook-result }}")" >> $GITHUB_OUTPUT
+        echo "database_preview=[View Database](https://console.neon.tech/app/projects/${{ inputs.neon-project-id }}/branches/${{ inputs.branch-id }})" >> $GITHUB_OUTPUT
+
+        # Get current timestamp for Updated column
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo "current_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+
+    - name: Comment on Pull Request
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        message: |
+          Preview the latest changes from this pull request. ([View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}))
+
+          | Name | Status | Preview | Updated (UTC) |
+          |------|--------|---------|---------------|
+          | ${{ steps.status.outputs.web_name }} | ${{ steps.status.outputs.web_status }} | ${{ steps.status.outputs.web_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+          | ${{ steps.status.outputs.admin_name }} | ${{ steps.status.outputs.admin_status }} | ${{ steps.status.outputs.admin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+          | ${{ steps.status.outputs.plugin_name }} | ${{ steps.status.outputs.plugin_status }} | ${{ steps.status.outputs.plugin_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+          | ${{ steps.status.outputs.api_name }} | ${{ steps.status.outputs.api_status }} | ${{ steps.status.outputs.api_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+          | ${{ steps.status.outputs.storybook_name }} | ${{ steps.status.outputs.storybook_status }} | ${{ steps.status.outputs.storybook_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+          | **Database** | ✅ Ready | ${{ steps.status.outputs.database_preview }} | ${{ steps.status.outputs.current_timestamp }} |
+        comment_tag: preview-deployment

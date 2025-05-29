@@ -38,60 +38,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          version: ${{ env.PNPM_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - name: Run CI Pipeline
+        uses: ./.github/actions/run-ci
         with:
-          node-version: 20
-          cache: "pnpm"
-
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.85.0
-          components: clippy, rustfmt
-          cache-workspaces: apps/api
-
-      - run: pnpm install
-
-      - name: Install SQLX CLI
-        run: |
-          if ! command -v sqlx &> /dev/null; then
-            cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
-          fi
-
-      - name: SQLX check
-        working-directory: apps/api
-        run: |
-          cargo sqlx database create && sqlx migrate run
-          cargo sqlx prepare --check
-
-      - run: pnpm build
-      - run: pnpm check-types
-      - run: pnpm lint
-      - run: pnpm test
-
-      - run: pnpm playwright install chromium
-        working-directory: apps/web
-
-      - run: pnpm test:e2e
-
-      - name: Upload API binary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-binary-${{ github.run_id }}
-          path: |
-            apps/api/target/release/api
-            apps/api/.sqlx/
-          retention-days: 1
-
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: apps/web/playwright-report/
-          retention-days: 30
+          database-url: ${{ env.DATABASE_URL }}
 
   setup:
     runs-on: ubuntu-latest
@@ -136,24 +91,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          version: ${{ env.PNPM_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - name: Deploy web
+        uses: ./.github/actions/deploy-web
         with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-
-      - run: pnpm build --filter=web
-
-      - name: Deploy web to Cloudflare
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/web"
+          mode: production
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-admin:
     needs: [ci, setup]
@@ -165,24 +113,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          version: ${{ env.PNPM_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - name: Deploy admin
+        uses: ./.github/actions/deploy-cloudflare-app
         with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-
-      - run: pnpm build --filter=admin
-
-      - name: Deploy admin to Cloudflare
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/admin"
+          app-name: admin
+          mode: production
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-plugin:
     needs: [ci, setup]
@@ -194,24 +136,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          version: ${{ env.PNPM_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - name: Deploy plugin
+        uses: ./.github/actions/deploy-cloudflare-app
         with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-
-      - run: pnpm build --filter=plugin
-
-      - name: Deploy plugin to Cloudflare
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: "apps/plugin"
+          app-name: plugin
+          mode: production
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-storybook:
     needs: [ci, setup]
@@ -223,26 +159,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          version: ${{ env.PNPM_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - name: Deploy Storybook
+        uses: ./.github/actions/deploy-storybook
         with:
-          node-version: 20
-          cache: "pnpm"
-
-      - run: pnpm install
-
-      - run: pnpm build --filter=storybook
-
-      - name: Deploy Storybook to Chromatic
-        uses: chromaui/action@latest
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: apps/storybook
-          exitOnceUploaded: true
-          autoAcceptChanges: "main"
+          mode: production
+          chromatic-project-token: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          auto-accept-changes: "main"
 
   deploy-api:
     needs: [ci, setup]
@@ -254,25 +181,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          toolchain: 1.85.0
-          components: clippy, rustfmt
-          cache-workspaces: apps/api
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - name: Download API binary artifact
-        uses: actions/download-artifact@v4
+      - name: Deploy API
+        uses: ./.github/actions/deploy-api
         with:
-          name: api-binary-${{ github.run_id }}
-          path: apps/api/
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Deploy API to Fly
-        run: flyctl deploy --dockerfile Dockerfile.prebuilt --build-arg BUILDKIT_INLINE_CACHE=1
-        working-directory: apps/api
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          mode: production
+          database-url: ${{ secrets.DATABASE_URL }}
+          jwt-secret: ${{ secrets.JWT_SECRET }}
+          mailgun-smtp-password: ${{ secrets.MAILGUN_SMTP_PASSWORD }}
+          fly-api-token: ${{ env.FLY_API_TOKEN }}
+          fly-org: ${{ env.FLY_ORG }}
