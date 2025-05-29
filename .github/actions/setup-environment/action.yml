@@ -1,0 +1,44 @@
+name: 'Setup Environment'
+description: 'Setup Node.js, Rust, pnpm and install dependencies'
+inputs:
+  pnpm-version:
+    description: 'PNPM version to use'
+    required: true
+    default: '10.11.0'
+  node-version:
+    description: 'Node.js version to use'
+    required: true
+    default: '20'
+  rust-toolchain:
+    description: 'Rust toolchain version to use'
+    required: true
+    default: '1.85.0'
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v3
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "pnpm"
+
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: ${{ inputs.rust-toolchain }}
+        components: clippy, rustfmt
+        cache-workspaces: apps/api
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install
+
+    - name: Install SQLX CLI
+      shell: bash
+      run: |
+        if ! command -v sqlx &> /dev/null; then
+          cargo install sqlx-cli@0.7.4 --locked --no-default-features --features native-tls,postgres
+        fi

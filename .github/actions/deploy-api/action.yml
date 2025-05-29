@@ -1,0 +1,75 @@
+name: 'Deploy API'
+description: 'Deploy API application to Fly.io'
+inputs:
+  mode:
+    description: 'Deployment mode: preview or production'
+    required: true
+  pr-number:
+    description: 'Pull request number (required for preview mode)'
+    required: false
+  database-url:
+    description: 'Database URL'
+    required: true
+  jwt-secret:
+    description: 'JWT secret'
+    required: true
+  mailgun-smtp-password:
+    description: 'Mailgun SMTP password'
+    required: true
+  fly-api-token:
+    description: 'Fly.io API token'
+    required: true
+  fly-org:
+    description: 'Fly.io organization'
+    required: true
+outputs:
+  deployment-url:
+    description: 'Deployment URL'
+    value: ${{ steps.deploy.outputs.url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download API binary artifact (production only)
+      if: inputs.mode == 'production'
+      uses: actions/download-artifact@v4
+      with:
+        name: api-binary-${{ github.run_id }}
+        path: apps/api/
+
+    - name: Setup Flyctl
+      uses: superfly/flyctl-actions/setup-flyctl@master
+
+    - name: Set up Docker Buildx (production only)
+      if: inputs.mode == 'production'
+      uses: docker/setup-buildx-action@v3
+
+    - name: Deploy preview to Fly (preview only)
+      if: inputs.mode == 'preview'
+      uses: superfly/fly-pr-review-apps@1.5.0
+      with:
+        name: framer-university-api-pr-${{ inputs.pr-number }}
+        path: apps/api
+        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} MAILGUN_SMTP_PASSWORD=${{ inputs.mailgun-smtp-password }}
+      env:
+        FLY_API_TOKEN: ${{ inputs.fly-api-token }}
+        FLY_ORG: ${{ inputs.fly-org }}
+
+    - name: Deploy production to Fly (production only)
+      if: inputs.mode == 'production'
+      shell: bash
+      working-directory: apps/api
+      env:
+        FLY_API_TOKEN: ${{ inputs.fly-api-token }}
+      run: |
+        flyctl deploy --dockerfile Dockerfile.prebuilt --build-arg BUILDKIT_INLINE_CACHE=1
+
+    - name: Set deployment URL
+      id: deploy
+      shell: bash
+      run: |
+        if [ "${{ inputs.mode }}" = "preview" ]; then
+          echo "url=https://framer-university-api-pr-${{ inputs.pr-number }}.fly.dev" >> $GITHUB_OUTPUT
+        else
+          echo "url=https://api.frameruniversity.com" >> $GITHUB_OUTPUT
+        fi

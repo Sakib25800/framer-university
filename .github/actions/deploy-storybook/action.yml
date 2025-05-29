@@ -1,0 +1,33 @@
+name: 'Deploy Storybook'
+description: 'Deploy Storybook to Chromatic'
+inputs:
+  mode:
+    description: 'Deployment mode: preview or production'
+    required: true
+  chromatic-project-token:
+    description: 'Chromatic project token'
+    required: true
+  auto-accept-changes:
+    description: 'Auto accept changes (for production)'
+    required: false
+    default: 'false'
+outputs:
+  build-url:
+    description: 'Storybook build URL'
+    value: ${{ steps.deploy.outputs.buildUrl }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build Storybook
+      shell: bash
+      run: pnpm build --filter=storybook
+
+    - name: Deploy to Chromatic
+      id: deploy
+      uses: chromaui/action@latest
+      with:
+        projectToken: ${{ inputs.chromatic-project-token }}
+        workingDir: apps/storybook
+        exitOnceUploaded: ${{ inputs.mode == 'production' && 'true' || 'false' }}
+        autoAcceptChanges: ${{ inputs.mode == 'production' && inputs.auto-accept-changes || 'false' }}
