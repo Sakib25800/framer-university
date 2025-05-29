@@ -263,7 +263,7 @@ jobs:
 
           # Create the D1 schema if needed
           echo "Creating D1 schema..."
-          pnpm wrangler d1 execute web-tag-cache-pr-${{ github.event.number }} --command "CREATE TABLE IF NOT EXISTS tags (tag TEXT PRIMARY KEY, paths TEXT)"
+          pnpm wrangler d1 execute --database-id="$D1_ID" --command "CREATE TABLE IF NOT EXISTS tags (tag TEXT PRIMARY KEY, paths TEXT)"
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
