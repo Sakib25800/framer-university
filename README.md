@@ -1,14 +1,14 @@
-<div align="center">
-  <img src="assets/readme-logo-light.png" alt="Framer University Logo" width="150"/>
-</div>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme-logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/readme-logo-light.png">
+  <img alt="Framer University logo" src="assets/readme-logo-dark.png" width="150">
+</picture>
 
 # Framer University
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
-  <!-- Demo: Enhanced preview workflow with Vercel-style deployment table -->
 </div>
-</edits>
 
 <div align="center">
   <a href="#overview">Overview</a> •
@@ -29,12 +29,10 @@ The project is organized as a monorepo using Turborepo:
 │   ├── plugin/             # Framer plugin
 │   └── api/                # Rust/Axum backend service
 ├── packages/               # Shared packages
-│   ├── api/                # Shared API types
+│   ├── api/                # API client
 │   ├── ui/                 # Shared UI components
 │   ├── config-typescript/   # TypeScript config
-│   ├── config-eslint/       # ESLint config
-│   └── jest-presets/       # Jest config
-├── docs/                   # Documentation
+│   └── config-eslint/       # ESLint config
 └── turbo.json              # Turborepo configuration
 ```
 
@@ -52,16 +50,14 @@ The project is organized as a monorepo using Turborepo:
   - [UI](./packages/ui/README.md)
   - [TypeScript Config](./packages/config-typescript/README.md)
   - [ESLint Config](./packages/config-eslint/README.md)
-  - [Jest Presets](./packages/jest-presets/README.md)
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Node.js 18+](https://nodejs.org/en/download/)
-- [pnpm 8+](https://pnpm.io/installation)
-- [Turborepo](https://turbo.build/repo/docs/installing)
-- [Rust 1.70+](https://www.rust-lang.org/tools/install) (for API development)
+- [Node.js](https://nodejs.org/en/download/)
+- [pnpm](https://pnpm.io/installation)
+- [Rust](https://www.rust-lang.org/tools/install)
 
 ### Quick Start
 
@@ -69,27 +65,86 @@ The project is organized as a monorepo using Turborepo:
 # Install dependencies
 pnpm install
 
-# Start all apps
-turbo dev
+# Build apps
+pnpm build
 
-# Start specific app
-turbo dev --filter web
-turbo dev --filter admin
-turbo dev --filter plugin
-turbo dev --filter api
+# Clean app outputs
+pnpm clean
 
-# Run tests
-turbo test
+# Lint with eslint
+pnpm lint
 
-turbo e2e
+# Format with prettier
+pnpm format
 
-# Lint code
-turbo lint
+# Unit/Integration test apps - only API has tests
+pnpm test
+
+# E2E test - only web app has e2e tests
+pnpm test:e2e
+
+# Check types
+pnpm check-types
+
+# Generate openapi.json
+# 1. Generates the packages/api/openapi.json
+#    - Runs the server
+#    - Extracts from /api/private/openapi.json
+# 2. Generates the packages/api/types.ts
+#    - Uses openapi-ts to generate types
+#    - Exports react-query typed API client
+pnpm generate-openapi
 ```
+
+## CI
+
+### Environment Configuration
+
+#### Secrets
+The workflows require the following secrets to be configured in your GitHub repository:
+
+- `TURBO_TOKEN` - Turborepo remote cache authentication
+- `TURBO_REMOTE_CACHE_SIGNATURE_KEY` - Turborepo cache signature key
+- `FLY_API_TOKEN` - Fly.io deployment token for API hosting
+- `CLOUDFLARE_API_TOKEN` - Cloudflare API token for Workers/Pages deployment
+- `NEON_API_KEY` - Neon database API key for branch management
+- `CHROMATIC_PROJECT_TOKEN` - Chromatic token for Storybook deployments
+- `JWT_SECRET` - JWT signing secret for API authentication
+- `MAILGUN_SMTP_PASSWORD` - Mailgun SMTP credentials for email service
+- `DATABASE_URL` - Production database connection string
+- `GITHUB_TOKEN` - Automatically provided by GitHub Actions
+
+#### Variables
+The following repository variables must be configured:
+
+- `TURBO_API` - Turborepo API endpoint
+- `TURBO_TEAM` - Turborepo team identifier
+- `NEON_PROJECT_ID` - Neon database project ID
+- `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account identifier
+- `CHROMATIC_APP_ID` - Chromatic application ID for Storybook
+- `FLY_ORG` - Fly.io organization name
+
+## Pull Request Previews
+
+Preview deployments are automatically created for every pull request.
+
+**Preview Apps**
+- **Web Application** - Main Next.js platform
+- **Admin Dashboard** - Management interface
+- **Framer Plugin** - Plugin development environment
+- **API Service** - Backend API on Fly.io
+- **Storybook** - Component library documentation
+
+**Preview Infrastructure**
+- **Neon Database Branch** - Isolated database copy with branch name `preview/pr-{number}`
+- **Cloudflare Workers** - Dedicated worker instances with PR-specific naming
+- **R2 Storage Bucket** - Isolated file storage for web assets
+- **D1 Database** - Tag caching database for web application
+- **GitHub Environment** - Deployment environment `pr-{number}`
 
 ## Infrastructure
 
 - [Neon](https://neon.tech) - Serverless Postgres
 - [Loops](https://loops.so) - Email service provider
-- [Cloudflare](https://cloudflare.com) - Pages + Workers + R2 + D1
-- [Fly.io](https://fly.io) - Backend hosting
+- [Cloudflare](https://cloudflare.com) - Workers + R2 + D1 + DO
+- [Fly.io](https://fly.io) - API hosting
