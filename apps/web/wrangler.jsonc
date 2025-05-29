@@ -7,23 +7,41 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // ISR revalidation + on-demand revalidation
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "web"
     }
   ],
+  // R2 incremental cache
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
       "bucket_name": "web-cache"
     }
   ],
+  // ISR revalidation
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEXT_CACHE_DO_QUEUE",
+        "class_name": "DOQueueHandler"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler"]
+    }
+  ],
+  // On-demand revalidation
   "d1_databases": [
     {
       "binding": "NEXT_TAG_CACHE_D1",
-      "database_name": "web-tag-cache",
-      "database_id": "26605a0c-a253-43bb-a2d1-0aabf944ec49"
+      "database_id": "26605a0c-a253-43bb-a2d1-0aabf944ec49",
+      "database_name": "web-tag-cache"
     }
   ],
   "observability": {
