@@ -229,19 +229,21 @@ jobs:
 
       - run: pnpm build --filter=web --filter=admin --filter=plugin --filter=storybook
 
-      - name: Create PR-specific resources
+      - name: Create Cloudflare resources
         id: create-resources
         run: |
           # Create R2 bucket for this PR
           pnpm wrangler r2 bucket create web-cache-pr-${{ github.event.number }} || true
 
           # Create D1 database for this PR
-          D1_OUTPUT=$(pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} --output json || echo '{}')
-          D1_ID=$(echo "$D1_OUTPUT" | jq -r '.database_id // empty')
+          pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} || true
+
+          # Get the database ID from the list
+          D1_ID=$(pnpm wrangler d1 list --output json | jq -r '.[] | select(.name=="web-tag-cache-pr-${{ github.event.number }}") | .database_id')
 
           if [ -z "$D1_ID" ]; then
-            echo "Failed to create D1 database, trying to get existing one"
-            D1_ID=$(pnpm wrangler d1 list --output json | jq -r '.[] | select(.name=="web-tag-cache-pr-${{ github.event.number }}") | .database_id')
+            echo "Failed to get D1 database ID"
+            exit 1
           fi
 
           echo "d1_database_id=$D1_ID" >> $GITHUB_OUTPUT
