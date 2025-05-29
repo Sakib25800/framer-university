@@ -270,6 +270,21 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy web to preview environment
+        id: web-deploy
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: >
+            deploy
+            --name web-pr-${{ github.event.number }}
+            --r2 NEXT_INC_CACHE_R2_BUCKET=web-cache-pr-${{ github.event.number }}
+            --d1 NEXT_TAG_CACHE_D1=${{ steps.create-resources.outputs.d1_database_id }}
+            --var WORKER_SELF_REFERENCE=web-pr-${{ github.event.number }}
       # - name: Create admin preview version
       #   id: admin-deploy
       #   uses: cloudflare/wrangler-action@v3
