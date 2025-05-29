@@ -5,17 +5,14 @@
     "signature": true
   },
   "globalDependencies": [".env"],
-  "globalPassThroughEnv": [
-    "CI",
-    "NODE_ENV"
-  ],
+  "globalPassThroughEnv": ["CI", "NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*", "!.env.local"],
       "outputs": [
         "build/**",
-        "dist/**", 
+        "dist/**",
         "storybook-static/**",
         ".next/**",
         "!.next/cache/**"

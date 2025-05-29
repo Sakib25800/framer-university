@@ -1,17 +1,17 @@
-name: 'Run CI Pipeline'
-description: 'Run the complete CI pipeline including build, test, and e2e tests'
+name: "Run CI Pipeline"
+description: "Run the complete CI pipeline including build, test, and e2e tests"
 inputs:
   database-url:
-    description: 'Database URL for testing'
+    description: "Database URL for testing"
     required: true
-    default: 'postgres://postgres:password@localhost:5432/test'
+    default: "postgres://postgres:password@localhost:5432/test"
   neon-database-url:
-    description: 'Neon database URL for e2e tests'
+    description: "Neon database URL for e2e tests"
     required: false
   upload-artifacts:
-    description: 'Whether to upload artifacts'
+    description: "Whether to upload artifacts"
     required: false
-    default: 'true'
+    default: "true"
 
 runs:
   using: composite

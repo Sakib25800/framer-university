@@ -5,7 +5,7 @@
     "build": "dotenv -- turbo run build $([ \"$CI\" != \"true\" ] && echo \"--filter=!web\" || echo \"\")",
     "clean": "turbo run clean && rm -rf .turbo node_modules",
     "dev": "dotenv -- turbo run dev",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\"",
     "lint": "dotenv -- turbo run lint",
     "test": "dotenv -- turbo run test",
     "test:e2e": "dotenv -- turbo run test:e2e",

@@ -10,6 +10,8 @@ use crate::config::{self};
 use crate::email::Emails;
 use crate::metrics::{InstanceMetrics, ServiceMetrics};
 
+// trigger redeployment
+
 pub struct App {
     /// Database client.
     pub db: PgDbClient,

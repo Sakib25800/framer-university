@@ -1,30 +1,30 @@
-name: 'Deploy API'
-description: 'Deploy API application to Fly.io'
+name: "Deploy API"
+description: "Deploy API application to Fly.io"
 inputs:
   mode:
-    description: 'Deployment mode: preview or production'
+    description: "Deployment mode: preview or production"
     required: true
   pr-number:
-    description: 'Pull request number (required for preview mode)'
+    description: "Pull request number (required for preview mode)"
     required: false
   database-url:
-    description: 'Database URL'
+    description: "Database URL"
     required: true
   jwt-secret:
-    description: 'JWT secret'
+    description: "JWT secret"
     required: true
   mailgun-smtp-password:
-    description: 'Mailgun SMTP password'
+    description: "Mailgun SMTP password"
     required: true
   fly-api-token:
-    description: 'Fly.io API token'
+    description: "Fly.io API token"
     required: true
   fly-org:
-    description: 'Fly.io organization'
+    description: "Fly.io organization"
     required: true
 outputs:
   deployment-url:
-    description: 'Deployment URL'
+    description: "Deployment URL"
     value: ${{ steps.deploy.outputs.url }}
 
 runs:

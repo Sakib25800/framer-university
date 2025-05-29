@@ -1,62 +1,62 @@
-name: 'Comment PR Status'
-description: 'Generate and post deployment status comment on pull request'
+name: "Comment PR Status"
+description: "Generate and post deployment status comment on pull request"
 inputs:
   pr-number:
-    description: 'Pull request number'
+    description: "Pull request number"
     required: true
   web-url:
-    description: 'Web deployment URL'
+    description: "Web deployment URL"
     required: false
   web-status:
-    description: 'Web deployment status'
+    description: "Web deployment status"
     required: false
   admin-url:
-    description: 'Admin deployment URL'
+    description: "Admin deployment URL"
     required: false
   admin-status:
-    description: 'Admin deployment status'
+    description: "Admin deployment status"
     required: false
   plugin-url:
-    description: 'Plugin deployment URL'
+    description: "Plugin deployment URL"
     required: false
   plugin-status:
-    description: 'Plugin deployment status'
+    description: "Plugin deployment status"
     required: false
   api-url:
-    description: 'API deployment URL'
+    description: "API deployment URL"
     required: false
   api-status:
-    description: 'API deployment status'
+    description: "API deployment status"
     required: false
   storybook-url:
-    description: 'Storybook deployment URL'
+    description: "Storybook deployment URL"
     required: false
   storybook-status:
-    description: 'Storybook deployment status'
+    description: "Storybook deployment status"
     required: false
   web-result:
-    description: 'Web job result'
+    description: "Web job result"
     required: false
   admin-result:
-    description: 'Admin job result'
+    description: "Admin job result"
     required: false
   plugin-result:
-    description: 'Plugin job result'
+    description: "Plugin job result"
     required: false
   api-result:
-    description: 'API job result'
+    description: "API job result"
     required: false
   storybook-result:
-    description: 'Storybook job result'
+    description: "Storybook job result"
     required: false
   branch-id:
-    description: 'Neon branch ID'
+    description: "Neon branch ID"
     required: true
   neon-project-id:
-    description: 'Neon project ID'
+    description: "Neon project ID"
     required: true
   cloudflare-account-id:
-    description: 'Cloudflare account ID'
+    description: "Cloudflare account ID"
     required: true
 
 runs:
@@ -68,7 +68,7 @@ runs:
       run: |
         # Try to get the existing comment to preserve URLs for unchanged apps
         COMMENT=$(gh pr view ${{ inputs.pr-number }} --json comments --jq '.comments[] | select(.body | test("Preview the latest changes")) | .body' | head -1 || echo "")
-        
+
         # Extract URLs from existing comment if it exists
         if [[ -n "$COMMENT" ]]; then
           WEB_URL=$(echo "$COMMENT" | grep -o 'https://web-pr-[^)]*' | head -1 || echo "")
