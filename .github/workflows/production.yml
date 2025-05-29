@@ -65,81 +65,11 @@ jobs:
         id: detect-changes
         uses: ./.github/actions/detect-changes
 
-  deploy-web:
+  deploy:
     needs: [ci, setup]
-    if: needs.setup.outputs.web_changed == 'true'
     runs-on: ubuntu-latest
     environment:
-      name: Production - Web
-      url: https://frameruniversity.com
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy web
-        uses: ./.github/actions/deploy-web
-        with:
-          mode: production
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-admin:
-    needs: [ci, setup, deploy-web]
-    if: needs.setup.outputs.admin_changed == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: Production - Admin
-      url: https://admin.frameruniversity.com
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy admin
-        uses: ./.github/actions/deploy-cloudflare-app
-        with:
-          app-name: admin
-          mode: production
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-plugin:
-    needs: [ci, setup, deploy-admin]
-    if: needs.setup.outputs.plugin_changed == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: Production - Plugin
-      url: https://plugin.frameruniversity.com
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy plugin
-        uses: ./.github/actions/deploy-cloudflare-app
-        with:
-          app-name: plugin
-          mode: production
-          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
-          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-storybook:
-    needs: [ci, setup, deploy-plugin]
-    if: needs.setup.outputs.storybook_changed == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: Production - Storybook
-      url: https://www.chromatic.com/library?appId=${{ vars.CHROMATIC_APP_ID }}
+      name: Production
     steps:
       - uses: actions/checkout@v4
         with:
@@ -150,29 +80,42 @@ jobs:
         with:
           pnpm-version: ${{ env.PNPM_VERSION }}
 
+      - name: Deploy web
+        if: needs.setup.outputs.web_changed == 'true'
+        uses: ./.github/actions/deploy-web
+        with:
+          mode: production
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy admin
+        if: needs.setup.outputs.admin_changed == 'true'
+        uses: ./.github/actions/deploy-cloudflare-app
+        with:
+          app-name: admin
+          mode: production
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy plugin
+        if: needs.setup.outputs.plugin_changed == 'true'
+        uses: ./.github/actions/deploy-cloudflare-app
+        with:
+          app-name: plugin
+          mode: production
+          cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
+          cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Deploy Storybook
+        if: needs.setup.outputs.storybook_changed == 'true'
         uses: ./.github/actions/deploy-storybook
         with:
           mode: production
           chromatic-project-token: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           auto-accept-changes: "main"
 
-  deploy-api:
-    needs: [ci, setup, deploy-storybook]
-    if: needs.setup.outputs.api_changed == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: Production - API
-      url: https://api.frameruniversity.com
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-environment
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
       - name: Deploy API
+        if: needs.setup.outputs.api_changed == 'true'
         uses: ./.github/actions/deploy-api
         with:
           mode: production
