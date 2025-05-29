@@ -1,21 +1,21 @@
-name: 'Deploy Cloudflare Application'
-description: 'Deploy admin or plugin application to Cloudflare Workers'
+name: "Deploy Cloudflare Application"
+description: "Deploy admin or plugin application to Cloudflare Workers"
 inputs:
   app-name:
-    description: 'Application name (admin or plugin)'
+    description: "Application name (admin or plugin)"
     required: true
   mode:
-    description: 'Deployment mode: preview or production'
+    description: "Deployment mode: preview or production"
     required: true
   cloudflare-api-token:
-    description: 'Cloudflare API token'
+    description: "Cloudflare API token"
     required: true
   cloudflare-account-id:
-    description: 'Cloudflare account ID'
+    description: "Cloudflare account ID"
     required: true
 outputs:
   deployment-url:
-    description: 'Deployment URL'
+    description: "Deployment URL"
     value: ${{ steps.set-url.outputs.deployment-url }}
 
 runs:

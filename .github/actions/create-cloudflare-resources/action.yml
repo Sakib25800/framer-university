@@ -1,18 +1,18 @@
-name: 'Create Cloudflare Resources'
-description: 'Create R2 bucket and D1 database for preview deployments'
+name: "Create Cloudflare Resources"
+description: "Create R2 bucket and D1 database for preview deployments"
 inputs:
   pr-number:
-    description: 'Pull request number'
+    description: "Pull request number"
     required: true
   cloudflare-api-token:
-    description: 'Cloudflare API token'
+    description: "Cloudflare API token"
     required: true
   cloudflare-account-id:
-    description: 'Cloudflare account ID'
+    description: "Cloudflare account ID"
     required: true
 outputs:
   d1-database-id:
-    description: 'D1 database ID'
+    description: "D1 database ID"
     value: ${{ steps.create-resources.outputs.d1_database_id }}
 
 runs:

@@ -1,19 +1,19 @@
-name: 'Deploy Storybook'
-description: 'Deploy Storybook to Chromatic'
+name: "Deploy Storybook"
+description: "Deploy Storybook to Chromatic"
 inputs:
   mode:
-    description: 'Deployment mode: preview or production'
+    description: "Deployment mode: preview or production"
     required: true
   chromatic-project-token:
-    description: 'Chromatic project token'
+    description: "Chromatic project token"
     required: true
   auto-accept-changes:
-    description: 'Auto accept changes (for production)'
+    description: "Auto accept changes (for production)"
     required: false
-    default: 'false'
+    default: "false"
 outputs:
   build-url:
-    description: 'Storybook build URL'
+    description: "Storybook build URL"
     value: ${{ steps.deploy.outputs.buildUrl }}
 
 runs:

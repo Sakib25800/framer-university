@@ -1,18 +1,18 @@
-name: 'Setup Environment'
-description: 'Setup Node.js, Rust, pnpm and install dependencies'
+name: "Setup Environment"
+description: "Setup Node.js, Rust, pnpm and install dependencies"
 inputs:
   pnpm-version:
-    description: 'PNPM version to use'
+    description: "PNPM version to use"
     required: true
-    default: '10.11.0'
+    default: "10.11.0"
   node-version:
-    description: 'Node.js version to use'
+    description: "Node.js version to use"
     required: true
-    default: '20'
+    default: "20"
   rust-toolchain:
-    description: 'Rust toolchain version to use'
+    description: "Rust toolchain version to use"
     required: true
-    default: '1.85.0'
+    default: "1.85.0"
 
 runs:
   using: composite
