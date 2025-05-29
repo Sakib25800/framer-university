@@ -79,16 +79,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Setup Flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Delete Fly App
-        continue-on-error: true
-        run: |
-          # Delete the Fly app for this PR
-          flyctl apps destroy framer-university-api-pr-${{ github.event.number }} --yes || true
-        env:
-          FLY_API_TOKEN: ${{ env.FLY_API_TOKEN }}
 
       - name: Delete GitHub Environments
         continue-on-error: true

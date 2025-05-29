@@ -3,6 +3,7 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2024-09-23",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "_comment": "DOQueueHandler warning is expected - this class is provided by OpenNext at runtime",
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
