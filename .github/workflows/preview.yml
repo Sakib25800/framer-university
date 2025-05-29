@@ -238,11 +238,13 @@ jobs:
           # Create D1 database for this PR
           pnpm wrangler d1 create web-tag-cache-pr-${{ github.event.number }} || true
 
-          # Get the database ID from the list
-          D1_ID=$(pnpm wrangler d1 list --output json | jq -r '.[] | select(.name=="web-tag-cache-pr-${{ github.event.number }}") | .database_id')
+          # Get the database ID from the list (no --output json flag)
+          D1_LIST=$(pnpm wrangler d1 list)
+          D1_ID=$(echo "$D1_LIST" | grep "web-tag-cache-pr-${{ github.event.number }}" | awk '{print $1}' || echo "")
 
           if [ -z "$D1_ID" ]; then
-            echo "Failed to get D1 database ID"
+            echo "Failed to get D1 database ID from list:"
+            echo "$D1_LIST"
             exit 1
           fi
 
