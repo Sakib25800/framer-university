@@ -13,12 +13,12 @@
     "generate-openapi": "dotenv -- turbo run generate-openapi"
   },
   "devDependencies": {
+    "dotenv-cli": "^8.0.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "turbo": "^2.5.3",
-    "dotenv-cli": "^8.0.0"
+    "turbo": "^2.5.3"
   },
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@10.11.1",
   "engines": {
     "node": ">=18"
   }
