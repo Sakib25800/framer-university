@@ -103,6 +103,7 @@ pnpm generate-openapi
 ### Environment Configuration
 
 #### Secrets
+
 The workflows require the following secrets to be configured in your GitHub repository:
 
 - `TURBO_TOKEN` - Turborepo remote cache authentication
@@ -117,6 +118,7 @@ The workflows require the following secrets to be configured in your GitHub repo
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 #### Variables
+
 The following repository variables must be configured:
 
 - `TURBO_API` - Turborepo API endpoint
@@ -131,6 +133,7 @@ The following repository variables must be configured:
 Preview deployments are automatically created for every pull request.
 
 **Preview Apps**
+
 - **Web Application** - Main Next.js platform
 - **Admin Dashboard** - Management interface
 - **Framer Plugin** - Plugin development environment
@@ -138,6 +141,7 @@ Preview deployments are automatically created for every pull request.
 - **Storybook** - Component library documentation
 
 **Preview Infrastructure**
+
 - **Neon Database Branch** - Isolated database copy with branch name `preview/pr-{number}`
 - **Cloudflare Workers** - Dedicated worker instances with PR-specific naming
 - **R2 Storage Bucket** - Isolated file storage for web assets
