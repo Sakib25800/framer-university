@@ -1,6 +1,7 @@
 {
   "name": "framer-university",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "dotenv -- turbo run build $([ \"$CI\" != \"true\" ] && echo \"--filter=!web\" || echo \"\")",
     "clean": "turbo run clean && rm -rf .turbo node_modules",
@@ -15,8 +16,11 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "dotenv-cli": "^8.0.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "^2.5.3"
