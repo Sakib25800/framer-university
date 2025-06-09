@@ -211,6 +211,7 @@ jobs:
       - name: Deploy web
         id: web-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
+        continue-on-error: true
         uses: ./.github/actions/deploy-web
         with:
           mode: preview
@@ -222,6 +223,7 @@ jobs:
       - name: Deploy admin
         id: admin-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
+        continue-on-error: true
         uses: ./.github/actions/deploy-cloudflare-app
         with:
           app-name: admin
@@ -232,6 +234,7 @@ jobs:
       - name: Deploy plugin
         id: plugin-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
+        continue-on-error: true
         uses: ./.github/actions/deploy-cloudflare-app
         with:
           app-name: plugin
@@ -242,6 +245,7 @@ jobs:
       - name: Deploy Storybook
         id: storybook-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
+        continue-on-error: true
         uses: ./.github/actions/deploy-storybook
         with:
           mode: preview
@@ -250,6 +254,7 @@ jobs:
       - name: Deploy API
         id: api-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
+        continue-on-error: true
         uses: ./.github/actions/deploy-api
         with:
           mode: preview
