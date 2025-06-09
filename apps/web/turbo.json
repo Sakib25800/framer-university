@@ -8,6 +8,11 @@
     },
     "build:worker": {
       "outputs": [".open-next", "!.open-next/cache/**"]
+    },
+    "dev": {
+      "persistent": true,
+      "with": ["api#dev"],
+      "cache": false
     }
   }
 }

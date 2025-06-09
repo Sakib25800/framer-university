@@ -14,8 +14,8 @@
     "clean": "rm -rf .open-next .next .turbo node_modules .wrangler playwright-report playwright-results"
   },
   "dependencies": {
-    "@framer-university/ui": "workspace:*",
     "@framer-university/api": "workspace:*",
+    "@framer-university/ui": "workspace:*",
     "@tanstack/react-query": "5.74.4",
     "@tanstack/react-query-devtools": "5.74.4",
     "next": "^15.3.0",
