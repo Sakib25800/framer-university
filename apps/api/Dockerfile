@@ -26,10 +26,12 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
+# Copy binary as root first to set proper permissions
+COPY --from=builder /app/target/release/api /usr/local/bin/api
+RUN chmod +x /usr/local/bin/api
+
 RUN useradd -ms /bin/bash app
 USER app
 WORKDIR /app
-
-COPY --from=builder /app/target/release/api /usr/local/bin/api
 
 ENTRYPOINT ["/usr/local/bin/api"]

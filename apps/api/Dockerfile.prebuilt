@@ -4,12 +4,16 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
+# Copy binary as root first to set proper permissions
+COPY target/release/api /usr/local/bin/api
+RUN chmod +x /usr/local/bin/api
+
+# Copy SQLX metadata
+COPY .sqlx .sqlx
+
+# Create user and switch to it
 RUN useradd -ms /bin/bash app
 USER app
 WORKDIR /app
-
-# Copy pre-built binary and SQLX metadata
-COPY target/release/api /usr/local/bin/api
-COPY .sqlx .sqlx
 
 ENTRYPOINT ["/usr/local/bin/api"]
