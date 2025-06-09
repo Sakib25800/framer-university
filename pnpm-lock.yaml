@@ -217,9 +217,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@framer-university/api':
-        specifier: workspace:*
-        version: link:../../packages/api
       '@framer-university/ui':
         specifier: workspace:*
         version: link:../../packages/ui
