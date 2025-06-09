@@ -21,7 +21,6 @@ pub struct Server {
     pub pool_size: u32,
     // Other
     pub app_url: String,
-    pub domain_name: String,
 }
 
 impl Server {
@@ -35,8 +34,7 @@ impl Server {
 
         let builder = Config::builder()
             .add_source(Environment::default())
-            .set_default("env", env)?
-            .set_default("domain_name", "https://frameruniversity.com")?;
+            .set_default("env", env)?;
 
         Ok(builder.build()?.try_deserialize()?)
     }

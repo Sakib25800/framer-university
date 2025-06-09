@@ -198,7 +198,6 @@ fn simple_config() -> Server {
         email_verification_expiration_hours: 24,
         connection_timeout_seconds: 1,
         pool_size: 5,
-        domain_name: "frameruniversity.com".to_string(),
         app_url: "https://frameruniversity.com".to_string(),
         database_url: "postgres://postgres:password@localhost:5432/framer_university".to_string(),
     }
