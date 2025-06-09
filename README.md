@@ -6,7 +6,9 @@
   </picture>
 </div>
 
-# Framer University
+<div align="center">
+  <h1>Framer University</h1>
+</div>
 
 <div align="center">
   <p>Learn everything there is to know about Framer</p>
