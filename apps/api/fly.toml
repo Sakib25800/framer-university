@@ -10,7 +10,7 @@ primary_region = 'lhr'
 
 [env]
 ALLOWED_ORIGINS = '*.frameruniversity.com,*.frameruniversity.workers.dev'
-APP_URL = 'http://localhost:3000'
+WEB_URL = 'https://frameruniversity.com'
 CONNECTION_TIMEOUT_SECONDS = '10'
 EMAIL_VERIFICATION_EXPIRATION_HOURS = '48'
 JWT_ACCESS_TOKEN_EXPIRATION_HOURS = '24'
