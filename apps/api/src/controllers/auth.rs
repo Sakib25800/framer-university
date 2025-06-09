@@ -64,7 +64,7 @@ pub async fn signin(
             AuthSignInEmail {
                 activation_link: format!(
                     "{}/api/continue/{}",
-                    state.config.app_url, verification_token.token
+                    state.config.web_url, verification_token.token
                 ),
             },
         )

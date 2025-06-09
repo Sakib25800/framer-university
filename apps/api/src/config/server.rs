@@ -20,7 +20,7 @@ pub struct Server {
     pub connection_timeout_seconds: u64,
     pub pool_size: u32,
     // Other
-    pub app_url: String,
+    pub web_url: String,
 }
 
 impl Server {
