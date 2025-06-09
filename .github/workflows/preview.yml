@@ -201,7 +201,7 @@ jobs:
 
       - name: Create Cloudflare resources
         id: create-resources
-        if: github.event.action == 'opened' || (github.event.action == 'synchronize' && needs.setup.outputs.web_changed == 'true')
+        if: github.event.action == 'opened' || github.event.action == 'synchronize'
         uses: ./.github/actions/create-cloudflare-resources
         with:
           pr-number: ${{ github.event.number }}
@@ -210,7 +210,7 @@ jobs:
 
       - name: Deploy web
         id: web-deploy
-        if: github.event.action == 'opened' || (github.event.action == 'synchronize' && needs.setup.outputs.web_changed == 'true')
+        if: github.event.action == 'opened' || github.event.action == 'synchronize'
         uses: ./.github/actions/deploy-web
         with:
           mode: preview
@@ -221,7 +221,7 @@ jobs:
 
       - name: Deploy admin
         id: admin-deploy
-        if: github.event.action == 'opened' || (github.event.action == 'synchronize' && needs.setup.outputs.admin_changed == 'true')
+        if: github.event.action == 'opened' || github.event.action == 'synchronize'
         uses: ./.github/actions/deploy-cloudflare-app
         with:
           app-name: admin
@@ -231,7 +231,7 @@ jobs:
 
       - name: Deploy plugin
         id: plugin-deploy
-        if: github.event.action == 'opened' || (github.event.action == 'synchronize' && needs.setup.outputs.plugin_changed == 'true')
+        if: github.event.action == 'opened' || github.event.action == 'synchronize'
         uses: ./.github/actions/deploy-cloudflare-app
         with:
           app-name: plugin
@@ -241,7 +241,7 @@ jobs:
 
       - name: Deploy Storybook
         id: storybook-deploy
-        if: github.event.action == 'opened' || (github.event.action == 'synchronize' && needs.setup.outputs.storybook_changed == 'true')
+        if: github.event.action == 'opened' || github.event.action == 'synchronize'
         uses: ./.github/actions/deploy-storybook
         with:
           mode: preview
@@ -249,7 +249,7 @@ jobs:
 
       - name: Deploy API
         id: api-deploy
-        if: github.event.action == 'opened' || (github.event.action == 'synchronize' && needs.setup.outputs.api_changed == 'true')
+        if: github.event.action == 'opened' || github.event.action == 'synchronize'
         uses: ./.github/actions/deploy-api
         with:
           mode: preview
