@@ -15,6 +15,7 @@ env:
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
   CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  FLY_ORG: ${{ vars.FLY_ORG }}
   API_URL: http://localhost:8080
 
 jobs:
