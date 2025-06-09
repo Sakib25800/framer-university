@@ -39,3 +39,4 @@ runs:
             - 'packages/**'
           api:
             - 'apps/api/**'
+            - 'packages/**'

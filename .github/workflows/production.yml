@@ -14,6 +14,7 @@ env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
   CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   API_URL: http://localhost:8080
 
 jobs:
@@ -88,7 +89,7 @@ jobs:
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-admin:
-    needs: [ci, setup, deploy-web]
+    needs: [ci, setup]
     if: needs.setup.outputs.admin_changed == 'true'
     runs-on: ubuntu-latest
     environment:
@@ -111,7 +112,7 @@ jobs:
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-plugin:
-    needs: [ci, setup, deploy-admin]
+    needs: [ci, setup]
     if: needs.setup.outputs.plugin_changed == 'true'
     runs-on: ubuntu-latest
     environment:
@@ -134,7 +135,7 @@ jobs:
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-storybook:
-    needs: [ci, setup, deploy-plugin]
+    needs: [ci, setup]
     if: needs.setup.outputs.storybook_changed == 'true'
     runs-on: ubuntu-latest
     environment:
@@ -158,7 +159,7 @@ jobs:
           auto-accept-changes: "main"
 
   deploy-api:
-    needs: [ci, setup, deploy-storybook]
+    needs: [ci, setup]
     if: needs.setup.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     environment:
@@ -171,6 +172,12 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Download API binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-binary-${{ github.run_id }}
+          path: apps/api/
 
       - name: Deploy API
         uses: ./.github/actions/deploy-api
