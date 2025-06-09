@@ -115,7 +115,7 @@ The workflows require the following secrets to be configured in your GitHub repo
 - `NEON_API_KEY` - Neon database API key for branch management
 - `CHROMATIC_PROJECT_TOKEN` - Chromatic token for Storybook deployments
 - `JWT_SECRET` - JWT signing secret for API authentication
-- `MAILGUN_SMTP_PASSWORD` - Mailgun SMTP credentials for email service
+- `LOOPS_API_TOKEN` - Loops API token for email service
 - `DATABASE_URL` - Production database connection string
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 

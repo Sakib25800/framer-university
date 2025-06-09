@@ -186,6 +186,6 @@ jobs:
           mode: production
           database-url: ${{ secrets.DATABASE_URL }}
           jwt-secret: ${{ secrets.JWT_SECRET }}
-          mailgun-smtp-password: ${{ secrets.MAILGUN_SMTP_PASSWORD }}
+          loops-api-token: ${{ secrets.LOOPS_API_TOKEN }}
           fly-api-token: ${{ env.FLY_API_TOKEN }}
           fly-org: ${{ env.FLY_ORG }}

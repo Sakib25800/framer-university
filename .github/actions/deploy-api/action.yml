@@ -13,8 +13,8 @@ inputs:
   jwt-secret:
     description: "JWT secret"
     required: true
-  mailgun-smtp-password:
-    description: "Mailgun SMTP password"
+  loops-api-token:
+    description: "Loops API token"
     required: true
   fly-api-token:
     description: "Fly.io API token"
@@ -50,7 +50,7 @@ runs:
       with:
         name: framer-university-api-pr-${{ inputs.pr-number }}
         path: apps/api
-        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} MAILGUN_SMTP_PASSWORD=${{ inputs.mailgun-smtp-password }}
+        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} LOOPS_API_TOKEN=${{ inputs.loops-api-token }}
       env:
         FLY_API_TOKEN: ${{ inputs.fly-api-token }}
         FLY_ORG: ${{ inputs.fly-org }}
