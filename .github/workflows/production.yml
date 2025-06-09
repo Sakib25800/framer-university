@@ -15,6 +15,9 @@ env:
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
   CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  LOOPS_API_TOKEN: ${{ secrets.LOOPS_API_TOKEN }}
   FLY_ORG: ${{ vars.FLY_ORG }}
   API_URL: http://localhost:8080
 
@@ -156,7 +159,7 @@ jobs:
         uses: ./.github/actions/deploy-storybook
         with:
           mode: production
-          chromatic-project-token: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          chromatic-project-token: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           auto-accept-changes: "main"
 
   deploy-api:
@@ -184,8 +187,8 @@ jobs:
         uses: ./.github/actions/deploy-api
         with:
           mode: production
-          database-url: ${{ secrets.DATABASE_URL }}
-          jwt-secret: ${{ secrets.JWT_SECRET }}
-          loops-api-token: ${{ secrets.LOOPS_API_TOKEN }}
+          database-url: ${{ env.DATABASE_URL }}
+          jwt-secret: ${{ env.JWT_SECRET }}
+          loops-api-token: ${{ env.LOOPS_API_TOKEN }}
           fly-api-token: ${{ env.FLY_API_TOKEN }}
           fly-org: ${{ env.FLY_ORG }}
