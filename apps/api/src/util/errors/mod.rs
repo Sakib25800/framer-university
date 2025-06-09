@@ -149,14 +149,11 @@ impl From<ValidationErrors> for BoxedAppError {
 }
 
 impl From<EmailError> for BoxedAppError {
-    fn from(error: EmailError) -> Self {
-        match error {
-            EmailError::Address(error) => Box::new(error),
-            EmailError::MessageBuilder(error) => Box::new(error),
-            EmailError::Transport(error) => {
-                error!(?error, "Failed to send email");
-                internal("Failed to send the email")
-            }
+    fn from(err: EmailError) -> BoxedAppError {
+        match err {
+            EmailError::LoopsError(_) => internal("Failed to send email"),
+            EmailError::FileSystemError(_) => internal("Failed to store email"),
+            EmailError::SerializationError(_) => internal("Failed to process email data"),
         }
     }
 }

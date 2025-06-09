@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use axum::Json;
 use chrono::Utc;
 use framer_university_database::models::user::UserRole;
@@ -55,15 +57,21 @@ pub async fn signin(
         )
         .await?;
 
-    let signin_email = AuthSignInEmail {
-        app_url: &state.config.app_url,
-        token: &verification_token.token,
-    };
-
-    state.emails.send(&body.email, signin_email).await?;
+    state
+        .emails
+        .send(
+            email.clone(),
+            AuthSignInEmail {
+                activation_link: format!(
+                    "{}/api/continue/{}",
+                    state.config.app_url, verification_token.token
+                ),
+            },
+        )
+        .await?;
 
     Ok(Json(MessageResponse {
-        message: "We've sent you an email".to_owned(),
+        message: "We've sent you an email".to_string(),
     }))
 }
 
@@ -142,22 +150,17 @@ pub async fn continue_signin(
     }))
 }
 
-pub struct AuthSignInEmail<'a> {
-    pub app_url: &'a str,
-    pub token: &'a str,
+pub struct AuthSignInEmail {
+    pub activation_link: String,
 }
 
-impl crate::email::Email for AuthSignInEmail<'_> {
-    fn subject(&self) -> String {
-        "Activation link for Framer University".into()
+impl crate::email::Email for AuthSignInEmail {
+    fn transactional_id(&self) -> String {
+        "cmazk1omc08usyi0ikhzzyl2r".to_string()
     }
 
-    fn body(&self) -> String {
-        format!(
-            "Hey there! Welcome to Framer University.\nPlease click the link below to sign in: {app_url}/api/continue/{token}",
-            app_url = self.app_url,
-            token = self.token,
-        )
+    fn variables(&self) -> HashMap<String, String> {
+        HashMap::from([("activation_link".to_string(), self.activation_link.clone())])
     }
 }
 
@@ -165,7 +168,6 @@ impl crate::email::Email for AuthSignInEmail<'_> {
 mod tests {
     use crate::tests::mocks::{MockAnonymous, RequestHelper, TestApp};
     use axum_test::TestResponse;
-    use insta::assert_snapshot;
     use serde_json::{json, Value};
     use sqlx::PgPool;
 
@@ -175,24 +177,17 @@ mod tests {
         (app, anon, res)
     }
 
-    fn extract_token_from_signin_email(emails: &[String]) -> String {
-        let body = emails
-            .iter()
-            .find(|m| m.contains("Subject: Activation link for Framer University"))
-            .expect("Missing email");
-        let body = body.replace("=\r\n", "");
+    /// Retrieve the /continue/[token] from the activation link.
+    fn get_token_from_email(app: &TestApp) -> String {
+        let link = app.get_email_variable("activation_link");
 
-        let after_prefix = body
-            .split("/continue/")
+        link.split("/continue/")
             .nth(1)
-            .expect("Couldn't find token start");
-
-        let token = after_prefix
+            .unwrap()
             .split_whitespace()
             .next()
-            .expect("Couldn't find token end");
-
-        token.to_string()
+            .unwrap()
+            .to_string()
     }
 
     #[sqlx::test]
@@ -256,9 +251,7 @@ mod tests {
         )
         .await;
 
-        let emails = app.emails().await;
-        assert_eq!(emails.len(), 1);
-        assert_snapshot!(app.emails_snapshot().await);
+        assert_eq!(app.emails().len(), 1);
     }
 
     #[sqlx::test]
@@ -315,8 +308,7 @@ mod tests {
         )
         .await;
 
-        let emails = app.emails().await;
-        let token = extract_token_from_signin_email(&emails);
+        let token = get_token_from_email(&app);
 
         let res = anon.get(&format!("/v1/auth/continue/{token}")).await;
 
@@ -341,8 +333,7 @@ mod tests {
         )
         .await;
 
-        let emails = app.emails().await;
-        let token = extract_token_from_signin_email(&emails);
+        let token = get_token_from_email(&app);
 
         anon.get(&format!("/v1/auth/continue/{token}")).await;
 
@@ -369,8 +360,7 @@ mod tests {
         let email = "foo@example.com";
         let (app, anon, _) = signin_request(pool, json!({ "email": email })).await;
 
-        let emails = app.emails().await;
-        let token = extract_token_from_signin_email(&emails);
+        let token = get_token_from_email(&app);
 
         app.db()
             .verification_tokens
@@ -398,8 +388,7 @@ mod tests {
         )
         .await;
 
-        let emails = app.emails().await;
-        let token = extract_token_from_signin_email(&emails);
+        let token = get_token_from_email(&app);
 
         let res = anon.get(&format!("/v1/auth/continue/{}", token)).await;
         res.assert_status_ok();

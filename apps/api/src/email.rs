@@ -1,196 +1,138 @@
-use lettre::address::Envelope;
-use lettre::message::header::ContentType;
-use lettre::message::Mailbox;
-use lettre::transport::file::AsyncFileTransport;
-use lettre::transport::smtp::authentication::{Credentials, Mechanism};
-use lettre::transport::smtp::AsyncSmtpTransport;
-use lettre::transport::stub::AsyncStubTransport;
-use lettre::{Address, AsyncTransport, Message, Tokio1Executor};
-use rand::distr::{Alphanumeric, SampleString};
+use std::collections::HashMap;
+use std::env;
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::Mutex;
+
+use chrono::Local;
+use loops_sdk::request_types::*;
+use loops_sdk::schemas::*;
+use loops_sdk::Client as LoopsClient;
 
 use crate::config::{self};
 use crate::Env;
 
+#[derive(Debug, thiserror::Error)]
+pub enum EmailError {
+    #[error("Failed to send email via Loops: {0}")]
+    LoopsError(String),
+
+    #[error("Failed to write email to filesystem: {0}")]
+    FileSystemError(#[from] std::io::Error),
+
+    #[error("Failed to serialize email data: {0}")]
+    SerializationError(#[from] serde_json::Error),
+}
+
 pub trait Email {
-    fn subject(&self) -> String;
-    fn body(&self) -> String;
+    fn transactional_id(&self) -> String;
+    fn variables(&self) -> HashMap<String, String>;
 }
 
 #[derive(Debug, Clone)]
 pub struct Emails {
     backend: EmailBackend,
-    pub domain: String,
-    from: Address,
 }
 
-const DEFAULT_FROM: &str = "noreply@frameruniversity.com";
-
 impl Emails {
-    /// Create a new instance detecting the backend from the environment. This will either connect
-    /// to a SMTP server or store the emails on the local filesystem.
+    /// Create a new instance detecting the backend from the environment.
+    /// This will either connect to Loops or store the emails on the local filesystem.
     pub fn from_environment(config: &config::Server) -> Self {
-        let login = dotenvy::var("MAILGUN_SMTP_LOGIN");
-        let password = dotenvy::var("MAILGUN_SMTP_PASSWORD");
-        let server = dotenvy::var("MAILGUN_SMTP_SERVER");
-        let tmp = dotenvy::var("RUNNER_TEMP");
+        let loops_api_token = dotenvy::var("LOOPS_API_TOKEN");
+        let runner_temp = dotenvy::var("RUNNER_TEMP");
 
-        let from = login.as_deref().unwrap_or(DEFAULT_FROM).parse().unwrap();
-
-        let backend = match (login, password, server) {
-            (Ok(login), Ok(password), Ok(server)) => {
-                // All required SMTP credentials are present
-                let transport = AsyncSmtpTransport::<Tokio1Executor>::relay(&server)
-                    .unwrap()
-                    .credentials(Credentials::new(login.to_owned(), password.to_owned()))
-                    .authentication(vec![Mechanism::Plain])
-                    .build();
-
-                EmailBackend::Smtp(Box::new(transport))
+        let backend = match loops_api_token {
+            Ok(loops_api_token) => {
+                let client = LoopsClient::default().with_api_key(&loops_api_token);
+                EmailBackend::Loops(client)
             }
             _ => {
-                // Fall back to filesystem transport if any SMTP credentials are missing
-                let transport = AsyncFileTransport::new(tmp.unwrap_or("/tmp".to_string()));
-                EmailBackend::FileSystem(Arc::new(transport))
+                // Fall back to filesystem.
+                let tmp = runner_temp
+                    .map(PathBuf::from)
+                    .unwrap_or_else(|_| env::temp_dir());
+                EmailBackend::FileSystem(tmp)
             }
         };
 
-        if config.env == Env::Production && !matches!(backend, EmailBackend::Smtp { .. }) {
-            panic!("Only the SMTP backend is allowed in production");
+        if config.env == Env::Production && !matches!(backend, EmailBackend::Loops(..)) {
+            panic!("Only the Loops backend is allowed in production");
         }
 
-        let domain = config.domain_name.clone();
-
-        Self {
-            backend,
-            domain,
-            from,
-        }
+        Self { backend }
     }
 
-    /// Create a new test backend that stores all the outgoing emails in memory, allowing for tests
-    /// to later assert the mails were sent.
     pub fn new_in_memory() -> Self {
         Self {
-            backend: EmailBackend::Memory(AsyncStubTransport::new_ok()),
-            domain: "frameruniversity.com".into(),
-            from: DEFAULT_FROM.parse().unwrap(),
+            backend: EmailBackend::Memory(Arc::new(Mutex::new(vec![]))),
         }
     }
 
-    /// This is supposed to be used only during tests, to retrieve the messages stored in the
-    /// "memory" backend. It's not cfg'd away because our integration tests need to access this.
-    pub async fn mails_in_memory(&self) -> Option<Vec<(Envelope, String)>> {
-        if let EmailBackend::Memory(transport) = &self.backend {
-            Some(transport.messages().await)
+    pub fn mails_in_memory(&self) -> Option<Vec<TransactionalRequest>> {
+        if let EmailBackend::Memory(store) = &self.backend {
+            let store = store.lock().unwrap();
+            let parsed = store
+                .iter()
+                .filter_map(|json| serde_json::from_str(json).ok())
+                .collect::<Vec<TransactionalRequest>>();
+            Some(parsed)
         } else {
             None
         }
     }
 
-    fn build_message(
-        &self,
-        recipient: &str,
-        subject: String,
-        body: String,
-    ) -> Result<Message, EmailError> {
-        // The message ID is normally generated by the SMTP server, but if we let it generate the
-        // ID there will be no way for the crates.io application to know the ID of the message it
-        // just sent, as it's not included in the SMTP response.
-        //
-        // We do this to allow for finding misdelivered emails.
-        let message_id = format!(
-            "<{}@{}>",
-            Alphanumeric.sample_string(&mut rand::rng(), 32),
-            self.domain,
-        );
-
-        let from = Mailbox::new(Some(self.domain.clone()), self.from.clone());
-
-        let message = Message::builder()
-            .message_id(Some(message_id.clone()))
-            .to(recipient.parse()?)
-            .from(from)
-            .subject(subject)
-            .header(ContentType::TEXT_PLAIN)
-            .body(body)?;
-
-        Ok(message)
-    }
-
-    pub async fn send<E: Email>(&self, recipient: &str, email: E) -> Result<(), EmailError> {
-        let email = self.build_message(recipient, email.subject(), email.body())?;
-
-        self.backend
-            .send(email)
-            .await
-            .map_err(EmailError::Transport)
-    }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum EmailError {
-    #[error(transparent)]
-    Address(#[from] lettre::address::AddressError),
-    #[error(transparent)]
-    MessageBuilder(#[from] lettre::error::Error),
-    #[error(transparent)]
-    Transport(anyhow::Error),
-}
-
-#[derive(Debug, Clone)]
-enum EmailBackend {
-    /// Backend used in production to send mails using SMTP.
-    ///
-    /// This is using `Box` to avoid a large size difference between variants.
-    Smtp(Box<AsyncSmtpTransport<Tokio1Executor>>),
-    /// Backend used locally during development, will store the emails in the provided directory.
-    FileSystem(Arc<AsyncFileTransport<Tokio1Executor>>),
-    /// Backend used during tests, will keep messages in memory to allow tests to retrieve them.
-    Memory(AsyncStubTransport),
-}
-
-impl EmailBackend {
-    async fn send(&self, message: Message) -> anyhow::Result<()> {
-        match self {
-            EmailBackend::Smtp(transport) => transport.send(message).await.map(|_| ())?,
-            EmailBackend::FileSystem(transport) => transport.send(message).await.map(|_| ())?,
-            EmailBackend::Memory(transport) => transport.send(message).await.map(|_| ())?,
-        }
-
+    pub async fn send<E: Email>(&self, recipient: String, email: E) -> Result<(), EmailError> {
+        let data = TransactionalRequest {
+            email: recipient,
+            transactional_id: email.transactional_id(),
+            data_variables: Some(serde_json::json!(email.variables())),
+        };
+        self.backend.send(data).await?;
         Ok(())
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Debug, Clone)]
+enum EmailBackend {
+    /// Backend used in production to send emails using Loops.
+    Loops(LoopsClient),
+    /// Backend used during E2E tests, will store Loops transactional request in filesystem to
+    /// allow E2E tests to retrieve them.
+    FileSystem(PathBuf),
+    /// Backend used during integration tests, will store Loops transactional request in memory to allow tests
+    /// to retrieve them.
+    Memory(Arc<Mutex<Vec<String>>>),
+}
 
-    struct TestEmail;
+impl EmailBackend {
+    async fn send(&self, data: TransactionalRequest) -> Result<(), EmailError> {
+        let transactional_json = serde_json::to_string(&data)?;
+        let timestamp = Local::now().format("%Y%m%d_%H%M%S");
+        let filename = format!("{}_{}.json", timestamp, data.transactional_id);
 
-    impl Email for TestEmail {
-        fn subject(&self) -> String {
-            "test".into()
+        match self {
+            EmailBackend::Loops(client) => {
+                client
+                    .post_transactional(PostTransactionalRequest { data })
+                    .await
+                    .map(|_| ())
+                    .map_err(|e| EmailError::LoopsError(e.to_string()))?;
+            }
+            EmailBackend::FileSystem(dir) => {
+                let mut path = dir.clone();
+                path.push(filename);
+
+                let mut file = File::create(path)?;
+                file.write_all(transactional_json.as_bytes())?;
+            }
+            EmailBackend::Memory(store) => {
+                let mut guard = store.lock().unwrap();
+                guard.push(transactional_json);
+            }
         }
 
-        fn body(&self) -> String {
-            "test".into()
-        }
-    }
-
-    #[tokio::test]
-    async fn sending_to_invalid_email_fails() {
-        let emails = Emails::new_in_memory();
-
-        let address = "String.Format(\"{0}.{1}@live.com\", FirstName, LastName)";
-        assert!(emails.send(address, TestEmail).await.is_err());
-    }
-
-    #[tokio::test]
-    async fn sending_to_valid_email_succeeds() {
-        let emails = Emails::new_in_memory();
-
-        let address = "someone@example.com";
-        assert!(emails.send(address, TestEmail).await.is_ok());
+        Ok(())
     }
 }

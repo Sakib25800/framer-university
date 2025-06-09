@@ -1,5 +1,4 @@
 use std::net::SocketAddr;
-use std::sync::LazyLock;
 use std::{rc::Rc, sync::Arc};
 
 use axum::{
@@ -9,7 +8,7 @@ use axum::{
 };
 use axum_test::TestServer;
 use framer_university_database::{models::user::UserRole, PgDbClient};
-use regex::Regex;
+use loops_sdk::schemas::TransactionalRequest;
 use sqlx::PgPool;
 
 use crate::{
@@ -95,35 +94,28 @@ impl TestApp {
         }
     }
 
-    pub async fn emails(&self) -> Vec<String> {
-        let emails = self.as_inner().emails.mails_in_memory().await.unwrap();
-        emails.into_iter().map(|(_, email)| email).collect()
+    pub fn emails(&self) -> Vec<TransactionalRequest> {
+        self.as_inner().emails.mails_in_memory().unwrap()
     }
 
-    pub async fn emails_snapshot(&self) -> String {
-        static EMAIL_HEADER_REGEX: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"(Message-ID|Date): [^\r\n]+\r\n").unwrap());
+    /// Get a specific data variable from an email by index.
+    pub fn get_email_variable_at_index(
+        &self,
+        email_index: usize,
+        variable_name: &str,
+    ) -> Option<String> {
+        let emails = self.emails();
+        let email = emails.get(email_index)?;
+        let data_variables = email.data_variables.as_ref()?;
+        data_variables
+            .get(variable_name)
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+    }
 
-        static DATE_TIME_REGEX: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z").unwrap());
-
-        static EMAIL_CONTINUE_REGEX: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"/continue/[a-f0-9]{64}").unwrap());
-
-        static SEPARATOR: &str = "\n----------------------------------------\n\n";
-
-        self.emails()
-            .await
-            .into_iter()
-            .map(|email| {
-                let email = email.replace("=\r\n", "");
-                let email = EMAIL_HEADER_REGEX.replace_all(&email, "");
-                let email = DATE_TIME_REGEX.replace_all(&email, "[0000-00-00T00:00:00Z]");
-                let email = EMAIL_CONTINUE_REGEX.replace_all(&email, "/api/continue/[token]");
-                email.to_string()
-            })
-            .collect::<Vec<_>>()
-            .join(SEPARATOR)
+    /// Get a specific data variable from the latest email.
+    pub fn get_email_variable(&self, variable_name: &str) -> String {
+        self.get_email_variable_at_index(0, variable_name).unwrap()
     }
 
     pub fn as_inner(&self) -> &App {

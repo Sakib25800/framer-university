@@ -41,10 +41,6 @@ incremental = true
 codegen-units = 256
 rpath = false
 
-[profile.dev.package]
-insta.opt-level = 3
-similar.opt-level = 3
-
 [profile.release]
 opt-level = 2
 
@@ -115,7 +111,6 @@ utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
 
 # Time
 time = { version = "0.3.37", features = ["serde"] }
-# chrono = {version = "0.4.39", features = ["serde"]}
 chrono = "0.4.39"
 
 # Utilities
@@ -127,14 +122,7 @@ rand = "0.9.0"
 colored = "3.0.0"
 
 # Email
-lettre = { version = "0.11.12", default-features = false, features = [
-    "file-transport",
-    "smtp-transport",
-    "hostname",
-    "builder",
-    "tokio1",
-    "tokio1-native-tls",
-] }
+loops_sdk = "1.0.0"
 
 # HTTP client
 reqwest = "0.12.12"
@@ -142,10 +130,8 @@ reqwest = "0.12.12"
 # Crates
 framer_university_database = { path = "crates/framer_university_database" }
 
-# Test
+# Tests
 axum-test = "17.3.0"
-regex = "1.11.1"
-insta = { version = "1.42.2", features = ["glob", "json", "redactions"] }
 
 [dev-dependencies]
 bytes = "1.9.0"
