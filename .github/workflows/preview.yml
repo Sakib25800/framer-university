@@ -267,6 +267,7 @@ jobs:
           loops-api-token: ${{ env.LOOPS_API_TOKEN }}
           fly-api-token: ${{ env.FLY_API_TOKEN }}
           fly-org: ${{ env.FLY_ORG }}
+          web-url: ${{ steps.web-deploy.outputs.deployment-url }}
 
   comment:
     needs: [setup, deploy]

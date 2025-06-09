@@ -22,6 +22,13 @@ inputs:
   fly-org:
     description: "Fly.io organization"
     required: true
+  web-url:
+    description: "Web application URL"
+    required: true
+  production-api-url:
+    description: "Production API URL (for production mode)"
+    required: false
+    default: "https://api.frameruniversity.com"
 outputs:
   deployment-url:
     description: "Deployment URL"
@@ -50,7 +57,7 @@ runs:
       with:
         name: framer-university-api-pr-${{ inputs.pr-number }}
         path: apps/api
-        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} LOOPS_API_TOKEN=${{ inputs.loops-api-token }}
+        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} LOOPS_API_TOKEN=${{ inputs.loops-api-token }} WEB_URL=${{ inputs.web-url }} ALLOWED_ORIGINS=*.frameruniversity.com,*.frameruniversity.workers.dev
       env:
         FLY_API_TOKEN: ${{ inputs.fly-api-token }}
         FLY_ORG: ${{ inputs.fly-org }}
@@ -71,5 +78,5 @@ runs:
         if [ "${{ inputs.mode }}" = "preview" ]; then
           echo "url=https://framer-university-api-pr-${{ inputs.pr-number }}.fly.dev" >> $GITHUB_OUTPUT
         else
-          echo "url=https://api.frameruniversity.com" >> $GITHUB_OUTPUT
+          echo "url=${{ inputs.production-api-url }}" >> $GITHUB_OUTPUT
         fi

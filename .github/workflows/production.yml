@@ -20,6 +20,12 @@ env:
   LOOPS_API_TOKEN: ${{ secrets.LOOPS_API_TOKEN }}
   FLY_ORG: ${{ vars.FLY_ORG }}
   API_URL: http://localhost:8080
+  # Production URLs
+  PRODUCTION_WEB_URL: https://frameruniversity.com
+  PRODUCTION_ADMIN_URL: https://admin.frameruniversity.com
+  PRODUCTION_PLUGIN_URL: https://plugin.frameruniversity.com
+  PRODUCTION_API_URL: https://api.frameruniversity.com
+  PRODUCTION_STORYBOOK_URL: https://www.chromatic.com/library?appId=
 
 jobs:
   ci:
@@ -76,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production - Web
-      url: https://frameruniversity.com
+      url: ${{ env.PRODUCTION_WEB_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -91,6 +97,7 @@ jobs:
           mode: production
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          production-url: ${{ env.PRODUCTION_WEB_URL }}
 
   deploy-admin:
     needs: [ci, setup]
@@ -98,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production - Admin
-      url: https://admin.frameruniversity.com
+      url: ${{ env.PRODUCTION_ADMIN_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -114,6 +121,7 @@ jobs:
           mode: production
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          production-url: ${{ env.PRODUCTION_ADMIN_URL }}
 
   deploy-plugin:
     needs: [ci, setup]
@@ -121,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production - Plugin
-      url: https://plugin.frameruniversity.com
+      url: ${{ env.PRODUCTION_PLUGIN_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -137,6 +145,7 @@ jobs:
           mode: production
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          production-url: ${{ env.PRODUCTION_PLUGIN_URL }}
 
   deploy-storybook:
     needs: [ci, setup]
@@ -144,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production - Storybook
-      url: https://www.chromatic.com/library?appId=${{ vars.CHROMATIC_APP_ID }}
+      url: ${{ env.PRODUCTION_STORYBOOK_URL }}${{ vars.CHROMATIC_APP_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -168,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production - API
-      url: https://api.frameruniversity.com
+      url: ${{ env.PRODUCTION_API_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -192,3 +201,5 @@ jobs:
           loops-api-token: ${{ env.LOOPS_API_TOKEN }}
           fly-api-token: ${{ env.FLY_API_TOKEN }}
           fly-org: ${{ env.FLY_ORG }}
+          web-url: ${{ env.PRODUCTION_WEB_URL }}
+          production-api-url: ${{ env.PRODUCTION_API_URL }}

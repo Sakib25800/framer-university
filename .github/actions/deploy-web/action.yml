@@ -16,6 +16,10 @@ inputs:
   cloudflare-account-id:
     description: "Cloudflare account ID"
     required: true
+  production-url:
+    description: "Production URL for the web app"
+    required: false
+    default: ""
 outputs:
   deployment-url:
     description: "Deployment URL"
@@ -92,6 +96,10 @@ runs:
           echo "deployment-url=${{ steps.deploy.outputs.deployment-url }}" >> $GITHUB_OUTPUT
           echo "deploy-status=${{ steps.deploy.outputs.deploy_status }}" >> $GITHUB_OUTPUT
         else
-          echo "deployment-url=https://frameruniversity.com" >> $GITHUB_OUTPUT
+          if [ -n "${{ inputs.production-url }}" ]; then
+            echo "deployment-url=${{ inputs.production-url }}" >> $GITHUB_OUTPUT
+          else
+            echo "deployment-url=https://frameruniversity.com" >> $GITHUB_OUTPUT
+          fi
           echo "deploy-status=success" >> $GITHUB_OUTPUT
         fi
