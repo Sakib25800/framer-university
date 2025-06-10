@@ -1,14 +1,12 @@
 use crate::app::AppState;
-use crate::Env;
 use ::sentry::integrations::tower as sentry_tower;
 use axum::middleware::from_fn;
 use axum::Router;
-use axum_extra::either::Either;
-use axum_extra::middleware::option_layer;
+
 use http::request::Parts;
 use http::HeaderValue;
 use std::time::Duration;
-use tower::layer::util::Identity;
+
 use tower_http::add_extension::AddExtensionLayer;
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::compression::{CompressionLayer, CompressionLevel};
@@ -23,7 +21,6 @@ pub mod path;
 pub mod query;
 mod real_ip;
 
-
 pub fn apply_axum_middleware(state: AppState, router: Router<()>) -> Router {
     let config = &state.config;
 
@@ -33,13 +30,8 @@ pub fn apply_axum_middleware(state: AppState, router: Router<()>) -> Router {
         .layer(from_fn(self::real_ip::middleware))
         .layer(from_fn(log_request::log_requests))
         .layer(CatchPanicLayer::new())
-
         .layer(AddExtensionLayer::new(state.clone()))
-        // Optionally print debug information for each request
-        // To enable, set the environment variable: `RUST_LOG=crates_io::middleware=debug`
-        .layer(conditional_layer(config.env == Env::Development, || {
-            from_fn(debug::debug_requests)
-        }));
+        .layer(from_fn(debug::debug_requests));
 
     router
         .layer(middlewares)
@@ -50,8 +42,4 @@ pub fn apply_axum_middleware(state: AppState, router: Router<()>) -> Router {
             let allowed_origins = config.allowed_origins.clone();
             move |origin: &HeaderValue, _request_parts: &Parts| allowed_origins.contains(origin)
         })))
-}
-
-pub fn conditional_layer<L, F: FnOnce() -> L>(condition: bool, layer: F) -> Either<L, Identity> {
-    option_layer(condition.then(layer))
 }
