@@ -15,6 +15,7 @@ env:
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
   CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   LOOPS_API_TOKEN: ${{ secrets.LOOPS_API_TOKEN }}
@@ -96,6 +97,7 @@ jobs:
           mode: production
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare-zone-id: ${{ env.CLOUDFLARE_ZONE_ID }}
           production-url: ${{ env.PRODUCTION_WEB_URL }}
 
   deploy-admin:

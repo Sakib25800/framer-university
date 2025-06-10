@@ -15,6 +15,7 @@ env:
   NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
   NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
   CHROMATIC_APP_ID: ${{ vars.CHROMATIC_APP_ID }}
   CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -232,6 +233,7 @@ jobs:
           kv-namespace-id: ${{ steps.create-resources.outputs.kv-namespace-id }}
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare-zone-id: ${{ env.CLOUDFLARE_ZONE_ID }}
 
       - name: Deploy admin
         id: admin-deploy

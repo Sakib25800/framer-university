@@ -23,6 +23,9 @@ inputs:
     description: "Production URL for the web app"
     required: false
     default: ""
+  cloudflare-zone-id:
+    description: "Cloudflare zone ID for cache purging"
+    required: false
 outputs:
   deployment-url:
     description: "Deployment URL"
@@ -96,7 +99,7 @@ runs:
       if: inputs.mode == 'production'
       uses: nathanvaughn/actions-cloudflare-purge@master
       with:
-        cf_zone: ${{ vars.CLOUDFLARE_ZONE_ID }}
+        cf_zone: ${{ inputs.cloudflare-zone-id }}
         cf_auth: ${{ inputs.cloudflare-api-token }}
       continue-on-error: true
 
