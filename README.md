@@ -42,18 +42,19 @@ The project is organized as a monorepo using Turborepo:
 
 ## Documentation
 
-- Apps:
+### Apps
 
-  - [Web](./apps/web/README.md)
-  - [Admin](./apps/admin/README.md)
-  - [Plugin](./apps/plugin/README.md)
-  - [API](./apps/api/README.md)
+- [Web](./apps/web/README.md)
+- [Admin](./apps/admin/README.md)
+- [Plugin](./apps/plugin/README.md)
+- [API](./apps/api/README.md)
 
-- Packages:
-  - [API](./packages/api/README.md)
-  - [UI](./packages/ui/README.md)
-  - [TypeScript Config](./packages/config-typescript/README.md)
-  - [ESLint Config](./packages/config-eslint/README.md)
+### Packages
+
+- [API](./packages/api/README.md)
+- [UI](./packages/ui/README.md)
+- [TypeScript Config](./packages/config-typescript/README.md)
+- [ESLint Config](./packages/config-eslint/README.md)
 
 ## Getting Started
 
