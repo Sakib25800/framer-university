@@ -46,6 +46,7 @@ pub async fn signin(
     let email = &body.email;
 
     if db.users.find_by_email(email).await.is_err() {
+        tracing::warn!(email = %email, "Deleting existing verification tokens for unregistered email");
         db.verification_tokens.delete_all(email).await?;
     }
 
@@ -56,6 +57,8 @@ pub async fn signin(
             state.config.email_verification_expiration_hours,
         )
         .await?;
+
+    tracing::debug!(email = %email, "Verification token created");
 
     state
         .emails
@@ -69,6 +72,8 @@ pub async fn signin(
             },
         )
         .await?;
+
+    tracing::info!(email = %email, "Sign-in email sent successfully");
 
     Ok(Json(MessageResponse {
         message: "We've sent you an email".to_string(),
@@ -104,18 +109,31 @@ pub async fn continue_signin(
         .verification_tokens
         .find_by_token(&token)
         .await
-        .map_err(|_| unauthorized("Invalid verification token"))?;
+        .map_err(|_| {
+            tracing::warn!(token_prefix = %&token[..8.min(token.len())], "Invalid verification token attempted");
+            unauthorized("Invalid verification token")
+        })?;
 
     if verification_token.expires < Utc::now() {
+        tracing::warn!(
+            email = %verification_token.identifier,
+            token_prefix = %&token[..8.min(token.len())],
+            "Expired verification token attempted"
+        );
         return Err(unauthorized("Expired verification token"));
     }
 
     let user = match db.users.find_by_email(&verification_token.identifier).await {
-        Ok(user) => user,
+        Ok(user) => {
+            tracing::debug!(user_id = %user.id, email = %user.email, "Existing user found for sign-in");
+            user
+        }
         Err(_) => {
-            db.users
+            let new_user = db.users
                 .create(&verification_token.identifier, UserRole::User)
-                .await?
+                .await?;
+            tracing::info!(user_id = %new_user.id, email = %new_user.email, "New user created during sign-in");
+            new_user
         }
     };
 
@@ -125,6 +143,8 @@ pub async fn continue_signin(
         jwt_refresh_token_expiration_days,
         ..
     } = state.config.as_ref();
+    tracing::info!(user_id = %user.id, email = %user.email, "User authentication successful");
+    
     let access_token = generate_access_token(
         jwt_secret,
         jwt_access_token_expiration_hours,
@@ -143,6 +163,8 @@ pub async fn continue_signin(
     db.verification_tokens
         .delete(&verification_token.identifier, token.as_str())
         .await?;
+
+    tracing::debug!(token_prefix = %&token[..8.min(token.len())], "Verification token cleaned up");
 
     Ok(Json(VerifiedEmailResponse {
         access_token,
