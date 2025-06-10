@@ -181,14 +181,19 @@ jobs:
     outputs:
       web_url: ${{ steps.web-deploy.outputs.deployment-url }}
       web_status: ${{ steps.web-deploy.outputs.deploy-status }}
+      web_result: ${{ steps.web-deploy.outcome }}
       admin_url: ${{ steps.admin-deploy.outputs.deployment-url }}
       admin_status: ${{ steps.admin-deploy.outcome }}
+      admin_result: ${{ steps.admin-deploy.outcome }}
       plugin_url: ${{ steps.plugin-deploy.outputs.deployment-url }}
       plugin_status: ${{ steps.plugin-deploy.outcome }}
+      plugin_result: ${{ steps.plugin-deploy.outcome }}
       storybook_url: ${{ steps.storybook-deploy.outputs.build-url }}
       storybook_status: ${{ steps.storybook-deploy.outcome }}
+      storybook_result: ${{ steps.storybook-deploy.outcome }}
       api_url: ${{ steps.api-deploy.outputs.deployment-url }}
       api_status: ${{ steps.api-deploy.outcome }}
+      api_result: ${{ steps.api-deploy.outcome }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -220,7 +225,6 @@ jobs:
       - name: Deploy web
         id: web-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
-        continue-on-error: true
         uses: ./.github/actions/deploy-web
         with:
           mode: preview
@@ -233,7 +237,6 @@ jobs:
       - name: Deploy admin
         id: admin-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
-        continue-on-error: true
         uses: ./.github/actions/deploy-cloudflare-app
         with:
           app-name: admin
@@ -244,7 +247,6 @@ jobs:
       - name: Deploy plugin
         id: plugin-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
-        continue-on-error: true
         uses: ./.github/actions/deploy-cloudflare-app
         with:
           app-name: plugin
@@ -255,7 +257,6 @@ jobs:
       - name: Deploy Storybook
         id: storybook-deploy
         if: github.event.action == 'opened' || github.event.action == 'synchronize'
-        continue-on-error: true
         uses: ./.github/actions/deploy-storybook
         with:
           mode: preview
@@ -263,8 +264,7 @@ jobs:
 
       - name: Deploy API
         id: api-deploy
-        if: github.event.action == 'opened' || github.event.action == 'synchronize'
-        continue-on-error: true
+        if: (github.event.action == 'opened' || github.event.action == 'synchronize') && steps.web-deploy.outcome == 'success'
         uses: ./.github/actions/deploy-api
         with:
           mode: preview
@@ -292,19 +292,19 @@ jobs:
           pr-number: ${{ github.event.number }}
           web-url: ${{ needs.deploy.outputs.web_url }}
           web-status: ${{ needs.deploy.outputs.web_status }}
-          web-result: ${{ needs.deploy.result }}
+          web-result: ${{ needs.deploy.outputs.web_result }}
           admin-url: ${{ needs.deploy.outputs.admin_url }}
           admin-status: ${{ needs.deploy.outputs.admin_status }}
-          admin-result: ${{ needs.deploy.result }}
+          admin-result: ${{ needs.deploy.outputs.admin_result }}
           plugin-url: ${{ needs.deploy.outputs.plugin_url }}
           plugin-status: ${{ needs.deploy.outputs.plugin_status }}
-          plugin-result: ${{ needs.deploy.result }}
+          plugin-result: ${{ needs.deploy.outputs.plugin_result }}
           api-url: ${{ needs.deploy.outputs.api_url }}
           api-status: ${{ needs.deploy.outputs.api_status }}
-          api-result: ${{ needs.deploy.result }}
+          api-result: ${{ needs.deploy.outputs.api_result }}
           storybook-url: ${{ needs.deploy.outputs.storybook_url }}
           storybook-status: ${{ needs.deploy.outputs.storybook_status }}
-          storybook-result: ${{ needs.deploy.result }}
+          storybook-result: ${{ needs.deploy.outputs.storybook_result }}
           branch-id: ${{ needs.setup.outputs.branch-id }}
           neon-project-id: ${{ env.NEON_PROJECT_ID }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}

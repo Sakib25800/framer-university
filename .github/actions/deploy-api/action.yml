@@ -51,17 +51,36 @@ runs:
       if: inputs.mode == 'production'
       uses: docker/setup-buildx-action@v3
 
+    - name: Validate web URL (preview only)
+      if: inputs.mode == 'preview'
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.web-url }}" ]; then
+          echo "Error: web-url is empty or not provided"
+          exit 1
+        fi
+        echo "Web URL validated: ${{ inputs.web-url }}"
+
     - name: Deploy preview to Fly (preview only)
       if: inputs.mode == 'preview'
       uses: superfly/fly-pr-review-apps@1.5.0
       with:
         name: framer-university-api-pr-${{ inputs.pr-number }}
         path: apps/api
-
         secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} LOOPS_API_TOKEN=${{ inputs.loops-api-token }} WEB_URL=${{ inputs.web-url }} ALLOWED_ORIGINS=*.frameruniversity.com,*.frameruniversity.workers.dev CONNECTION_TIMEOUT_SECONDS=10 EMAIL_VERIFICATION_EXPIRATION_HOURS=48 JWT_ACCESS_TOKEN_EXPIRATION_HOURS=24 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=7 POOL_SIZE=3 PORT=8080 SENTRY_ENV_API=preview
       env:
         FLY_API_TOKEN: ${{ inputs.fly-api-token }}
         FLY_ORG: ${{ inputs.fly-org }}
+
+    - name: Validate web URL (production only)
+      if: inputs.mode == 'production'
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.web-url }}" ]; then
+          echo "Error: web-url is empty or not provided"
+          exit 1
+        fi
+        echo "Web URL validated: ${{ inputs.web-url }}"
 
     - name: Set production secrets (production only)
       if: inputs.mode == 'production'
@@ -76,6 +95,7 @@ runs:
           JWT_SECRET="${{ inputs.jwt-secret }}" \
           LOOPS_API_TOKEN="${{ inputs.loops-api-token }}" \
           WEB_URL="${{ inputs.web-url }}" \
+          SENTRY_ENV_API=production \
           --app framer-university-api
 
     - name: Deploy production to Fly (production only)
