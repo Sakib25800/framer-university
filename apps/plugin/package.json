@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "vite build",
-    "dev": "vite --host 0.0.0.0 --port 3004 --clearScreen false",
+    "dev": "vite --host 0.0.0.0 --port 3001 --clearScreen false",
     "check-types": "tsc --noEmit",
     "lint": "eslint src/ --max-warnings 0",
     "clean": "rm -rf dist .turbo .wrangler dist node_modules",
