@@ -190,8 +190,6 @@ fn simple_config() -> Server {
     Server {
         env: Env::Test,
         allowed_origins: Default::default(),
-        metrics_authorization_token: None,
-        instance_metrics_log_every_seconds: None,
         jwt_secret: "test_secret".to_string(),
         jwt_access_token_expiration_hours: 1,
         jwt_refresh_token_expiration_days: 7,

@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use crate::config::{self};
 use crate::email::Emails;
-use crate::metrics::{InstanceMetrics, ServiceMetrics};
+use crate::metrics::ServiceMetrics;
 
 // trigger redeployment
 
@@ -25,8 +25,7 @@ pub struct App {
     /// Backend to send emails
     pub emails: Emails,
 
-    /// Metrics related to this specific instance of the service
-    pub instance_metrics: InstanceMetrics,
+
 }
 
 impl App {
@@ -49,7 +48,6 @@ impl App {
             emails,
             db: PgDbClient::new(pool),
             config: Arc::new(config),
-            instance_metrics: InstanceMetrics::new().expect("Failed to initialise metrics"),
             service_metrics: ServiceMetrics::new().expect("Failed to intialise service metrics"),
         }
     }

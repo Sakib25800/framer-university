@@ -1,9 +1,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
 use tokio::signal::unix::{signal, SignalKind};
 
-use framer_university::{app::App, build_handler, email::Emails};
+use framer_university::{app::App, build_handler, email::Emails, metrics};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -19,8 +18,13 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Arc::new(App::build(config, emails, None).await);
 
-    // Start the background thread periodically logging instance metrics.
-    log_instance_metrics_thread(app.clone());
+    // Start the metrics server in a separate task
+    let metrics_app = app.clone();
+    let metrics_handle = tokio::spawn(async move {
+        if let Err(err) = metrics::start_metrics_server(metrics_app).await {
+            tracing::error!(?err, "Metrics server error");
+        }
+    });
 
     let axum_router = build_handler(app.clone());
 
@@ -28,12 +32,15 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
 
-    tracing::info!("Listening at 0.0.0.0:8080");
+    tracing::info!("API server listening at 0.0.0.0:8080");
 
     axum::serve(listener, make_service)
         .with_graceful_shutdown(shutdown_signal())
         .await
         .unwrap();
+
+    // Cancel the metrics server when the main server shuts down.
+    metrics_handle.abort();
 
     tracing::info!("Server shutdown");
 
@@ -59,31 +66,4 @@ async fn shutdown_signal() {
         _ = interrupt => {},
         _ = terminate => {},
     }
-}
-
-fn log_instance_metrics_thread(app: Arc<App>) {
-    // Only run the thread if the configuration is provided
-    let interval = match app.config.instance_metrics_log_every_seconds {
-        Some(secs) => Duration::from_secs(secs),
-        None => return,
-    };
-
-    std::thread::spawn(move || loop {
-        if let Err(err) = log_instance_metrics_inner(&app) {
-            tracing::error!(?err, "log_instance_metrics error");
-        }
-        std::thread::sleep(interval);
-    });
-}
-
-fn log_instance_metrics_inner(app: &App) -> anyhow::Result<()> {
-    let metrics = app.instance_metrics.gather(app)?;
-
-    // Log metrics directly to stdout
-    tracing::info!(
-        metrics = ?metrics,
-        "Instance metrics gathered"
-    );
-
-    Ok(())
 }

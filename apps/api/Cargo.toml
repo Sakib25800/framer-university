@@ -93,8 +93,7 @@ sentry = { version = "0.37.0", features = [
 ] }
 
 # Monitoring
-metrics = { version = "0.24.1", default-features = false }
-prometheus = "0.14.0"
+prometheus-client = "0.23.1"
 
 # Configuration
 config = "0.15.6"

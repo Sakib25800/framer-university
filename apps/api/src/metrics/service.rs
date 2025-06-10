@@ -1,41 +1,43 @@
 use framer_university_database::PgDbClient;
-use prometheus::{proto::MetricFamily, IntGauge};
+use prometheus_client::metrics::gauge::Gauge;
+use prometheus_client::registry::Registry;
 
-use super::macros::metrics;
 use crate::util::errors::AppResult;
 
-metrics! {
-    pub struct ServiceMetrics {
-        /// Number of monthly active users (last 30 days)
-        // monthly_active_users: IntGauge,
-        /// Number of weekly active users (last 7 days)
-        // weekly_active_users: IntGauge,
-        /// Number of daily active users (last 24 hours)
-        // daily_active_users: IntGauge,
-        /// Number of concurrent users (last 15 minutes)
-        // concurrent_users: IntGauge,
-        /// Total registered users
-        total_users: IntGauge,
-    }
-
-    namespace: "framer_university_service",
+pub struct ServiceMetrics {
+    registry: Registry,
+    /// Total registered users
+    total_users: Gauge<i64>,
 }
 
 impl ServiceMetrics {
-    pub(crate) async fn gather(&self, db: &PgDbClient) -> AppResult<Vec<MetricFamily>> {
-        // TODO: Implement this
-        // let monthly_active = User::count_monthly_active(pool).await.unwrap_or(0);
-        // let weekly_active = User::count_weekly_active(pool).await.unwrap_or(0);
-        // let daily_active = User::count_daily_active(pool).await.unwrap_or(0);
-        // let concurrent = User::count_concurrent(pool).await.unwrap_or(0);
-        let total = db.users.count().await?.unwrap_or(-1);
+    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+        let mut registry = Registry::default();
 
-        // self.monthly_active_users.set(monthly_active);
-        // self.weekly_active_users.set(weekly_active);
-        // self.daily_active_users.set(daily_active);
-        // self.concurrent_users.set(concurrent);
+        let total_users = Gauge::<i64>::default();
+        registry.register(
+            "framer_university_service_total_users",
+            "Total registered users",
+            total_users.clone(),
+        );
+
+        Ok(Self {
+            registry,
+            total_users,
+        })
+    }
+
+    pub async fn gather(&self, db: &PgDbClient) -> AppResult<String> {
+        let total = db.users.count().await?.unwrap_or(-1);
         self.total_users.set(total);
 
-        Ok(self.registry.gather())
+        // Encode metrics to Prometheus text format.
+        let mut buffer = String::new();
+        prometheus_client::encoding::text::encode(&mut buffer, &self.registry)?;
+        Ok(buffer)
+    }
+
+    pub fn registry(&self) -> &Registry {
+        &self.registry
     }
 }

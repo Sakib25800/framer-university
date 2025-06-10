@@ -1,7 +1,7 @@
 use crate::app::AppState;
 use crate::Env;
 use ::sentry::integrations::tower as sentry_tower;
-use axum::middleware::{from_fn, from_fn_with_state};
+use axum::middleware::from_fn;
 use axum::Router;
 use axum_extra::either::Either;
 use axum_extra::middleware::option_layer;
@@ -22,7 +22,7 @@ pub mod log_request;
 pub mod path;
 pub mod query;
 mod real_ip;
-mod update_metrics;
+
 
 pub fn apply_axum_middleware(state: AppState, router: Router<()>) -> Router {
     let config = &state.config;
@@ -33,10 +33,7 @@ pub fn apply_axum_middleware(state: AppState, router: Router<()>) -> Router {
         .layer(from_fn(self::real_ip::middleware))
         .layer(from_fn(log_request::log_requests))
         .layer(CatchPanicLayer::new())
-        .layer(from_fn_with_state(
-            state.clone(),
-            update_metrics::update_metrics,
-        ))
+
         .layer(AddExtensionLayer::new(state.clone()))
         // Optionally print debug information for each request
         // To enable, set the environment variable: `RUST_LOG=crates_io::middleware=debug`

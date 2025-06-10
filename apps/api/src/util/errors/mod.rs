@@ -118,8 +118,8 @@ impl From<sqlx::Error> for BoxedAppError {
     }
 }
 
-impl From<prometheus::Error> for BoxedAppError {
-    fn from(err: prometheus::Error) -> BoxedAppError {
+impl From<std::fmt::Error> for BoxedAppError {
+    fn from(err: std::fmt::Error) -> BoxedAppError {
         Box::new(err)
     }
 }

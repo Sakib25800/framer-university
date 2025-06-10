@@ -8,8 +8,6 @@ pub struct Server {
     // Server
     pub env: Env,
     pub allowed_origins: AllowedOrigins,
-    pub metrics_authorization_token: Option<String>,
-    pub instance_metrics_log_every_seconds: Option<u64>,
     // Auth
     pub jwt_secret: String,
     pub jwt_access_token_expiration_hours: i64,

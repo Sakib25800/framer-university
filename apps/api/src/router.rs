@@ -1,11 +1,10 @@
 use axum::response::IntoResponse;
-use axum::routing::get;
 use axum::{middleware, Router};
 use http::{Method, StatusCode};
 use utoipa_axum::routes;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::controllers::*;
+use crate::controllers::{auth, health, users};
 use crate::util::errors::not_found;
 use crate::{app::AppState, openapi::BaseOpenApi};
 
@@ -30,7 +29,6 @@ pub fn build_axum_router(state: AppState) -> Router<()> {
     Router::new()
         .merge(public_router)
         .merge(protected_router)
-        .route("/api/private/metrics/{kind}", get(metrics::prometheus))
         .merge(
             SwaggerUi::new("/api/private/swagger-ui")
                 .url("/api/private/openapi.json", openapi.clone()),
