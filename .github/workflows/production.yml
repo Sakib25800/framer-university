@@ -67,10 +67,21 @@ jobs:
       plugin_changed: ${{ steps.detect-changes.outputs.plugin_changed }}
       storybook_changed: ${{ steps.detect-changes.outputs.storybook_changed }}
       api_changed: ${{ steps.detect-changes.outputs.api_changed }}
+      force_deploy: ${{ steps.check-force-deploy.outputs.force_deploy }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Check for force deploy flag
+        id: check-force-deploy
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" == *"[deploy all]"* ]] || [[ "${{ github.event.head_commit.message }}" == *"[force deploy]"* ]]; then
+            echo "force_deploy=true" >> $GITHUB_OUTPUT
+            echo "Force deploy flag detected in commit message"
+          else
+            echo "force_deploy=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Detect changes
         id: detect-changes
@@ -78,7 +89,7 @@ jobs:
 
   deploy-web:
     needs: [ci, setup]
-    if: needs.setup.outputs.web_changed == 'true'
+    if: needs.setup.outputs.web_changed == 'true' || needs.setup.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: Production - Web
@@ -102,7 +113,7 @@ jobs:
 
   deploy-admin:
     needs: [ci, setup]
-    if: needs.setup.outputs.admin_changed == 'true'
+    if: needs.setup.outputs.admin_changed == 'true' || needs.setup.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: Production - Admin
@@ -126,7 +137,7 @@ jobs:
 
   deploy-plugin:
     needs: [ci, setup]
-    if: needs.setup.outputs.plugin_changed == 'true'
+    if: needs.setup.outputs.plugin_changed == 'true' || needs.setup.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: Production - Plugin
@@ -150,7 +161,7 @@ jobs:
 
   deploy-storybook:
     needs: [ci, setup]
-    if: needs.setup.outputs.storybook_changed == 'true'
+    if: needs.setup.outputs.storybook_changed == 'true' || needs.setup.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: Production - Storybook
@@ -174,7 +185,7 @@ jobs:
 
   deploy-api:
     needs: [ci, setup]
-    if: needs.setup.outputs.api_changed == 'true'
+    if: needs.setup.outputs.api_changed == 'true' || needs.setup.outputs.force_deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: Production - API
