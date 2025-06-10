@@ -7,6 +7,14 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "minify": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.01
+  },
+  "placement": {
+    "mode": "smart"
+  },
   // ISR revalidation + on-demand revalidation
   "services": [
     {
@@ -44,8 +52,11 @@
       "database_name": "web-tag-cache"
     }
   ],
-  "observability": {
-    "enabled": true,
-    "head_sampling_rate": 0.01
-  }
+  // Caching build outputs (static pages, ISR pages, API responses)
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "3d992aa8af144788bef57fa6e87d0de4"
+    }
+  ]
 }
