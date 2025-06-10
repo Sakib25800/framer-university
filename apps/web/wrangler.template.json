@@ -40,6 +40,12 @@
       "new_sqlite_classes": ["DOQueueHandler"]
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "${KV_NAMESPACE_ID}"
+    }
+  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 0.01
