@@ -53,6 +53,12 @@ jobs:
           pnpm wrangler r2 object delete web-cache-pr-${{ github.event.number }} --recursive || true
           pnpm wrangler r2 bucket delete web-cache-pr-${{ github.event.number }} || true
 
+          # Delete KV namespace
+          KV_ID=$(pnpm wrangler kv:namespace list --output json | jq -r '.[] | select(.title=="web-kv-pr-${{ github.event.number }}") | .id')
+          if [ -n "$KV_ID" ]; then
+            pnpm wrangler kv:namespace delete "$KV_ID" || true
+          fi
+
           # Delete D1 database
           D1_ID=$(pnpm wrangler d1 list --output json | jq -r '.[] | select(.name=="web-tag-cache-pr-${{ github.event.number }}") | .database_id')
           if [ -n "$D1_ID" ]; then
@@ -220,6 +226,7 @@ jobs:
           mode: preview
           pr-number: ${{ github.event.number }}
           d1-database-id: ${{ steps.create-resources.outputs.d1-database-id }}
+          kv-namespace-id: ${{ steps.create-resources.outputs.kv-namespace-id }}
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
 
