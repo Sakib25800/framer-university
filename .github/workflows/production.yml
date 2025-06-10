@@ -19,7 +19,6 @@ env:
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   LOOPS_API_TOKEN: ${{ secrets.LOOPS_API_TOKEN }}
   FLY_ORG: ${{ vars.FLY_ORG }}
-  API_URL: http://localhost:8080
   # Production URLs
   PRODUCTION_WEB_URL: https://frameruniversity.com
   PRODUCTION_ADMIN_URL: https://admin.frameruniversity.com
