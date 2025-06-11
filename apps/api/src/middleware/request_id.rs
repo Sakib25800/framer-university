@@ -127,8 +127,11 @@ pub fn generate_request_id() -> String {
         .as_millis();
 
     let random_suffix: String = (0..4)
-        .map(|_| format!("{:02x}", rand::random::<u8>()))
-        .collect();
+        .fold(String::new(), |mut acc, _| {
+            use std::fmt::Write;
+            write!(acc, "{:02x}", rand::random::<u8>()).unwrap();
+            acc
+        });
 
     format!("req_{}_{}", timestamp, random_suffix)
 }

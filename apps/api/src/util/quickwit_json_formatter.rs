@@ -94,7 +94,7 @@ struct FieldVisitor<'a> {
     message: &'a mut String,
 }
 
-impl<'a> tracing::field::Visit for FieldVisitor<'a> {
+impl tracing::field::Visit for FieldVisitor<'_> {
     fn record_f64(&mut self, field: &tracing::field::Field, value: f64) {
         self.attributes.insert(
             field.name().to_string(),
