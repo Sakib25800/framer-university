@@ -13,7 +13,6 @@
       "outputs": ["target/release/api", "target/release/gen_openapi"]
     },
     "test": {
-      "dependsOn": ["build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "Cargo.toml",

@@ -11,6 +11,7 @@ use crate::{
     app::AppState,
     auth::generate_access_token,
     config::Server,
+    log,
     middleware::{json::JsonBody, path::ValidatedPath},
     util::errors::{unauthorized, AppResult},
     views::{MessageResponse, VerifiedEmailResponse},
@@ -46,7 +47,7 @@ pub async fn signin(
     let email = &body.email;
 
     if db.users.find_by_email(email).await.is_err() {
-        tracing::warn!(email = %email, message = "Deleting existing verification tokens for unregistered email");
+        log::warn!(message = "Deleting existing verification tokens for unregistered email", email = %email);
         db.verification_tokens.delete_all(email).await?;
     }
 
@@ -58,7 +59,7 @@ pub async fn signin(
         )
         .await?;
 
-    tracing::debug!(email = %email, message = "Verification token created");
+    log::info!(message = "Sending sign-in email", email = %email);
 
     state
         .emails
@@ -72,8 +73,6 @@ pub async fn signin(
             },
         )
         .await?;
-
-    tracing::info!(email = %email, message = "Sign-in email sent successfully");
 
     Ok(Json(MessageResponse {
         message: "We've sent you an email".to_string(),
@@ -110,29 +109,30 @@ pub async fn continue_signin(
         .find_by_token(&token)
         .await
         .map_err(|_| {
-            tracing::warn!(token_prefix = %&token[..8.min(token.len())], message = "Invalid verification token attempted");
+            log::warn!(message = "Invalid verification token attempted", token_prefix = %&token[..8.min(token.len())]);
             unauthorized("Invalid verification token")
         })?;
 
     if verification_token.expires < Utc::now() {
-        tracing::warn!(
+        log::warn!(
+            message = "Expired verification token attempted",
             email = %verification_token.identifier,
-            token_prefix = %&token[..8.min(token.len())],
-            message = "Expired verification token attempted"
+            token_prefix = %&token[..8.min(token.len())]
         );
         return Err(unauthorized("Expired verification token"));
     }
 
     let user = match db.users.find_by_email(&verification_token.identifier).await {
         Ok(user) => {
-            tracing::debug!(user_id = %user.id, email = %user.email, message = "Existing user found for sign-in");
+            log::debug!(message = "Existing user found for sign-in", user_id = %user.id, email = %user.email);
             user
         }
         Err(_) => {
-            let new_user = db.users
+            let new_user = db
+                .users
                 .create(&verification_token.identifier, UserRole::User)
                 .await?;
-            tracing::info!(user_id = %new_user.id, email = %new_user.email, message = "New user created during sign-in");
+            log::info!(message = "New user created during sign-in", user_id = %new_user.id, email = %new_user.email);
             new_user
         }
     };
@@ -143,8 +143,9 @@ pub async fn continue_signin(
         jwt_refresh_token_expiration_days,
         ..
     } = state.config.as_ref();
-    tracing::info!(user_id = %user.id, email = %user.email, message = "User authentication successful");
-    
+
+    log::debug!(message = "User authentication successful", user_id = %user.id, email = %user.email);
+
     let access_token = generate_access_token(
         jwt_secret,
         jwt_access_token_expiration_hours,
@@ -156,15 +157,15 @@ pub async fn continue_signin(
         .create(user.id, *jwt_refresh_token_expiration_days)
         .await?;
 
-    // Set user email as verified.
+    // Set user email as verified
     db.users.verify_email(user.id).await?;
 
-    // Delete the used verification token.
+    // Delete the used verification token
     db.verification_tokens
         .delete(&verification_token.identifier, token.as_str())
         .await?;
 
-    tracing::debug!(token_prefix = %&token[..8.min(token.len())], message = "Verification token cleaned up");
+    log::debug!(message = "Verification token cleaned up", token_prefix = %&token[..8.min(token.len())]);
 
     Ok(Json(VerifiedEmailResponse {
         access_token,

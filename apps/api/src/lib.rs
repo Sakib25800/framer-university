@@ -15,6 +15,7 @@ pub mod config;
 pub mod controllers;
 pub mod email;
 pub mod headers;
+pub mod log;
 pub mod metrics;
 pub mod middleware;
 pub mod openapi;

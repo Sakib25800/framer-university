@@ -11,6 +11,7 @@ use framer_university_database::{models::user::UserRole, PgDbClient};
 use loops_sdk::schemas::TransactionalRequest;
 use sqlx::PgPool;
 
+use crate::config::AllowedOrigins;
 use crate::{
     auth::{generate_access_token, Tokens},
     App, Emails, Env, Server,
@@ -186,17 +187,21 @@ async fn build_app(config: Server, pool: PgPool) -> (Arc<App>, TestServer) {
     (app, test_server)
 }
 
-fn simple_config() -> Server {
+pub fn simple_config() -> Server {
     Server {
         env: Env::Test,
-        allowed_origins: Default::default(),
+        allowed_origins: AllowedOrigins::try_from(default_web_url().to_string()).unwrap(),
         jwt_secret: "test_secret".to_string(),
         jwt_access_token_expiration_hours: 1,
         jwt_refresh_token_expiration_days: 7,
         email_verification_expiration_hours: 24,
         connection_timeout_seconds: 1,
         pool_size: 5,
-        web_url: "https://frameruniversity.com".to_string(),
+        web_url: default_web_url(),
         database_url: "postgres://postgres:password@localhost:5432/framer_university".to_string(),
     }
+}
+
+pub fn default_web_url() -> String {
+    "https://frameruniversity.com".to_string()
 }

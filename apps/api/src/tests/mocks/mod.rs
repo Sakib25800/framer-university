@@ -4,7 +4,7 @@ use framer_university_database::models::user::UserModel;
 
 use crate::auth::Tokens;
 
-mod app;
+pub mod app;
 
 pub trait RequestHelper {
     fn server(&self) -> &TestServer;
