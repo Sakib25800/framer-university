@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
     let metrics_app = app.clone();
     let metrics_handle = tokio::spawn(async move {
         if let Err(err) = metrics::start_metrics_server(metrics_app).await {
-            tracing::error!(?err, "Metrics server error");
+            tracing::error!(?err, message = "Metrics server error");
         }
     });
 
@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
 
-    tracing::info!("API server listening at 0.0.0.0:8080");
+    tracing::info!(message = "API server listening at 0.0.0.0:8080");
 
     axum::serve(listener, make_service)
         .with_graceful_shutdown(shutdown_signal())
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     // Cancel the metrics server when the main server shuts down.
     metrics_handle.abort();
 
-    tracing::info!("Server shutdown");
+    tracing::info!(message = "Server shutdown");
 
     Ok(())
 }

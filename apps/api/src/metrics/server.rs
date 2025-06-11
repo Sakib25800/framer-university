@@ -16,7 +16,7 @@ pub async fn start_metrics_server(app: Arc<App>) -> anyhow::Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], 9091));
     let listener = TcpListener::bind(addr).await?;
     
-    tracing::info!("Metrics server listening on {}", addr);
+    tracing::info!(message = format!("Metrics server listening on {}", addr));
     
     axum::serve(listener, router).await?;
     
@@ -34,7 +34,7 @@ async fn metrics_handler(State(state): State<MetricsState>) -> impl IntoResponse
             metrics,
         ),
         Err(err) => {
-            tracing::error!(?err, "Failed to gather metrics");
+            tracing::error!(?err, message = "Failed to gather metrics");
             (
                 axum::http::StatusCode::INTERNAL_SERVER_ERROR,
                 [(axum::http::header::CONTENT_TYPE, "text/plain")],

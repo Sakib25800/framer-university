@@ -8,7 +8,7 @@ The backend service for Framer University.
 api/
 ├── src/
 │   ├── config/           # Configuration management
-│   ├── routes/           # API route definitions
+│   ├── controllers/      # Controllers
 │   ├── models/           # Data models
 │   ├── services/         # Business logic
 │   ├── metrics/          # Metrics and monitoring

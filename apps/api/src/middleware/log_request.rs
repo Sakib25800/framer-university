@@ -70,7 +70,7 @@ pub async fn log_requests(
     event!(
         target: "http",
         Level::INFO,
-        duration = duration.as_nanos(),
+        duration = duration.as_nanos().to_string(),
         network.client.ip = %**request_metadata.real_ip,
         http.method = %method,
         http.url = %url,
@@ -78,8 +78,8 @@ pub async fn log_requests(
         http.request_id = %request_metadata.request_id.as_ref().map(|h| h.as_str()).unwrap_or_default(),
         http.status_code = status.as_u16(),
         error.message = response.extensions().get::<ErrorField>().map(|e| e.0.as_str()).unwrap_or_default(),
-        %custom_metadata,
-        "{method} {url} → {status} ({duration:?})",
+        custom_metadata = %custom_metadata,
+        message = %format_args!("{method} {url} → {status} ({duration:?})"),
     );
 
     response

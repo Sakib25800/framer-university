@@ -24,8 +24,6 @@ pub struct App {
 
     /// Backend to send emails
     pub emails: Emails,
-
-
 }
 
 impl App {

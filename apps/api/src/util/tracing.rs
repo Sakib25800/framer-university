@@ -5,6 +5,7 @@ use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::{prelude::*, EnvFilter, Layer};
 
 use crate::Env;
+use crate::util::quickwit_json_formatter;
 
 /// Initializes the `tracing` logging framework.
 ///
@@ -24,9 +25,7 @@ fn init_with_default_level(level: LevelFilter) {
         .from_env_lossy();
 
     let log_layer = if crate::Server::env() == Env::Production {
-        json_subscriber::fmt::layer()
-            .flatten_event(true)
-            .with_flat_span_list(true)
+        quickwit_json_formatter::layer()
             .with_filter(env_filter)
             .boxed()
     } else {
