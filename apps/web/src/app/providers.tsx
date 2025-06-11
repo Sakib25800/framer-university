@@ -5,6 +5,7 @@ import {
   QueryClient,
   QueryClientProvider
 } from "@tanstack/react-query";
+import logger from "@framer-university/logger";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -36,6 +37,14 @@ function getQueryClient() {
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
+
+  // Log app initialization (only on client)
+  if (!isServer) {
+    logger.info("Web app initializing", {
+      app: "web",
+      environment: process.env.NODE_ENV
+    });
+  }
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

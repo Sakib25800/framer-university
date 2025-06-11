@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@framer-university/api": "workspace:*",
+    "@framer-university/logger": "workspace:*",
     "@framer-university/ui": "workspace:*",
     "@tanstack/react-query": "5.74.4",
     "@tanstack/react-query-devtools": "5.74.4",

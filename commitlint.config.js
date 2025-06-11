@@ -10,7 +10,12 @@ export default {
         "web",
         "chore",
         "docs",
-        "package",
+        "packages",
+        "apps",
+        "ui",
+        "config-typescript",
+        "config-eslint",
+        "logger",
         "ci",
         "build"
       ]

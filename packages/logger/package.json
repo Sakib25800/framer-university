@@ -1,11 +1,10 @@
 {
-  "name": "@framer-university/api",
+  "name": "@framer-university/logger",
   "version": "0.0.0",
   "type": "module",
   "private": true,
   "files": [
-    "dist",
-    "openapi.json"
+    "dist"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,27 +20,18 @@
     "build": "tsup",
     "lint": "eslint src/ --max-warnings 0",
     "clean": "rm -rf .turbo node_modules dist",
-    "check-types": "tsc --noEmit",
-    "generate-openapi": "openapi-typescript openapi.json -o src/types.ts"
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@framer-university/logger": "workspace:*",
-    "@tanstack/react-query": "5.74.4",
-    "openapi-fetch": "0.14.0",
-    "openapi-react-query": "0.5.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "tslog": "^4.9.3",
+    "nanoid": "^5.0.9"
   },
   "devDependencies": {
     "@framer-university/eslint-config": "workspace:*",
     "@framer-university/typescript-config": "workspace:*",
     "@types/node": "^20.11.24",
-    "@types/react": "19.1.4",
-    "@types/react-dom": "19.1.5",
-    "bunchee": "^6.4.0",
     "eslint": "^8.57.0",
     "tsup": "^8.0.2",
-    "typescript": "^5.3.3",
-    "openapi-typescript": "^7.0.0"
+    "typescript": "^5.3.3"
   }
 }

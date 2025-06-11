@@ -1,6 +1,9 @@
 import { Button } from "@framer-university/ui";
+import { $api } from "@framer-university/api";
 
 function App() {
+  $api.useQuery("get", "/");
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-black">
       <div className="flex flex-col items-center gap-6 text-center">
@@ -16,9 +19,6 @@ function App() {
         <div className="flex gap-2.5">
           <Button intent="secondary" size="sm" href="/courses">
             View Courses
-          </Button>
-          <Button intent="primary" size="sm" href="/create">
-            Create Course
           </Button>
         </div>
       </div>

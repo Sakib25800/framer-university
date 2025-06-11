@@ -2,11 +2,31 @@
 
 import { Button } from "@framer-university/ui";
 import { $api } from "@framer-university/api";
-
-// Invalidate cache
+import logger, { trackEvent, withRequestId } from "@framer-university/logger";
 
 export default function Home() {
-  $api.useQuery("get", "/");
+  const { mutate: healthCheck } = $api.useMutation("get", "/");
+
+  const handleLearnMoreClick = async () => {
+    const { requestId, logEvent, endEvent } = trackEvent("learn_more_click");
+
+    logEvent("Learn More button clicked", {
+      button_id: "learn-more",
+      page: "home"
+    });
+
+    try {
+      await withRequestId(requestId, () => healthCheck({}));
+
+      logEvent("Health check completed successfully");
+    } catch (error) {
+      logger.error("Health check failed", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    } finally {
+      endEvent();
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
@@ -27,7 +47,7 @@ export default function Home() {
           >
             Join Waitlist
           </Button>
-          <Button intent="primary" size="sm" href="https://framer.university">
+          <Button intent="primary" size="sm" onClick={handleLearnMoreClick}>
             Learn More
           </Button>
         </div>
