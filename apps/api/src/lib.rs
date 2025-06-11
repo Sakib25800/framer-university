@@ -32,6 +32,7 @@ pub mod views;
 /// `FLY_APP_NAME` is set and `Development` otherwise. `config.env` is set to `Test`
 /// unconditionally in *src/test/all.rs*.
 #[derive(PartialEq, Eq, Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Env {
     Development,
     Test,
