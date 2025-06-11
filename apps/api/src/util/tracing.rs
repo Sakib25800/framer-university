@@ -1,9 +1,10 @@
-use env_var::env_var;
 use sentry::integrations::tracing::EventFilter;
 use tracing::Level;
 use tracing::Metadata;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::{prelude::*, EnvFilter, Layer};
+
+use crate::Env;
 
 /// Initializes the `tracing` logging framework.
 ///
@@ -22,19 +23,18 @@ fn init_with_default_level(level: LevelFilter) {
         .with_default_directive(level.into())
         .from_env_lossy();
 
-    let log_format = env_var!(optional "RUST_LOG_FORMAT");
-
-    let log_layer = match log_format.as_str() {
-        "json" => json_subscriber::fmt::layer()
+    let log_layer = if crate::Server::env() == Env::Production {
+        json_subscriber::fmt::layer()
             .flatten_event(true)
             .with_flat_span_list(true)
             .with_filter(env_filter)
-            .boxed(),
-        _ => tracing_subscriber::fmt::layer()
+            .boxed()
+    } else {
+        tracing_subscriber::fmt::layer()
             .compact()
             .without_time()
             .with_filter(env_filter)
-            .boxed(),
+            .boxed()
     };
 
     let sentry_layer = sentry::integrations::tracing::layer()

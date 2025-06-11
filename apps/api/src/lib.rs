@@ -2,6 +2,7 @@
 
 use app::AppState;
 use router::build_axum_router;
+use std::fmt;
 use std::sync::Arc;
 
 use crate::app::App;
@@ -35,6 +36,16 @@ pub enum Env {
     Development,
     Test,
     Production,
+}
+
+impl fmt::Display for Env {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Env::Development => write!(f, "development"),
+            Env::Test => write!(f, "test"),
+            Env::Production => write!(f, "production"),
+        }
+    }
 }
 
 /// Configures routes, sessions, logging, and other middleware.

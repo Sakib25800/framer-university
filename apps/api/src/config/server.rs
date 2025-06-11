@@ -25,16 +25,18 @@ impl Server {
     pub fn from_environment() -> anyhow::Result<Self> {
         dotenvy::dotenv().ok();
 
-        let env = match std::env::var("FLY_APP_NAME") {
-            Ok(_) => "Production",
-            Err(_) => "Development",
-        };
-
         let builder = Config::builder()
             .add_source(Environment::default())
-            .set_default("env", env)?;
+            .set_default("env", Self::env().to_string())?;
 
         Ok(builder.build()?.try_deserialize()?)
+    }
+
+    pub fn env() -> Env {
+        match std::env::var("FLY_APP_NAME") {
+            Ok(_) => Env::Production,
+            Err(_) => Env::Development,
+        }
     }
 }
 
