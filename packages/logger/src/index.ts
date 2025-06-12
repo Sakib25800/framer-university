@@ -32,54 +32,59 @@ const logger = new Logger<ILogObj>({
         6: "error" // fatal -> error
       };
 
-      // Extract message and attributes
-      let message = "";
-      const attributes: Record<string, unknown> = {};
+      // Create flat Quickwit format log
+      const quickwitLog: Record<string, unknown> = {
+        severity_text:
+          (meta?.logLevelId !== undefined
+            ? severityMap[meta.logLevelId]
+            : undefined) || "info",
+        timestamp: new Date().toISOString().replace("Z", "000Z"), // Add microseconds
+        level:
+          (meta?.logLevelId !== undefined
+            ? severityMap[meta.logLevelId]
+            : undefined) || "info"
+      };
 
-      // Get message from first argument or msg field
+      // Extract message
+      let message = "";
       if (typedLogObj.msg) {
         message = String(typedLogObj.msg);
       } else if (typedLogObj["0"]) {
         message = String(typedLogObj["0"]);
       }
 
-      // Extract additional attributes
+      if (message) {
+        quickwitLog.message = message;
+      }
+
+      // Extract all fields directly to top level
       for (const [key, value] of Object.entries(typedLogObj)) {
         if (key !== "_meta" && key !== "msg" && key !== "0") {
-          attributes[key] = value;
+          // If the key is numeric and value is an object, flatten it
+          if (
+            /^\d+$/.test(key) &&
+            typeof value === "object" &&
+            value !== null &&
+            !Array.isArray(value)
+          ) {
+            // Flatten the object properties to top level
+            for (const [subKey, subValue] of Object.entries(value)) {
+              quickwitLog[subKey] = subValue;
+            }
+          } else {
+            quickwitLog[key] = value;
+          }
         }
       }
 
       // Add request ID if available
       if (currentRequestId) {
-        attributes.request_id = currentRequestId;
+        quickwitLog.request_id = currentRequestId;
       }
 
       // Add target if not default
       if (meta?.name && meta.name !== "default") {
-        attributes.target = meta.name;
-      }
-
-      // Create Quickwit format log
-      const quickwitLog: {
-        severity_text: string;
-        timestamp: string;
-        attributes?: Record<string, unknown>;
-        message?: string;
-      } = {
-        severity_text:
-          (meta?.logLevelId !== undefined
-            ? severityMap[meta.logLevelId]
-            : undefined) || "info",
-        timestamp: new Date().toISOString().replace("Z", "000Z") // Add microseconds
-      };
-
-      if (Object.keys(attributes).length > 0) {
-        quickwitLog.attributes = attributes;
-      }
-
-      if (message) {
-        quickwitLog.message = message;
+        quickwitLog.target = meta.name;
       }
 
       console.log(JSON.stringify(quickwitLog));

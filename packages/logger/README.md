@@ -82,17 +82,16 @@ clearRequestId();
 
 ## Log Format
 
-The logger outputs logs in Quickwit-compatible JSON format:
+The logger outputs logs in Quickwit-compatible JSON format with a flat structure:
 
 ```json
 {
   "severity_text": "info",
   "timestamp": "2025-01-17T10:17:44.668123Z",
+  "level": "info",
   "message": "User logged in",
-  "attributes": {
-    "userId": "123",
-    "request_id": "a1b2c3d4e5f6"
-  }
+  "userId": "123",
+  "request_id": "a1b2c3d4e5f6"
 }
 ```
 
