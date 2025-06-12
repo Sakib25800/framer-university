@@ -21,6 +21,7 @@ env:
   LOOPS_API_TOKEN: ${{ secrets.LOOPS_API_TOKEN }}
   FLY_ORG: ${{ vars.FLY_ORG }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
   # Production URLs
   PRODUCTION_WEB_URL: https://frameruniversity.com
   PRODUCTION_ADMIN_URL: https://admin.frameruniversity.com
@@ -217,3 +218,4 @@ jobs:
           fly-org: ${{ env.FLY_ORG }}
           web-url: ${{ env.PRODUCTION_WEB_URL }}
           production-api-url: ${{ env.PRODUCTION_API_URL }}
+          sentry-dsn: ${{ env.SENTRY_DSN }}

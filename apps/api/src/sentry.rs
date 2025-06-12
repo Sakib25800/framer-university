@@ -25,12 +25,6 @@ pub fn init() -> Option<ClientInitGuard> {
             return if sampled { 1.0 } else { 0.0 };
         }
 
-        let op = ctx.operation();
-        if op == "http.server" && ctx.name().starts_with("GET /api/private/metrics/") {
-            // Ignore all traces for internal metrics collection
-            return 0.;
-        }
-
         config.traces_sample_rate
     };
 
