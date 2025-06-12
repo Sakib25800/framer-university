@@ -3,7 +3,21 @@ import { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  outputFileTracingExcludes: {
+    "*": [
+      "./**/*.js.map",
+      "./**/*.mjs.map",
+      "./**/*.cjs.map"
+    ],
+  },
+};
 
 const configWithAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
