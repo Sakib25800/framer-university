@@ -44,7 +44,7 @@ runs:
       shell: bash
       env:
         SENTRY_AUTH_TOKEN: ${{ inputs.sentry-auth-token }}
-      run: pnpm build --filter=web
+      run: pnpm turbo run build --filter=web...
 
     - name: Deploy web application (preview)
       id: deploy
