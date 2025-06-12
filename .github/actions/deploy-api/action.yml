@@ -70,7 +70,7 @@ runs:
       with:
         name: framer-university-api-pr-${{ inputs.pr-number }}
         path: apps/api
-        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} LOOPS_API_TOKEN=${{ inputs.loops-api-token }} WEB_URL=${{ inputs.web-url }} SENTRY_DSN=${{ inputs.sentry-dsn }} ALLOWED_ORIGINS=*.frameruniversity.com,*.frameruniversity.workers.dev CONNECTION_TIMEOUT_SECONDS=10 EMAIL_VERIFICATION_EXPIRATION_HOURS=48 JWT_ACCESS_TOKEN_EXPIRATION_HOURS=24 JWT_REFRESH_TOKEN_EXPIRATION_DAYS=7 POOL_SIZE=3 PORT=8080 SENTRY_ENV_API=preview
+        secrets: DATABASE_URL=${{ inputs.database-url }} JWT_SECRET=${{ inputs.jwt-secret }} LOOPS_API_TOKEN=${{ inputs.loops-api-token }} WEB_URL=${{ inputs.web-url }} SENTRY_DSN=${{ inputs.sentry-dsn }} SENTRY_ENV_API=preview
       env:
         FLY_API_TOKEN: ${{ inputs.fly-api-token }}
         FLY_ORG: ${{ inputs.fly-org }}
@@ -92,14 +92,13 @@ runs:
       env:
         FLY_API_TOKEN: ${{ inputs.fly-api-token }}
       run: |
-        # Set all secrets for production deployment
+        # Set secrets for production deployment (only secrets and dynamic values)
         flyctl secrets set \
           DATABASE_URL="${{ inputs.database-url }}" \
           JWT_SECRET="${{ inputs.jwt-secret }}" \
           LOOPS_API_TOKEN="${{ inputs.loops-api-token }}" \
           WEB_URL="${{ inputs.web-url }}" \
           SENTRY_DSN="${{ inputs.sentry-dsn }}" \
-          SENTRY_ENV_API=production \
           --app framer-university-api
 
     - name: Deploy production to Fly (production only)
