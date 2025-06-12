@@ -1,10 +1,12 @@
 packages:
   - apps/*
   - packages/*
+
 onlyBuiltDependencies:
-  - "@parcel/watcher"
-  - "@swc/core"
-  - "@tailwindcss/oxide"
+  - '@parcel/watcher'
+  - '@sentry/cli'
+  - '@swc/core'
+  - '@tailwindcss/oxide'
   - esbuild
   - sharp
   - workerd

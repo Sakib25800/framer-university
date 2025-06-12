@@ -118,6 +118,7 @@ The workflows require the following secrets to be configured in your GitHub repo
 - `JWT_SECRET` - JWT signing secret for API authentication
 - `LOOPS_API_TOKEN` - Loops API token for email service
 - `DATABASE_URL` - Production database connection string
+- `SENTRY_AUTH_TOKEN` - Sentry authentication token for error tracking
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 #### Variables

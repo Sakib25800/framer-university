@@ -26,6 +26,9 @@ inputs:
   cloudflare-zone-id:
     description: "Cloudflare zone ID for cache purging"
     required: false
+  sentry-auth-token:
+    description: "Sentry auth token for sourcemap uploads"
+    required: false
 outputs:
   deployment-url:
     description: "Deployment URL"
@@ -39,6 +42,8 @@ runs:
   steps:
     - name: Build web application
       shell: bash
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.sentry-auth-token }}
       run: pnpm build --filter=web
 
     - name: Deploy web application (preview)

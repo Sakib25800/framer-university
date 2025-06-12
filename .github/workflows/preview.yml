@@ -21,6 +21,7 @@ env:
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   LOOPS_API_TOKEN: ${{ secrets.LOOPS_API_TOKEN }}
   FLY_ORG: ${{ vars.FLY_ORG }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
 jobs:
   cleanup:
@@ -234,6 +235,7 @@ jobs:
           cloudflare-api-token: ${{ env.CLOUDFLARE_API_TOKEN }}
           cloudflare-account-id: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           cloudflare-zone-id: ${{ env.CLOUDFLARE_ZONE_ID }}
+          sentry-auth-token: ${{ env.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy admin
         id: admin-deploy
