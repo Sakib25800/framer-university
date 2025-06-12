@@ -16,6 +16,7 @@ JWT_ACCESS_TOKEN_EXPIRATION_HOURS = '24'
 JWT_REFRESH_TOKEN_EXPIRATION_DAYS = '7'
 POOL_SIZE = '3'
 PORT = '8080'
+SENTRY_ENV_API = 'production'
 
 [http_service]
 internal_port = 8080

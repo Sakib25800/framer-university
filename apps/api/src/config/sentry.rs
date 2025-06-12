@@ -12,9 +12,9 @@ pub struct SentryConfig {
 
 impl SentryConfig {
     pub fn from_environment() -> anyhow::Result<Self> {
-        let dsn = env_var!(optional "SENTRY_DSN_API")
+        let dsn = env_var!(optional "SENTRY_DSN")
             .into_dsn()
-            .context("SENTRY_DSN_API is not a valid Sentry DSN value")?;
+            .context("SENTRY_DSN is not a valid Sentry DSN value")?;
 
         let environment = dsn.as_ref().map(|_| env_var!(required "SENTRY_ENV_API"));
 

@@ -5,7 +5,7 @@ use tracing::warn;
 
 /// Initializes the Sentry SDK from the environment variables.
 ///
-/// If `SENTRY_DSN_API` is not set then Sentry will not be initialized,
+/// If `SENTRY_DSN` is not set then Sentry will not be initialized,
 /// otherwise it is required to be a valid DSN string. `SENTRY_ENV_API` must
 /// be set if a DSN is provided.
 ///
