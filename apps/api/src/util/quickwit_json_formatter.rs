@@ -1,5 +1,3 @@
-use serde::Serialize;
-use std::collections::HashMap;
 use std::fmt;
 use tracing::{Event, Level, Subscriber};
 use tracing_subscriber::fmt::format::Writer;
@@ -46,31 +44,37 @@ where
         // Get the current timestamp in RFC3339 format
         let timestamp = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Micros, true);
 
-        // Create the output structure
-        let mut output = QuickwitLogRecord {
-            severity_text,
-            timestamp: &timestamp,
-            attributes: HashMap::new(),
-            message: String::new(),
-        };
+        // Start with base fields in a flat structure
+        let mut output = serde_json::Map::new();
+        output.insert(
+            "severity_text".to_string(),
+            serde_json::Value::String(severity_text.to_string()),
+        );
+        output.insert(
+            "timestamp".to_string(),
+            serde_json::Value::String(timestamp),
+        );
+        output.insert(
+            "level".to_string(),
+            serde_json::Value::String(severity_text.to_string()),
+        );
 
         // Collect fields from the event
         let mut visitor = FieldVisitor {
-            attributes: &mut output.attributes,
-            message: &mut output.message,
+            output: &mut output,
         };
 
         event.record(&mut visitor);
 
-        // Add target as an attribute if it's not the default
+        // Add target as a field if it's not the default
         if meta.target() != "http" && !meta.target().is_empty() {
-            output.attributes.insert(
+            output.insert(
                 "target".to_string(),
                 serde_json::Value::String(meta.target().to_string()),
             );
         }
 
-        // Serialize to JSON
+        // Serialize to JSON and write
         let json_output = serde_json::to_string(&output).map_err(|_| fmt::Error)?;
         writer.write_str(&json_output)?;
         writeln!(writer)?;
@@ -79,24 +83,13 @@ where
     }
 }
 
-#[derive(Serialize)]
-struct QuickwitLogRecord<'a> {
-    severity_text: &'a str,
-    timestamp: &'a str,
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
-    attributes: HashMap<String, serde_json::Value>,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    message: String,
-}
-
 struct FieldVisitor<'a> {
-    attributes: &'a mut HashMap<String, serde_json::Value>,
-    message: &'a mut String,
+    output: &'a mut serde_json::Map<String, serde_json::Value>,
 }
 
 impl tracing::field::Visit for FieldVisitor<'_> {
     fn record_f64(&mut self, field: &tracing::field::Field, value: f64) {
-        self.attributes.insert(
+        self.output.insert(
             field.name().to_string(),
             serde_json::Value::Number(
                 serde_json::Number::from_f64(value).unwrap_or(serde_json::Number::from(0)),
@@ -105,45 +98,36 @@ impl tracing::field::Visit for FieldVisitor<'_> {
     }
 
     fn record_i64(&mut self, field: &tracing::field::Field, value: i64) {
-        self.attributes.insert(
+        self.output.insert(
             field.name().to_string(),
             serde_json::Value::Number(serde_json::Number::from(value)),
         );
     }
 
     fn record_u64(&mut self, field: &tracing::field::Field, value: u64) {
-        self.attributes.insert(
+        self.output.insert(
             field.name().to_string(),
             serde_json::Value::Number(serde_json::Number::from(value)),
         );
     }
 
     fn record_bool(&mut self, field: &tracing::field::Field, value: bool) {
-        self.attributes
+        self.output
             .insert(field.name().to_string(), serde_json::Value::Bool(value));
     }
 
     fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
-        if field.name() == "message" {
-            // The message field is special - it goes to the top-level message field
-            *self.message = value.to_string();
-        } else {
-            self.attributes.insert(
-                field.name().to_string(),
-                serde_json::Value::String(value.to_string()),
-            );
-        }
+        self.output.insert(
+            field.name().to_string(),
+            serde_json::Value::String(value.to_string()),
+        );
     }
 
     fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn fmt::Debug) {
-        if field.name() == "message" {
-            *self.message = format!("{:?}", value);
-        } else {
-            self.attributes.insert(
-                field.name().to_string(),
-                serde_json::Value::String(format!("{:?}", value)),
-            );
-        }
+        self.output.insert(
+            field.name().to_string(),
+            serde_json::Value::String(format!("{:?}", value)),
+        );
     }
 }
 
@@ -239,25 +223,28 @@ mod tests {
         // Verify info log
         let info_log = &logs[0];
         assert_eq!(info_log["severity_text"], "info");
+        assert_eq!(info_log["level"], "info");
         assert_eq!(info_log["message"], "Test info message");
         assert!(info_log["timestamp"].is_string());
-        assert!(info_log["attributes"].is_object());
 
         // Verify warn log with attributes
         let warn_log = &logs[1];
         assert_eq!(warn_log["severity_text"], "warn");
+        assert_eq!(warn_log["level"], "warn");
         assert_eq!(warn_log["message"], "Test warning message");
-        assert_eq!(warn_log["attributes"]["user_id"], "123");
+        assert_eq!(warn_log["user_id"], "123");
 
         // Verify error log with attributes
         let error_log = &logs[2];
         assert_eq!(error_log["severity_text"], "error");
+        assert_eq!(error_log["level"], "error");
         assert_eq!(error_log["message"], "Test error message");
-        assert_eq!(error_log["attributes"]["error_code"], 500);
+        assert_eq!(error_log["error_code"], 500);
 
         // Verify debug log
         let debug_log = &logs[3];
         assert_eq!(debug_log["severity_text"], "debug");
+        assert_eq!(debug_log["level"], "debug");
         assert_eq!(debug_log["message"], "Test debug message");
     }
 
@@ -301,19 +288,19 @@ mod tests {
 
         let http_log = &logs[0];
         assert_eq!(http_log["severity_text"], "info");
+        assert_eq!(http_log["level"], "info");
         assert_eq!(http_log["message"], "GET /v1/users/me → 200 (5.897228ms)");
 
-        // Verify all HTTP attributes are present
-        let attrs = &http_log["attributes"];
-        assert_eq!(attrs["duration"], "5897228");
-        assert_eq!(attrs["network.client.ip"], "185.237.62.64");
-        assert_eq!(attrs["http.method"], "GET");
-        assert_eq!(attrs["http.url"], "/v1/users/me");
-        assert_eq!(attrs["http.matched_path"], "/v1/users/:id");
-        assert_eq!(attrs["http.request_id"], "abc123");
-        assert_eq!(attrs["http.status_code"], 200);
-        assert_eq!(attrs["error.message"], "");
-        assert_eq!(attrs["custom_metadata"], "{}");
+        // Verify all HTTP attributes are present at top level
+        assert_eq!(http_log["duration"], "5897228");
+        assert_eq!(http_log["network.client.ip"], "185.237.62.64");
+        assert_eq!(http_log["http.method"], "GET");
+        assert_eq!(http_log["http.url"], "/v1/users/me");
+        assert_eq!(http_log["http.matched_path"], "/v1/users/:id");
+        assert_eq!(http_log["http.request_id"], "abc123");
+        assert_eq!(http_log["http.status_code"], 200);
+        assert_eq!(http_log["error.message"], "");
+        assert_eq!(http_log["custom_metadata"], "{}");
     }
 
     #[test]
@@ -380,15 +367,13 @@ mod tests {
 
         // Verify the log has the expected fields
         assert_eq!(log["severity_text"], "info");
+        assert_eq!(log["level"], "info");
         assert_eq!(log["message"], "No attributes");
 
-        // When there are no custom attributes, the attributes object should be empty or only contain target
-        if let Some(attrs) = log.get("attributes") {
-            let attrs_obj = attrs.as_object().unwrap();
-            // Should only contain target field if present
-            assert!(
-                attrs_obj.is_empty() || (attrs_obj.len() == 1 && attrs_obj.contains_key("target"))
-            );
+        // Should have only the base fields plus message and optionally target
+        let expected_base_fields = ["severity_text", "level", "timestamp", "message"];
+        for field in expected_base_fields {
+            assert!(log.get(field).is_some(), "Missing field: {}", field);
         }
     }
 
@@ -417,6 +402,6 @@ mod tests {
             .collect();
 
         let log = &logs[0];
-        assert_eq!(log["attributes"]["target"], "my_module");
+        assert_eq!(log["target"], "my_module");
     }
 }
