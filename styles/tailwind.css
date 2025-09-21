@@ -1,19 +1,150 @@
 @import "tailwindcss";
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+@theme {
+  /* Breakpoints */
+  --breakpoint-phone: 50.5625rem; /* 809px */
+  --breakpoint-tablet: 50.625rem; /* 810px */
+  --breakpoint-desktop: 75rem; /* 1200px */
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+  /* Colors */
+  --color-primary-50: #0e0e0e;
+  --color-primary-100: #111212;
+  --color-primary-200: #161717;
+  --color-primary-300: #1b1c1d;
+  --color-primary-400: #252727;
+  --color-primary-500: #393b3c;
+  --color-primary-600: #464849;
+  --color-primary-700: #5c5f60;
+  --color-primary-800: #6b6e70;
+  --color-primary-900: #787b7d;
+  --color-primary-950: #a9abad;
+
+  --color-accent: #00bbff;
+
+  /* Font */
+  --font-sans: var(--font-university-sans);
+
+  /* Typography */
+  --text-small: 12px;
+  --text-small--line-height: 1.6;
+  --text-small--letter-spacing: -0.01em;
+
+  --text-base: 13px;
+  --text-base--line-height: 1.6;
+  --text-base--letter-spacing: -0.01em;
+
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-body--letter-spacing: -0.01em;
+
+  --text-body-l: 18px;
+  --text-body-l--line-height: 1.4;
+  --text-body-l--letter-spacing: 0;
+
+  --text-h3: 20px;
+  --text-h3--line-height: 1.35;
+  --text-h3--letter-spacing: -0.01em;
+
+  --text-h2: 24px;
+  --text-h2-tablet: 28px;
+  --text-h2-desktop: 32px;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.02em;
+
+  --text-h1: 36px;
+  --text-h1-tablet: 42px;
+  --text-h1-desktop: 48px;
+  --text-h1--line-height: 1.15;
+  --text-h1--letter-spacing: -0.03em;
+}
+
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+  body {
+    font-family: var(--font-sans);
+    color: white;
+  }
+
+  h1 {
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
+    letter-spacing: var(--text-h1--letter-spacing);
+    font-weight: 700;
+  }
+
+  @media (min-width: var(--breakpoint-tablet)) {
+    h1 {
+      font-size: var(--text-h1-tablet);
+    }
+  }
+
+  @media (min-width: var(--breakpoint-desktop)) {
+    h1 {
+      font-size: var(--text-h1-desktop);
+    }
+  }
+
+  h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    letter-spacing: var(--text-h2--letter-spacing);
+    font-weight: 600;
+  }
+
+  @media (min-width: var(--breakpoint-tablet)) {
+    h2 {
+      font-size: var(--text-h2-tablet);
+    }
+  }
+
+  @media (min-width: var(--breakpoint-desktop)) {
+    h2 {
+      font-size: var(--text-h2-desktop);
+    }
+  }
+
+  h3 {
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    letter-spacing: var(--text-h3--letter-spacing);
+    font-weight: 600;
+  }
+
+  a {
+    color: var(--color-900);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: white;
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+}
+
+@layer components {
+  .text-small {
+    font-size: var(--text-small);
+    line-height: var(--text-small--line-height);
+    letter-spacing: var(--text-small--letter-spacing);
+  }
+
+  .text-base {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    letter-spacing: var(--text-base--letter-spacing);
+  }
+
+  .text-body {
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    letter-spacing: var(--text-body--letter-spacing);
+  }
+
+  .text-body-l {
+    font-size: var(--text-body-l);
+    line-height: var(--text-body-l--line-height);
+    letter-spacing: var(--text-body-l--letter-spacing);
   }
 }
