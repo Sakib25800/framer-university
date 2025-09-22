@@ -31,8 +31,8 @@ export interface ButtonProps extends VariantProps<typeof button> {
 export function Button({ className, intent, size, children, ...props }: ButtonProps) {
   const motionProps: HTMLMotionProps<"button"> = {
     className: twMerge(button({ intent, size, className })),
-    whileHover: intent === "outline" ? { borderColor: "white" } : {},
-    whileTap: intent === "outline" ? { scale: 0.95 } : {},
+    whileHover: intent === "outline" ? { borderColor: "white" } : { filter: "brightness(0.8)" },
+    whileTap: intent === "outline" ? { scale: 0.95 } : { scale: 0.95 },
     transition: {
       duration: 0.3,
       type: "spring",
