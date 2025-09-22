@@ -1,47 +1,46 @@
 import { cva, type VariantProps } from "class-variance-authority"
-
+import { type HTMLMotionProps, motion } from "framer-motion"
 import { twMerge } from "tailwind-merge"
 
-const button = cva(
-  [
-    "justify-center",
-    "inline-flex",
-    "items-center",
-    "rounded-xl",
-    "text-center",
-    "border",
-    "border-blue-400",
-    "transition-colors",
-    "delay-50",
-  ],
-  {
-    variants: {
-      intent: {
-        primary: ["bg-blue-400", "text-white", "hover:enabled:bg-blue-700"],
-        secondary: ["bg-transparent", "text-blue-400", "hover:enabled:bg-blue-400", "hover:enabled:text-white"],
-      },
-      size: {
-        sm: ["min-w-20", "h-full", "min-h-10", "text-sm", "py-1.5", "px-4"],
-        lg: ["min-w-32", "h-full", "min-h-12", "text-lg", "py-2.5", "px-6"],
-      },
-      underline: { true: ["underline"], false: [] },
+const button = cva(["inline-flex", "items-center", "justify-center", "text-center", "rounded-full", "cursor-pointer"], {
+  variants: {
+    intent: {
+      primary: ["bg-white", "!text-black"],
+      outline: ["border", "border-primary-400"],
     },
-    defaultVariants: {
-      intent: "primary",
-      size: "lg",
+    size: {
+      sm: ["text-base", "font-semibold", "px-4", "py-[7px]"],
+      md: ["text-body", "font-semibold", "px-5", "py-2.5"],
+      lg: ["text-body-l", "font-semibold", "px-[26px]", "py-[15px]"],
     },
-  }
-)
+  },
+  defaultVariants: {
+    intent: "primary",
+    size: "lg",
+  },
+})
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLAnchorElement>, VariantProps<typeof button> {
-  underline?: boolean
-  href: string
+export interface ButtonProps extends VariantProps<typeof button> {
+  className?: string
+  children?: React.ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  type?: "button" | "submit" | "reset"
 }
 
-export function Button({ className, intent, size, underline, ...props }: ButtonProps) {
-  return (
-    <a className={twMerge(button({ intent, size, className, underline }))} {...props}>
-      {props.children}
-    </a>
-  )
+export function Button({ className, intent, size, children, ...props }: ButtonProps) {
+  const motionProps: HTMLMotionProps<"button"> = {
+    className: twMerge(button({ intent, size, className })),
+    whileHover: intent === "outline" ? { borderColor: "white" } : {},
+    whileTap: intent === "outline" ? { scale: 0.95 } : {},
+    transition: {
+      duration: 0.3,
+      type: "spring",
+      bounce: 0.2,
+      delay: 0,
+    },
+    ...props,
+  }
+
+  return <motion.button {...motionProps}>{children}</motion.button>
 }
