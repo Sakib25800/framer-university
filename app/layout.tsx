@@ -1,5 +1,12 @@
+import { Chivo_Mono } from "next/font/google"
 import localFont from "next/font/local"
 import "styles/tailwind.css"
+
+const chivoMono = Chivo_Mono({
+  subsets: ["latin"],
+  weight: "500",
+  variable: "--font-chivo-mono",
+})
 
 const universitySans = localFont({
   src: [
@@ -29,7 +36,7 @@ const universitySans = localFont({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={universitySans.variable}>
+    <html lang="en" className={`${universitySans.variable} ${chivoMono.variable}`}>
       <body>{children}</body>
     </html>
   )

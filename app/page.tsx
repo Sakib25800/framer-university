@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import { Button } from "components/Button/Button"
+import { Logo } from "@/components/Logo/Logo"
 
 export const metadata: Metadata = {
   title: "Framer University",
@@ -7,9 +7,10 @@ export const metadata: Metadata = {
 
 export default function Web() {
   return (
-    <div>
+    <div className="h-screen w-screen bg-black">
       <p>Home</p>
-      <Button href="test.com">Button</Button>
+      <Logo beta={true} />
+      <Logo />
     </div>
   )
 }

@@ -23,6 +23,7 @@
 
   /* Font */
   --font-sans: var(--font-university-sans);
+  --font-mono: var(--font-chivo-mono);
 
   /* Typography */
   --text-small: 12px;
@@ -146,5 +147,9 @@
     font-size: var(--text-body-l);
     line-height: var(--text-body-l--line-height);
     letter-spacing: var(--text-body-l--letter-spacing);
+  }
+
+  .font-chivo-mono {
+    font-family: var(--font-mono);
   }
 }
