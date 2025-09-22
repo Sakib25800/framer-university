@@ -11,7 +11,7 @@ const meta: Meta<typeof Button> = {
   },
   argTypes: {
     intent: {
-      options: ["primary", "outline"],
+      options: ["primary", "outline", "link"],
       control: { type: "select" },
     },
     size: {

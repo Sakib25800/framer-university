@@ -19,7 +19,28 @@ const config: NextConfig = {
   turbopack: {
     rules: {
       "*.svg": {
-        loaders: ["@svgr/webpack"],
+        loaders: [
+          {
+            loader: "@svgr/webpack",
+            options: {
+              svgo: true,
+              svgoConfig: {
+                plugins: [
+                  {
+                    name: "preset-default",
+                    params: {
+                      overrides: {
+                        removeViewBox: false,
+                        removeDimensions: true,
+                        convertColors: { currentColor: true },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
         as: "*.tsx",
       },
     },

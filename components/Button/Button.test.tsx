@@ -97,7 +97,7 @@ describe("Button", () => {
     const button = container.querySelector("button")
     // Check default intent (primary)
     expect(button).toHaveClass("bg-white")
-    expect(button).toHaveClass("!text-black")
+    expect(button).toHaveClass("text-black")
 
     // Check default size (lg)
     expect(button).toHaveClass("text-body-l")
