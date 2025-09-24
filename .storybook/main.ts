@@ -18,7 +18,10 @@ const config: StorybookConfig = {
   docs: {
     autodocs: "tag",
   },
-  staticDirs: [{ from: "../public", to: "/" }],
+  staticDirs: [
+    { from: "../public", to: "/" },
+    { from: "../app/fonts", to: "/fonts" },
+  ],
   typescript: {
     check: false,
     checkOptions: {},

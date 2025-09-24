@@ -57,7 +57,7 @@ export function Button({ className, intent, size, children, ...props }: ButtonPr
   return (
     <motion.button
       className={twMerge(button({ intent, size, className }))}
-      {...motionProps[intent ?? "outline"]}
+      {...motionProps[intent ?? "primary"]}
       transition={{
         duration: 0.3,
         type: "spring",
