@@ -14,6 +14,7 @@ const meta: Meta<typeof Tooltip> = {
     intent: "primary",
     explainer: "Action name",
     side: "bottom",
+    shortcut: "ESC",
   },
   argTypes: {
     intent: {
@@ -23,6 +24,9 @@ const meta: Meta<typeof Tooltip> = {
     side: {
       options: ["top", "right", "bottom", "left"],
       control: { type: "select" },
+    },
+    shortcut: {
+      control: { type: "text" },
     },
   },
 }

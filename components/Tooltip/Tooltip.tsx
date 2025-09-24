@@ -9,15 +9,24 @@ import { twMerge } from "tailwind-merge"
 const tooltipContent = cva([], {
   variants: {
     intent: {
-      primary: ["rounded-xl", "bg-white", "font-sans", "text-black", "text-small", "font-medium"],
-    },
-    size: {
-      md: ["px-2.5", "py-1.5"],
+      primary: [
+        "rounded-xl",
+        "bg-white",
+        "font-sans",
+        "text-black",
+        "text-small",
+        "font-medium",
+        "px-2.5",
+        "py-1.5",
+        "w-fit",
+        "whitespace-nowrap",
+        "inline-flex",
+        "items-center",
+      ],
     },
   },
   defaultVariants: {
     intent: "primary",
-    size: "md",
   },
 })
 
@@ -26,6 +35,7 @@ export interface TooltipProps extends VariantProps<typeof tooltipContent>, Radix
   children: React.ReactElement
   className?: string
   side?: "top" | "right" | "bottom" | "left"
+  shortcut?: string
 }
 
 export function Tooltip({
@@ -35,9 +45,9 @@ export function Tooltip({
   defaultOpen,
   onOpenChange,
   intent,
-  size,
   side = "top",
   className,
+  shortcut,
 }: TooltipProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen || false)
   
@@ -61,7 +71,7 @@ export function Tooltip({
               <RadixTooltip.Content
                 side={side}
                 sideOffset={5}
-                className={twMerge(tooltipContent({ intent, size, className }))}
+                className={twMerge(tooltipContent({ intent, className }))}
                 asChild
               >
                 <motion.div
@@ -76,6 +86,11 @@ export function Tooltip({
                   }}
                 >
                   {explainer}
+                  {shortcut && (
+                    <div className="ml-2 rounded-sm min-w-[21px] pt-[2px] pr-[4px] pb-[3px] pl-[4px] shadow-[inset_0_-2px_0_rgba(171,171,171,0.8),inset_0_-0.5px_0_rgba(13,13,13,0.4),inset_0_-1px_0_rgba(10,10,10,1),0_0_0_2px_rgba(171,171,171,0.3),inset_0_0.5px_0_rgba(171,171,171,0.4)]">
+                      <p className="text-primary-600 font-semibold leading-[1.6em]">{shortcut}</p>
+                    </div>
+                  )}
                 </motion.div>
               </RadixTooltip.Content>
             )}
