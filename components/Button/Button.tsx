@@ -37,7 +37,7 @@ export function Button({ className, intent, size, children, ...props }: ButtonPr
   const motionProps: Record<string, HTMLMotionProps<"button">> = {
     outline: {
       whileHover: {
-        borderColor: "white",
+        borderColor: "rgb(255, 255, 255)",
       },
       whileTap: {
         scale: 0.95,
