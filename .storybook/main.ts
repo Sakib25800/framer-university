@@ -1,7 +1,16 @@
 import type { StorybookConfig } from "@storybook/nextjs"
+
 const config: StorybookConfig = {
-  stories: ["../components/**/*.stories.mdx", "../components/**/*.stories.@(js|jsx|ts|tsx)"],
-  addons: ["@storybook/addon-links", "@storybook/addon-essentials", "@storybook/addon-interactions"],
+  stories: [
+    "../components/**/*.stories.mdx",
+    "../components/**/*.stories.@(js|jsx|ts|tsx)",
+  ],
+  addons: [
+    "@storybook/addon-links",
+    "@storybook/addon-essentials",
+    "@storybook/addon-interactions",
+    "@storybook/addon-controls",
+  ],
   framework: {
     name: "@storybook/nextjs",
     options: {},
@@ -9,6 +18,7 @@ const config: StorybookConfig = {
   docs: {
     autodocs: "tag",
   },
+  staticDirs: [{ from: "../public", to: "/" }],
   typescript: {
     check: false,
     checkOptions: {},
@@ -19,8 +29,6 @@ const config: StorybookConfig = {
     },
   },
   webpackFinal: (webpackConfig) => {
-    // This modifies the existing image rule to exclude `.svg` files
-    // since we handle those with `@svgr/webpack`.
     const imageRule = webpackConfig?.module?.rules?.find((rule) => {
       if (rule && typeof rule !== "string" && rule.test instanceof RegExp) {
         return rule.test.test(".svg")
@@ -38,4 +46,5 @@ const config: StorybookConfig = {
     return webpackConfig
   },
 }
+
 export default config

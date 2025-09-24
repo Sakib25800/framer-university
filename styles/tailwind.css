@@ -155,8 +155,36 @@
     font-family: var(--font-mono);
   }
 
-  /* Tooltip animations with Motion spring */
   .tooltip-spring-transition {
     transition: transform var(--spring-transition), opacity var(--spring-transition);
+  }
+}
+
+
+@layer utilities {
+  .animate-fu-loader-bob {
+    animation: fu-loader-bob 0.8s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fu-loader-bob {
+      animation: none;
+    }
+  }
+}
+
+@keyframes fu-loader-bob {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.12, 0.23, 0.29, 1);
+  }
+
+  50% {
+    transform: translateY(-20px);
+    animation-timing-function: cubic-bezier(0.73, 0, 0.88, 0.77);
+  }
+
+  100% {
+    transform: translateY(0);
   }
 }
