@@ -3,7 +3,7 @@ import { Loader } from "./Loader";
 
 const meta: Meta<typeof Loader> = {
 	component: Loader,
-	title: "Components/Loader",
+	title: "Loader",
 	parameters: { layout: "fullscreen" },
 	argTypes: {
 		size: { control: { type: "number", min: 24, max: 160, step: 4 } },
