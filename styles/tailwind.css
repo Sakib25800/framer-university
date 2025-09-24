@@ -2,9 +2,12 @@
 
 @theme {
   /* Breakpoints */
-  --breakpoint-phone: 50.5625rem; /* 809px */
-  --breakpoint-tablet: 50.625rem; /* 810px */
-  --breakpoint-desktop: 75rem; /* 1200px */
+  --breakpoint-phone: 50.5625rem;
+  /* 809px */
+  --breakpoint-tablet: 50.625rem;
+  /* 810px */
+  --breakpoint-desktop: 75rem;
+  /* 1200px */
 
   /* Colors */
   --color-primary-50: #0e0e0e;
@@ -150,5 +153,10 @@
 
   .font-chivo-mono {
     font-family: var(--font-mono);
+  }
+
+  /* Tooltip animations with Motion spring */
+  .tooltip-spring-transition {
+    transition: transform var(--spring-transition), opacity var(--spring-transition);
   }
 }

@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { HTMLMotionProps, motion } from "framer-motion"
+import { motion } from "motion/react"
 import { twMerge } from "tailwind-merge"
 import IconChevron from "@/components/icons/chevron.svg"
 
@@ -34,7 +34,7 @@ export interface ButtonProps extends VariantProps<typeof button> {
 }
 
 export function Button({ className, intent, size, children, ...props }: ButtonProps) {
-  const motionProps: Record<string, HTMLMotionProps<"button">> = {
+  const motionProps: Record<string, any> = {
     outline: {
       whileHover: {
         borderColor: "rgb(255, 255, 255)",

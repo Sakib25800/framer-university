@@ -1,32 +1,18 @@
 "use client"
 
 import * as RadixTooltip from "@radix-ui/react-tooltip"
+import { AnimatePresence, motion } from "motion/react"
 import { cva, type VariantProps } from "class-variance-authority"
-import React from "react"
+import React, { useState } from "react"
 import { twMerge } from "tailwind-merge"
 
 const tooltipContent = cva([], {
   variants: {
     intent: {
-      primary: ["rounded-md", "bg-zinc-700", "font-sans", "text-white"],
+      primary: ["rounded-xl", "bg-white", "font-sans", "text-black", "text-small", "font-medium"],
     },
     size: {
-      md: ["px-4", "py-2.5", "text-xs"],
-    },
-  },
-  defaultVariants: {
-    intent: "primary",
-    size: "md",
-  },
-})
-
-const tooltipArrow = cva([], {
-  variants: {
-    intent: {
-      primary: ["fill-zinc-700"],
-    },
-    size: {
-      md: ["w-4", "h-2"],
+      md: ["px-2.5", "py-1.5"],
     },
   },
   defaultVariants: {
@@ -39,7 +25,6 @@ export interface TooltipProps extends VariantProps<typeof tooltipContent>, Radix
   explainer: React.ReactElement | string
   children: React.ReactElement
   className?: string
-  withArrow?: boolean
   side?: "top" | "right" | "bottom" | "left"
 }
 
@@ -53,21 +38,48 @@ export function Tooltip({
   size,
   side = "top",
   className,
-  withArrow,
 }: TooltipProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen || false)
+  
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsOpen(newOpen)
+    onOpenChange?.(newOpen)
+  }
+
   return (
     <RadixTooltip.Provider>
-      <RadixTooltip.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange} delayDuration={200}>
+      <RadixTooltip.Root 
+        open={open ?? isOpen} 
+        defaultOpen={defaultOpen} 
+        onOpenChange={handleOpenChange} 
+        delayDuration={0}
+      >
         <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
-        <RadixTooltip.Portal>
-          <RadixTooltip.Content
-            side={side}
-            sideOffset={5}
-            className={twMerge(tooltipContent({ intent, size, className }))}
-          >
-            {explainer}
-            {withArrow ? <RadixTooltip.Arrow className={twMerge(tooltipArrow({ intent, size, className }))} /> : null}
-          </RadixTooltip.Content>
+        <RadixTooltip.Portal forceMount>
+          <AnimatePresence>
+            {(open ?? isOpen) && (
+              <RadixTooltip.Content
+                side={side}
+                sideOffset={5}
+                className={twMerge(tooltipContent({ intent, size, className }))}
+                asChild
+              >
+                <motion.div
+                  initial={{ scale: 0.9, y: -4, opacity: 0 }}
+                  animate={{ scale: 1, y: 0, opacity: 1 }}
+                  exit={{ scale: 0.9, y: -4, opacity: 0 }}
+                  transition={{
+                    type: "spring",
+                    duration: 0.2,
+                    bounce: 0,
+                    delay: 0
+                  }}
+                >
+                  {explainer}
+                </motion.div>
+              </RadixTooltip.Content>
+            )}
+          </AnimatePresence>
         </RadixTooltip.Portal>
       </RadixTooltip.Root>
     </RadixTooltip.Provider>

@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { motion } from "framer-motion"
+import { motion } from "motion/react"
 import { twMerge } from "tailwind-merge"
 
 const iconButton = cva(
