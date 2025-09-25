@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { twMerge } from "tailwind-merge"
 import IconTrash from "@/components/icons/trash.svg"
 import { IconButton } from "@/components/IconButton/IconButton"
+import { TextShimmer } from "@/components/TextShimmer/TextShimmer"
 
 const fileUpload = cva(
   [
@@ -24,7 +25,7 @@ const fileUpload = cva(
     variants: {
       status: {
         default: ["border-primary-400"],
-        uploading: ["border-primary-400", "animate-pulse"],
+        uploading: ["border-primary-400"],
         uploaded: ["border-primary-400"],
       },
       disabled: {
@@ -140,9 +141,18 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
         </div>
       ) : (
         <label htmlFor={inputId} className="flex h-full w-full cursor-pointer items-center justify-center">
-          <span>
-            {status === "uploading" ? "Uploading..." : "Drop your image here or browse"}
-          </span>
+          {status === "uploading" ? (
+            <TextShimmer
+              content="Uploading..."
+              speed={8}
+              direction="right"
+              rotation={90}
+              delay={0}
+              tag="p"
+            />
+          ) : (
+            <span>Drop your image here or browse</span>
+          )}
           <input
             ref={inputRef}
             type="file"
