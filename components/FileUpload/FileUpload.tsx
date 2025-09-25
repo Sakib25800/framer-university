@@ -144,6 +144,7 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
           {status === "uploading" ? (
             <TextShimmer
               content="Uploading..."
+              style={{ fontSize: 14 }}
               speed={8}
               direction="right"
               rotation={90}

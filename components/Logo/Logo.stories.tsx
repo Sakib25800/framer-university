@@ -5,8 +5,12 @@ import { Logo } from "./Logo"
 const meta: Meta<typeof Logo> = {
   title: "Logo",
   component: Logo,
+  tags: ["autodocs"],
   parameters: {
     layout: "centered",
+    docs: {
+      description: { component: "Brand logo with optional beta badge." },
+    },
   },
   args: {
     beta: false,

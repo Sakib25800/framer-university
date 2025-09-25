@@ -5,8 +5,12 @@ import { TextShimmer } from "./TextShimmer"
 const meta: Meta<typeof TextShimmer> = {
   title: "TextShimmer",
   component: TextShimmer,
+  tags: ["autodocs"],
   parameters: {
     layout: "centered",
+    docs: {
+      description: { component: "Animated shimmering text for loading states." },
+    },
   },
   args: {
     content: "Uploading...",
@@ -18,7 +22,7 @@ const meta: Meta<typeof TextShimmer> = {
     delay: 0,
     tag: "p",
     direction: "left",
-    style: { fontSize: 30 },
+    style: { fontSize: 18 },
   },
   argTypes: {
     direction: {
@@ -39,6 +43,7 @@ export const Default: Story = {
       <TextShimmer {...args} />
   ),
 }
+
 
 export default meta
 

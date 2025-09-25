@@ -7,8 +7,14 @@ import { IconButton } from "../IconButton/IconButton"
 const meta: Meta<typeof Tooltip> = {
   title: "Tooltip",
   component: Tooltip,
+  tags: ["autodocs"],
   parameters: {
     layout: "centered",
+    docs: {
+      description: {
+        component: "Accessible tooltip with optional keyboard shortcut hint.",
+      },
+    },
   },
   args: {
     intent: "primary",
@@ -19,7 +25,7 @@ const meta: Meta<typeof Tooltip> = {
   argTypes: {
     intent: {
       options: ["primary"],
-      control: { type: "select" },
+      control: { type: "inline-radio" },
     },
     side: {
       options: ["top", "right", "bottom", "left"],
@@ -40,6 +46,17 @@ export const Default: Story = {
         <CloseIcon />
       </IconButton>
     </Tooltip>
+  ),
+}
+
+export const Positions: Story = {
+  render: (args) => (
+    <div className="flex gap-4">
+      <Tooltip {...args} side="top"><IconButton><CloseIcon /></IconButton></Tooltip>
+      <Tooltip {...args} side="right"><IconButton><CloseIcon /></IconButton></Tooltip>
+      <Tooltip {...args} side="bottom"><IconButton><CloseIcon /></IconButton></Tooltip>
+      <Tooltip {...args} side="left"><IconButton><CloseIcon /></IconButton></Tooltip>
+    </div>
   ),
 }
 

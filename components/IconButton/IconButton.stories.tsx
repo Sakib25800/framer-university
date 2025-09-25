@@ -5,6 +5,15 @@ import { IconButton } from "./IconButton"
 const meta: Meta<typeof IconButton> = {
   title: "IconButton",
   component: IconButton,
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Circular icon button for compact actions.",
+      },
+    },
+    layout: "centered",
+  },
   args: {
     intent: "primary",
     children: <Close />,
@@ -12,8 +21,9 @@ const meta: Meta<typeof IconButton> = {
   argTypes: {
     intent: {
       options: ["primary", "secondary"],
-      control: { type: "select" },
+      control: { type: "inline-radio" },
     },
+    onClick: { action: "click" },
   },
 }
 
@@ -21,6 +31,12 @@ type Story = StoryObj<typeof IconButton>
 
 export const Default: Story = {
   render: (args) => <IconButton {...args} />,
+}
+
+export const Primary: Story = {}
+
+export const Secondary: Story = {
+  args: { intent: "secondary" },
 }
 
 export default meta

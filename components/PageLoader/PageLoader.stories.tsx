@@ -5,7 +5,8 @@ import { Button } from "../Button/Button";
 
 const meta: Meta<typeof PageLoader> = {
   component: PageLoader,
-  title: "Page Loader",
+  title: "PageLoader",
+  tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   argTypes: {},
   decorators: [
@@ -21,17 +22,27 @@ export default meta;
 type Story = StoryObj<typeof PageLoader>;
 
 export const Default: Story = {
+  args: { loading: true },
+  render: (args) => (
+    <PageLoader {...args}>
+      <div className="flex h-screen flex-col items-center justify-center gap-4 p-8">
+        <h1 className="text-3xl font-semibold text-white max-w-[302px] text-center">Welcome to Framer University!</h1>
+        <Button size="md">Continue</Button>
+      </div>
+    </PageLoader>
+  ),
+};
+
+export const LoadingToContent: Story = {
   render: () => {
     const [loading, setLoading] = React.useState(true);
-
     React.useEffect(() => {
       const t = setTimeout(() => setLoading(false), 1500);
       return () => clearTimeout(t);
     }, []);
-
     return (
       <PageLoader loading={loading}>
-        <div className="flex h-screen flex-col items-center justify-center gap-4 p-8]">
+        <div className="flex h-screen flex-col items-center justify-center gap-4 p-8">
           <h1 className="text-3xl font-semibold text-white max-w-[302px] text-center">Welcome to Framer University!</h1>
           <Button size="md">Continue</Button>
         </div>

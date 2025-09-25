@@ -4,6 +4,12 @@ import { GoogleButton } from "./GoogleButton"
 const meta: Meta<typeof GoogleButton> = {
   title: "GoogleButton",
   component: GoogleButton,
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: { component: "Google OAuth CTA button variant." },
+    },
+  },
   args: {
     children: "Continue with Google",
     className: "w-[400px]",
