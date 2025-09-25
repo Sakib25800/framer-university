@@ -19,6 +19,15 @@ const preview: Preview = {
           value: "#1D1D1D",
         },
       ],
+      disable: false,
+      grid: {
+        disable: true,
+      },
+    },
+  },
+  globalTypes: {
+    backgrounds: {
+      defaultValue: "dark",
     },
   },
 }

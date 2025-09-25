@@ -1,23 +1,38 @@
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva } from "class-variance-authority"
 import { twMerge } from "tailwind-merge"
+import { spring } from "motion"
 
 const radioButton = cva(
-  ["inline-flex", "items-center", "cursor-pointer"],
+  ["inline-flex", "items-center", "select-none"],
   {
     variants: {
-      size: {
-        sm: ["text-sm"],
-        md: ["text-base"],
-        lg: ["text-lg"],
+      checked: {
+        true: ["cursor-default"],
+        false: ["cursor-pointer"],
       },
     },
     defaultVariants: {
-      size: "md",
+      checked: false,
     },
   }
 )
 
-export interface RadioButtonProps extends VariantProps<typeof radioButton> {
+const radioBlock = cva(
+  ["pt-4", "pr-[18px]", "pb-4", "pl-[18px]", "rounded-lg", "bg-primary-200", "hover:bg-primary-300", "w-full", "h-fit", "text-body", "font-semibold", "text-white", "flex", "items-center", "justify-start", "ring-1", "ring-[rgba(37,39,39,0.65)]", "select-none"],
+  {
+    variants: {
+      checked: {
+        true: ["bg-[#15313E]", "text-accent", "hover:bg-[#15313E]", "ring-[3px]", "ring-[#0E0E0E]", "outline", "outline-[2px]", "outline-accent", "outline-offset-[3px]", "cursor-default", "pl-[14px]"],
+        false: ["cursor-pointer"],
+      },
+    },
+    defaultVariants: {
+      checked: false,
+    },
+  }
+)
+
+export interface RadioButtonProps {
   className?: string
   label?: string
   name?: string
@@ -29,7 +44,6 @@ export interface RadioButtonProps extends VariantProps<typeof radioButton> {
 
 export function RadioButton({ 
   className, 
-  size, 
   label, 
   name, 
   value, 
@@ -39,7 +53,7 @@ export function RadioButton({
   ...props 
 }: RadioButtonProps) {
   return (
-    <label className={twMerge(radioButton({ size, className }))}>
+    <label className={twMerge(radioButton({ checked }), className)}>
       <input
         type="radio"
         name={name}
@@ -47,10 +61,17 @@ export function RadioButton({
         checked={checked}
         disabled={disabled}
         onChange={onChange}
-        className="mr-2"
+        className="sr-only"
         {...props}
       />
-      {label}
+      <div 
+        className={twMerge(radioBlock({ checked }))}
+        style={{
+          transition: `all ${spring({ keyframes: [0, 1], duration: 300, bounce: 0.2, delay: 0 })}`
+        }}
+      >
+        {label}
+      </div>
     </label>
   )
 }

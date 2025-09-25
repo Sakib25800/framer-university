@@ -34,4 +34,39 @@
     :root {
         --font-university-sans: "University Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     }
+
+    /* Ensure Storybook canvas has the correct background */
+    .sb-show-main {
+        background-color: #1D1D1D !important;
+    }
+
+    /* Ensure story containers have the correct background */
+    .sb-story {
+        background-color: #1D1D1D !important;
+    }
+
+    /* Ensure the canvas wrapper has the correct background */
+    .sb-canvas {
+        background-color: #1D1D1D !important;
+    }
+
+    /* Ensure the story wrapper has the correct background */
+    .sb-story-wrapper {
+        background-color: #1D1D1D !important;
+    }
+
+    /* Ensure fullscreen layout also uses the correct background */
+    .sb-story--fullscreen {
+        background-color: #1D1D1D !important;
+    }
+
+    /* Ensure any fullscreen containers use the correct background */
+    .sb-story--fullscreen .sb-story-wrapper {
+        background-color: #1D1D1D !important;
+    }
+
+    /* Ensure the main story container always has the correct background */
+    .sb-main-padded {
+        background-color: #1D1D1D !important;
+    }
 </style>

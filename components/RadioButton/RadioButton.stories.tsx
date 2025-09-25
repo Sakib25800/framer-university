@@ -10,24 +10,18 @@ const meta: Meta<typeof RadioButton> = {
     docs: {
       description: {
         component:
-          "A radio button component with three sizes and support for labels.",
+          "A radio button component with a single fixed size (268px width).",
       },
     },
   },
   args: {
-    size: "md",
-    label: "Option 1",
+    label: "X (Twitter)",
     name: "example",
-    value: "option1",
+    value: "twitter",
     checked: false,
     disabled: false,
   },
   argTypes: {
-    size: {
-      options: ["sm", "md", "lg"],
-      control: { type: "select" },
-      description: "Radio button size",
-    },
     label: {
       control: { type: "text" },
       description: "Label text for the radio button",
@@ -55,63 +49,84 @@ const meta: Meta<typeof RadioButton> = {
 type Story = StoryObj<typeof RadioButton>
 
 export const Default: Story = {
-  render: (args) => <RadioButton {...args} />,
+  render: (args) => <RadioButton {...args} className="w-[268px]" />,
 }
 
 export const Checked: Story = {
   args: { checked: true, label: "Checked option" },
+  render: (args) => <RadioButton {...args} className="w-[268px]" />,
 }
 
 export const Disabled: Story = {
   args: { disabled: true, label: "Disabled option" },
+  render: (args) => <RadioButton {...args} className="w-[268px]" />,
 }
 
-export const Sizes: Story = {
+export const RadioGroup: Story = {
   render: (args) => {
-    const [selectedSize, setSelectedSize] = React.useState<string>("md")
+    const [selected, setSelected] = React.useState<string>("customizing")
     
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4 w-[552px] mx-auto">
         <RadioButton 
           {...args} 
-          size="sm" 
-          label="Small option" 
-          name="sizes"
-          value="sm"
-          checked={selectedSize === "sm"}
-          onChange={(e) => setSelectedSize(e.target.value)}
+          label="Customizing a template I bought" 
+          name="goals"
+          value="customizing"
+          checked={selected === "customizing"}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full"
         />
         <RadioButton 
           {...args} 
-          size="md" 
-          label="Medium option" 
-          name="sizes"
-          value="md"
-          checked={selectedSize === "md"}
-          onChange={(e) => setSelectedSize(e.target.value)}
+          label="Building my first website" 
+          name="goals"
+          value="building"
+          checked={selected === "building"}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full"
         />
         <RadioButton 
           {...args} 
-          size="lg" 
-          label="Large option" 
-          name="sizes"
-          value="lg"
-          checked={selectedSize === "lg"}
-          onChange={(e) => setSelectedSize(e.target.value)}
+          label="Leveling up my Framer skills" 
+          name="goals"
+          value="levelling"
+          checked={selected === "levelling"}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full"
+        />
+        <RadioButton 
+          {...args} 
+          label="Launching a website for my business" 
+          name="goals"
+          value="launching"
+          checked={selected === "launching"}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full"
+        />
+        <RadioButton 
+          {...args} 
+          label="Making money with Framer" 
+          name="goals"
+          value="making-money"
+          checked={selected === "making-money"}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full"
+        />
+        <RadioButton 
+          {...args} 
+          label="Something else" 
+          name="goals"
+          value="something-else"
+          checked={selected === "something-else"}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full"
         />
       </div>
     )
   },
 }
 
-export const RadioGroup: Story = {
-  render: (args) => (
-    <div className="flex flex-col gap-2">
-      <RadioButton {...args} value="option1" label="Option 1" />
-      <RadioButton {...args} value="option2" label="Option 2" />
-      <RadioButton {...args} value="option3" label="Option 3" />
-    </div>
-  ),
-}
+
 
 export default meta
