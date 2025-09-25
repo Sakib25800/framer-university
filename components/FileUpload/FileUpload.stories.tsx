@@ -5,7 +5,15 @@ import FileUpload from "./FileUpload"
 const meta: Meta<typeof FileUpload> = {
   title: "FileUpload",
   component: FileUpload,
-  parameters: {},
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "A file upload component with drag and drop support, multiple file types, and upload status indicators.",
+      },
+    },
+  },
   args: {
     accept: undefined,
     multiple: false,
