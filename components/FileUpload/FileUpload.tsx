@@ -61,6 +61,9 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
   const reactId = React.useId()
   const inputId = id ?? `file-upload-${reactId}`
 
+  const isUploading = status === "uploading"
+  const isDisabled = Boolean(disabled || isUploading)
+
   const handleFiles = React.useCallback(
     (files: FileList | null) => {
       if (files && files.length > 0) {
@@ -80,10 +83,10 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
   const handleDrop = React.useCallback<React.DragEventHandler<HTMLDivElement>>(
     (event) => {
       event.preventDefault()
-      if (disabled) return
+      if (isDisabled) return
       handleFiles(event.dataTransfer.files)
     },
-    [disabled, handleFiles]
+    [isDisabled, handleFiles]
   )
 
   const handleDragOver = React.useCallback<React.DragEventHandler<HTMLDivElement>>((event) => {
@@ -118,8 +121,13 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
     <div
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      aria-disabled={disabled}
-      className={twMerge(fileUpload({ status, disabled }), status !== "uploaded" && "cursor-pointer", className)}
+      aria-disabled={isDisabled}
+      className={twMerge(
+        fileUpload({ status, disabled: isDisabled }),
+        status === "default" && !isDisabled && "cursor-pointer",
+        isDisabled && "cursor-not-allowed",
+        className
+      )}
       {...rest}
     >
       {status === "uploaded" ? (
@@ -140,7 +148,13 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
           </IconButton>
         </div>
       ) : (
-        <label htmlFor={inputId} className="flex h-full w-full cursor-pointer items-center justify-center">
+        <label
+          htmlFor={inputId}
+          className={twMerge(
+            "flex h-full w-full items-center justify-center",
+            isDisabled ? "pointer-events-none cursor-not-allowed" : "cursor-pointer"
+          )}
+        >
           {status === "uploading" ? (
             <TextShimmer
               content="Uploading..."
@@ -161,7 +175,7 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
             name={name}
             accept={accept}
             multiple={multiple}
-            disabled={disabled}
+            disabled={isDisabled}
             onChange={handleChange}
             className="sr-only"
           />

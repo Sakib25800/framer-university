@@ -6,8 +6,7 @@ import { Button } from "../Button/Button";
 const meta: Meta<typeof PageLoader> = {
   component: PageLoader,
   title: "PageLoader",
-  tags: ["autodocs"],
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", docs: { disable: true } },
   argTypes: {},
   decorators: [
     (Story) => (

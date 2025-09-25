@@ -2,35 +2,10 @@
 
 import * as RadixTooltip from "@radix-ui/react-tooltip"
 import { AnimatePresence, motion } from "motion/react"
-import { cva, type VariantProps } from "class-variance-authority"
 import React, { useState } from "react"
 import { twMerge } from "tailwind-merge"
 
-const tooltipContent = cva([], {
-  variants: {
-    intent: {
-      primary: [
-        "rounded-xl",
-        "bg-white",
-        "font-sans",
-        "text-black",
-        "text-small",
-        "font-medium",
-        "px-2.5",
-        "py-1.5",
-        "w-fit",
-        "whitespace-nowrap",
-        "inline-flex",
-        "items-center",
-      ],
-    },
-  },
-  defaultVariants: {
-    intent: "primary",
-  },
-})
-
-export interface TooltipProps extends VariantProps<typeof tooltipContent>, RadixTooltip.TooltipProps {
+export interface TooltipProps extends RadixTooltip.TooltipProps {
   explainer: React.ReactElement | string
   children: React.ReactElement
   className?: string
@@ -44,7 +19,6 @@ export function Tooltip({
   open,
   defaultOpen,
   onOpenChange,
-  intent,
   side = "top",
   className,
   shortcut,
@@ -71,7 +45,10 @@ export function Tooltip({
               <RadixTooltip.Content
                 side={side}
                 sideOffset={5}
-                className={twMerge(tooltipContent({ intent, className }))}
+                className={twMerge(
+                  "rounded-xl bg-white font-sans text-black text-small font-medium px-2.5 py-1.5 w-fit whitespace-nowrap inline-flex items-center",
+                  className
+                )}
                 asChild
               >
                 <motion.div

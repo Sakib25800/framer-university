@@ -31,7 +31,7 @@ export function TextShimmer({
   rotation = 90,
   delay = 0,
   tag = "p",
-  direction = "left",
+  direction = "right",
   style,
   className,
 }: TextShimmerProps) {

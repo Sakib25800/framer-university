@@ -10,25 +10,16 @@ const meta: Meta<typeof Tooltip> = {
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
-    docs: {
-      description: {
-        component: "Accessible tooltip with optional keyboard shortcut hint.",
-      },
-    },
+    docs: {},
   },
   args: {
-    intent: "primary",
     explainer: "Action name",
     side: "bottom",
     shortcut: "ESC",
   },
   argTypes: {
-    intent: {
-      options: ["primary"],
-      control: { type: "inline-radio" },
-    },
     side: {
-      options: ["top", "right", "bottom", "left"],
+      options: ["left", "top", "bottom", "right"],
       control: { type: "select" },
     },
     shortcut: {
@@ -51,11 +42,19 @@ export const Default: Story = {
 
 export const Positions: Story = {
   render: (args) => (
-    <div className="flex gap-4">
-      <Tooltip {...args} side="top"><IconButton><CloseIcon /></IconButton></Tooltip>
-      <Tooltip {...args} side="right"><IconButton><CloseIcon /></IconButton></Tooltip>
-      <Tooltip {...args} side="bottom"><IconButton><CloseIcon /></IconButton></Tooltip>
-      <Tooltip {...args} side="left"><IconButton><CloseIcon /></IconButton></Tooltip>
+    <div className="grid grid-cols-2 gap-8">
+      <div className="flex items-center justify-center">
+        <Tooltip {...args} side="left"><IconButton><CloseIcon /></IconButton></Tooltip>
+      </div>
+      <div className="flex items-center justify-center">
+        <Tooltip {...args} side="top"><IconButton><CloseIcon /></IconButton></Tooltip>
+      </div>
+      <div className="flex items-center justify-center">
+        <Tooltip {...args} side="bottom"><IconButton><CloseIcon /></IconButton></Tooltip>
+      </div>
+      <div className="flex items-center justify-center">
+        <Tooltip {...args} side="right"><IconButton><CloseIcon /></IconButton></Tooltip>
+      </div>
     </div>
   ),
 }
