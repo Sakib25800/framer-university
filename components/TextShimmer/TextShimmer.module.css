@@ -1,0 +1,31 @@
+.root {}
+
+.layer {
+    color: transparent;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-repeat: no-repeat;
+    background-size: 200% 200%;
+    background-image: linear-gradient(var(--ts-rotation, 90deg),
+            transparent 0%,
+            transparent var(--ts-grad-first, 20%),
+            var(--ts-shimmer, #ffffff) 50%,
+            transparent var(--ts-grad-last, 80%),
+            transparent 100%);
+    animation: ts-shimmer var(--ts-duration, 6s) linear infinite;
+    animation-delay: var(--ts-delay, 0s);
+}
+
+@keyframes ts-shimmer {
+    0% {
+        background-position: var(--ts-start, -100%)
+    }
+
+    100% {
+        background-position: var(--ts-end, 200%)
+    }
+}
