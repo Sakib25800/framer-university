@@ -54,13 +54,18 @@ const parentVariants = {
 
 const chevronVariants = { hover: { x: 1 }, tap: { x: 3 } }
 
-export interface ButtonProps extends VariantProps<typeof button> {
-  className?: string
-  children?: React.ReactNode
-  onClick?: () => void
-  disabled?: boolean
-  type?: "button" | "submit" | "reset"
-}
+export interface ButtonProps
+  extends VariantProps<typeof button>,
+    Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      | "onDrag"
+      | "onDragEnd"
+      | "onDragStart"
+      | "onAnimationStart"
+      | "onAnimationEnd"
+      | "onAnimationIteration"
+      | "onTransitionEnd"
+    > {}
 
 export function Button({ className, intent, size, children, ...props }: ButtonProps) {
   return (
