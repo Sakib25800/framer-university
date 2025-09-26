@@ -1,16 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ProgressBar } from "./ProgressBar";
+import { IconButton } from "../IconButton/IconButton";
+import Close from "@/components/icons/close.svg";
+import { Tooltip } from "../Tooltip/Tooltip";
 
 const meta: Meta<typeof ProgressBar> = {
-  title: "ProgressBar",
+  title: "Progress Bar",
   component: ProgressBar,
   tags: ["autodocs"],
   args: {
     value: 42,
+    intent: "default",
   },
   argTypes: {
     value: { control: { type: "range", min: 0, max: 100, step: 1 } },
-    color: { control: { type: "inline-radio" }, options: ["white", "accent"] },
+    intent: { control: { type: "inline-radio" }, options: ["default", "info"] },
+    showPercentage: { control: { type: "boolean" } },
     ariaLabel: { control: { type: "text" } },
   },
 };
@@ -18,7 +23,8 @@ const meta: Meta<typeof ProgressBar> = {
 export default meta;
 type Story = StoryObj<typeof ProgressBar>;
 
-export const Default: Story = {
+export const Percentage: Story = {
+  args: { value: 25, showPercentage: true },
   render: (args) => (
     <div className="w-[340px]">
       <ProgressBar {...args} />
@@ -26,13 +32,30 @@ export const Default: Story = {
   ),
 };
 
-export const Accent: Story = {
-  args: { value: 60, color: "accent" },
-  render: (args) => (
+export const Info: Story = {
+  render: () => (
     <div className="w-[340px]">
-      <ProgressBar {...args} />
+      <ProgressBar intent="info" title="Building a Personal Website" dayLabel="Day 24" />
     </div>
   ),
+};
+
+export const Action: Story = {
+  render: (args) => (
+    <div className="w-[340px]">
+      <div className="flex items-center gap-2">
+        <Tooltip explainer="Quit lesson" side="bottom" shortcut="ESC">
+          <IconButton intent="primary">
+            <Close />
+          </IconButton>
+        </Tooltip>
+        <div className="flex-1">
+          <ProgressBar {...args} />
+        </div>
+      </div>
+    </div>
+  ),
+  args: { value: 42 },
 };
 
 
