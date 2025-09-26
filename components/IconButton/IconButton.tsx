@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { motion } from "motion/react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 
 const iconButton = cva(
   ["flex items-center justify-center rounded-full w-9 h-9 text-primary-950 cursor-pointer hover:text-white"],
@@ -39,7 +39,7 @@ export interface ButtonProps
 
 export function IconButton({ className, intent, children, ...props }: ButtonProps) {
   return (
-    <motion.button className={twMerge(iconButton({ intent, className }))} whileTap={{ scale: 0.95 }} {...props}>
+    <motion.button className={cn(iconButton({ intent, className }))} whileTap={{ scale: 0.95 }} {...props}>
       {children}
     </motion.button>
   )

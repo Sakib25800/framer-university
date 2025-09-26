@@ -1,6 +1,6 @@
 import { cva } from "class-variance-authority"
 import { spring } from "motion"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 
 const radioButton = cva(["inline-flex", "items-center", "select-none"], {
   variants: {
@@ -76,7 +76,7 @@ export function RadioButton({
   ...props
 }: RadioButtonProps) {
   return (
-    <label className={twMerge(radioButton({ checked }), className)}>
+    <label className={cn(radioButton({ checked }), className)}>
       <input
         type="radio"
         name={name}
@@ -88,7 +88,7 @@ export function RadioButton({
         {...props}
       />
       <div
-        className={twMerge(radioBlock({ checked }))}
+        className={cn(radioBlock({ checked }))}
         style={{
           transition: `all ${spring({ keyframes: [0, 1], duration: 300, bounce: 0.2, delay: 0 })}`,
         }}

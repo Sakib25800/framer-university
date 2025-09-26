@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react"
 import React, { useEffect, useState } from "react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 import Loader from "../Loader/Loader"
 
 export interface PageLoaderProps {
@@ -39,9 +39,9 @@ export function PageLoader({ loading, children }: PageLoaderProps) {
   const wrapperOverflowClass = contentReady ? "overflow-x-clip overflow-y-visible" : "overflow-hidden"
 
   return (
-    <div className={twMerge("relative", wrapperOverflowClass)}>
+    <div className={cn("relative", wrapperOverflowClass)}>
       <motion.div
-        className={twMerge(
+        className={cn(
           "bg-background/80 absolute inset-0 flex items-center justify-center",
           loading ? "z-50" : "pointer-events-none -z-10"
         )}

@@ -1,8 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import clsx from "clsx"
 import { motion, Transition } from "motion/react"
-import { twMerge } from "tailwind-merge"
 import IconChevron from "@/components/icons/chevron.svg"
+import { cn } from "@/lib/utils"
 
 const button = cva(
   [
@@ -70,7 +69,7 @@ export interface ButtonProps
 export function Button({ className, intent, size, children, ...props }: ButtonProps) {
   return (
     <motion.button
-      className={twMerge(button({ intent, size, className }))}
+      className={cn(button({ intent, size, className }))}
       variants={parentVariants[intent ?? "primary"]}
       whileHover="hover"
       whileTap="tap"
@@ -95,14 +94,11 @@ export function Button({ className, intent, size, children, ...props }: ButtonPr
           transition={springTransition}
         >
           <IconChevron
-            className={twMerge(
-              "origin-center rotate-90",
-              clsx({
-                "scale-80": size === "sm",
-                "scale-90": size === "md",
-                "scale-100": size === "lg",
-              })
-            )}
+            className={cn("origin-center rotate-90", {
+              "scale-80": size === "sm",
+              "scale-90": size === "md",
+              "scale-100": size === "lg",
+            })}
           />
         </motion.span>
       )}

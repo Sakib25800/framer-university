@@ -2,7 +2,7 @@
 
 import { cva } from "class-variance-authority"
 import * as React from "react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 
 const input = cva([
   "bg-primary-400",
@@ -50,7 +50,7 @@ export function Input({
       id={inputId}
       name={name}
       type={type}
-      className={twMerge(input(), className)}
+      className={cn(input(), className)}
       placeholder={placeholder}
       value={value}
       defaultValue={defaultValue}

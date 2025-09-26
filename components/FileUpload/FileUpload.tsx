@@ -2,7 +2,7 @@
 
 import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 import { IconButton } from "@/components/IconButton/IconButton"
 import IconTrash from "@/components/icons/trash.svg"
 import { TextShimmer } from "@/components/TextShimmer/TextShimmer"
@@ -141,7 +141,7 @@ export function FileUpload({
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       aria-disabled={isDisabled}
-      className={twMerge(
+      className={cn(
         fileUpload({ status, disabled: isDisabled }),
         status === "default" && !isDisabled && "cursor-pointer",
         isDisabled && "cursor-not-allowed",
@@ -169,7 +169,7 @@ export function FileUpload({
       ) : (
         <label
           htmlFor={inputId}
-          className={twMerge(
+          className={cn(
             "flex h-full w-full items-center justify-center",
             isDisabled ? "pointer-events-none cursor-not-allowed" : "cursor-pointer"
           )}

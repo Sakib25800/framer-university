@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 import styles from "./TextShimmer.module.css"
 
 export type TextShimmerDirection = "left" | "right"
@@ -45,13 +45,13 @@ export function TextShimmer({
   const endPos = direction === "left" ? "200%" : "-100%"
 
   return (
-    <div className={twMerge("relative select-none", userSelect && "select-auto", className)}>
-      <Tag className={twMerge("m-0", !style?.fontSize && "") as string} style={{ color, ...style }}>
+    <div className={cn("relative select-none", userSelect && "select-auto", className)}>
+      <Tag className={cn("m-0", !style?.fontSize && "") as string} style={{ color, ...style }}>
         {content}
       </Tag>
       <Tag
         aria-hidden="true"
-        className={twMerge(styles.layer)}
+        className={cn(styles.layer)}
         style={
           {
             ["--ts-rotation" as string]: `${rotation}deg`,

@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 
 export interface ProgressBarProps {
   value?: number
@@ -29,7 +29,7 @@ export function ProgressBar({
 
   return (
     <div
-      className={twMerge(
+      className={cn(
         "flex w-full items-center overflow-hidden rounded-full",
         "bg-[#252727]",
         "h-9",
@@ -45,14 +45,14 @@ export function ProgressBar({
     >
       {intent === "default" && (
         <>
-          <div className={twMerge("min-w-0 flex-1", showPercentage ? "mr-[10px]" : "")}>
-            <div className={twMerge("h-1 w-full overflow-hidden rounded-full", trackColorClass)}>
-              <div className={twMerge("h-full rounded-full", fillColorClass)} style={{ width: `${clampedValue}%` }} />
+          <div className={cn("min-w-0 flex-1", showPercentage ? "mr-[10px]" : "")}>
+            <div className={cn("h-1 w-full overflow-hidden rounded-full", trackColorClass)}>
+              <div className={cn("h-full rounded-full", fillColorClass)} style={{ width: `${clampedValue}%` }} />
             </div>
           </div>
           {showPercentage && (
             <span
-              className={twMerge(
+              className={cn(
                 "text-primary-950 w-[26.5px] shrink-0 basis-[26.5px] origin-right text-right text-[14px] leading-[1em] font-medium whitespace-nowrap",
                 percentageScaleClass
               )}

@@ -2,7 +2,7 @@
 
 import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
-import { twMerge } from "tailwind-merge"
+import { cn } from "@/lib/utils"
 import IconResizer from "@/components/icons/resizer.svg"
 
 const textArea = cva(
@@ -78,7 +78,7 @@ export function TextArea({
       <textarea
         id={textAreaId}
         name={name}
-        className={twMerge(textArea({ variant, disabled }), className)}
+        className={cn(textArea({ variant, disabled }), className)}
         placeholder={placeholder}
         value={value}
         defaultValue={defaultValue}
