@@ -66,12 +66,10 @@ export function FileUpload({
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
 
-  // Allow parent to override status, otherwise derive from file state
   const status = statusProp || (selectedFile ? "uploaded" : "default")
   const isUploading = status === "uploading"
   const isDisabled = Boolean(disabled || isUploading)
 
-  // Format file size helper
   const formatFileSize = React.useCallback((bytes: number): string => {
     if (bytes === 0) return "0 Bytes"
     const k = 1024
@@ -80,14 +78,12 @@ export function FileUpload({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
   }, [])
 
-  // Get file type from file name or MIME type
   const getFileType = React.useCallback((file: File): string => {
-    // First try to get extension from filename
     const extension = file.name.split(".").pop()
     if (extension && extension.length <= 6) {
       return extension.toUpperCase()
     }
-    // Fallback to MIME type
+
     if (file.type) {
       const mimeType = file.type.split("/")[1]
       if (mimeType && mimeType.length <= 6) {
@@ -100,7 +96,7 @@ export function FileUpload({
   const handleFiles = React.useCallback(
     (files: FileList | null) => {
       if (files && files.length > 0) {
-        const file = files[0] // Take first file for single file upload
+        const file = files[0]
         setSelectedFile(file ?? null)
         onChange?.(files)
       } else {
@@ -131,12 +127,7 @@ export function FileUpload({
     event.preventDefault()
   }, [])
 
-  // Clicking is handled by <label htmlFor> to ensure cross-browser support
-
-  // Keyboard activation is naturally handled by the label + input
-
   const handleRemove = React.useCallback(() => {
-    // Clear the input's current value so the same file can be re-selected
     if (inputRef.current) {
       inputRef.current.value = ""
     }

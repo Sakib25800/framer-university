@@ -11,7 +11,6 @@ export default function LoginPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Get the form data
     const formData = new FormData(e.currentTarget)
 
     try {

@@ -5,12 +5,10 @@ import AccountForm from "./account-form"
 export default async function Account() {
   const supabase = await createClient()
 
-  // Get the user
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // If no user is signed in, redirect to login page
   if (!user) {
     redirect("/login")
   }

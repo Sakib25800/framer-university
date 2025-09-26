@@ -9,7 +9,6 @@ export default function ErrorPage() {
   const [errorMessage, setErrorMessage] = useState<string>("")
 
   useEffect(() => {
-    // Get error message from URL if available
     const error = searchParams.get("error")
     setErrorMessage(error || "An unexpected error occurred")
   }, [searchParams])

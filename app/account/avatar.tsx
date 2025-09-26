@@ -45,11 +45,9 @@ export default function Avatar({ url, size, onUploadAction }: AvatarProps) {
 
       const file = event.target.files[0]
 
-      // Create FormData to send to the server action
       const formData = new FormData()
       formData.append("file", file as Blob)
 
-      // Call the server action
       const result = await uploadAvatarAction(formData)
 
       if (result.error) {
