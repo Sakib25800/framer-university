@@ -1,10 +1,21 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { motion } from "motion/react"
+import clsx from "clsx"
+import { motion, Transition } from "motion/react"
 import { twMerge } from "tailwind-merge"
 import IconChevron from "@/components/icons/chevron.svg"
 
 const button = cva(
-  ["inline-flex", "items-center", "justify-center", "text-center", "rounded-full", "cursor-pointer", "font-semibold"],
+  [
+    "inline-flex",
+    "items-center",
+    "justify-center",
+    "text-center",
+    "rounded-full",
+    "cursor-pointer",
+    "font-semibold",
+    "filter",
+    "brightness-[1]",
+  ],
   {
     variants: {
       intent: {
@@ -18,12 +29,30 @@ const button = cva(
         lg: ["text-body-l", "px-[26px]", "py-[15px]"],
       },
     },
-    defaultVariants: {
-      intent: "primary",
-      size: "lg",
-    },
+    defaultVariants: { intent: "primary", size: "lg" },
   }
 )
+
+const springTransition: Transition = {
+  type: "spring",
+  duration: 0.3,
+  bounce: 0.2,
+  delay: 0,
+}
+
+const parentVariants = {
+  outline: {
+    hover: { borderColor: "rgb(255,255,255)" },
+    tap: { scale: 0.95 },
+  },
+  primary: {
+    hover: { filter: "brightness(0.8)" },
+    tap: { scale: 0.95 },
+  },
+  link: { hover: {}, tap: {} },
+}
+
+const chevronVariants = { hover: { x: 1 }, tap: { x: 3 } }
 
 export interface ButtonProps extends VariantProps<typeof button> {
   className?: string
@@ -34,55 +63,43 @@ export interface ButtonProps extends VariantProps<typeof button> {
 }
 
 export function Button({ className, intent, size, children, ...props }: ButtonProps) {
-  const motionProps: Record<string, any> = {
-    outline: {
-      whileHover: {
-        borderColor: "rgb(255, 255, 255)",
-      },
-      whileTap: {
-        scale: 0.95,
-      },
-    },
-    primary: {
-      whileHover: {
-        filter: "brightness(0.8)",
-      },
-      whileTap: {
-        scale: 0.95,
-      },
-    },
-    link: {},
-  }
-
   return (
     <motion.button
       className={twMerge(button({ intent, size, className }))}
-      {...motionProps[intent ?? "primary"]}
-      transition={{
-        duration: 0.3,
-        type: "spring",
-        bounce: 0.2,
-        delay: 0,
-      }}
+      variants={parentVariants[intent ?? "primary"]}
+      whileHover="hover"
+      whileTap="tap"
+      transition={springTransition}
       {...props}
     >
-      {intent !== "link" && children}
-
+      {intent === "link" ? (
+        <motion.span
+          className="brightness-[1] filter"
+          variants={{ hover: { filter: "brightness(1.25)" } }}
+          transition={springTransition}
+        >
+          {children}
+        </motion.span>
+      ) : (
+        children
+      )}
       {intent === "link" && (
-        <>
-          <span className="group-hover:brightness-125">{children}</span>
-          <div className="ml-[9px] flex items-center justify-center">
-            <div className="transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:translate-x-[1px] group-active:translate-x-[3px]">
-              <IconChevron
-                className="rotate-90"
-                style={{
-                  transform: `scale(${size === "sm" ? 0.8 : size === "md" ? 0.9 : 1})`,
-                  transformOrigin: "center",
-                }}
-              />
-            </div>
-          </div>
-        </>
+        <motion.span
+          className="ml-[9px] flex items-center justify-center"
+          variants={chevronVariants}
+          transition={springTransition}
+        >
+          <IconChevron
+            className={twMerge(
+              "origin-center rotate-90",
+              clsx({
+                "scale-80": size === "sm",
+                "scale-90": size === "md",
+                "scale-100": size === "lg",
+              })
+            )}
+          />
+        </motion.span>
       )}
     </motion.button>
   )

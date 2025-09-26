@@ -5,14 +5,6 @@ const meta: Meta<typeof Button> = {
   title: "Button",
   component: Button,
   tags: ["autodocs"],
-  parameters: {
-    docs: {
-      description: {
-        component:
-          "A versatile button supporting primary, outline, and link intents with three sizes.",
-      },
-    },
-  },
   args: {
     intent: "primary",
     children: "Continue",
@@ -22,12 +14,12 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     intent: {
       options: ["primary", "outline", "link"],
-      control: { type: "inline-radio" },
+      control: { type: "select" },
       description: "Visual intent of the button",
     },
     size: {
       options: ["sm", "md", "lg"],
-      control: { type: "select" },
+      control: { type: "inline-radio" },
       description: "Button size",
     },
     disabled: { control: { type: "boolean" } },
@@ -50,15 +42,21 @@ export const Outline: Story = {
 }
 
 export const Link: Story = {
-  args: { intent: "link", children: "Learn more" },
+  args: { intent: "link", children: "Continue" },
 }
 
 export const Sizes: Story = {
   render: (args) => (
     <div className="flex items-center gap-3">
-      <Button {...args} size="sm">Small</Button>
-      <Button {...args} size="md">Medium</Button>
-      <Button {...args} size="lg">Large</Button>
+      <Button {...args} size="sm">
+        Small
+      </Button>
+      <Button {...args} size="md">
+        Medium
+      </Button>
+      <Button {...args} size="lg">
+        Large
+      </Button>
     </div>
   ),
 }
