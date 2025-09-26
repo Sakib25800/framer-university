@@ -3,7 +3,7 @@ import React from "react"
 import { RadioButton } from "./RadioButton"
 
 const meta: Meta<typeof RadioButton> = {
-  title: "RadioButton",
+  title: "Radio Button",
   component: RadioButton,
   tags: ["autodocs"],
   parameters: {

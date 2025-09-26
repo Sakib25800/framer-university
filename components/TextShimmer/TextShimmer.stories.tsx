@@ -3,7 +3,7 @@ import * as React from "react"
 import { TextShimmer } from "./TextShimmer"
 
 const meta: Meta<typeof TextShimmer> = {
-  title: "TextShimmer",
+  title: "Text Shimmer",
   component: TextShimmer,
   tags: ["autodocs"],
   parameters: {

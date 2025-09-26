@@ -3,7 +3,7 @@ import Close from "@/components/icons/close.svg"
 import { IconButton } from "./IconButton"
 
 const meta: Meta<typeof IconButton> = {
-  title: "IconButton",
+  title: "Icon Button",
   component: IconButton,
   tags: ["autodocs"],
   parameters: {

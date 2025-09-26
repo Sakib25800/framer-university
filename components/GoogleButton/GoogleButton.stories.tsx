@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react"
 import { GoogleButton } from "./GoogleButton"
 
 const meta: Meta<typeof GoogleButton> = {
-  title: "GoogleButton",
+  title: "Google Button",
   component: GoogleButton,
   tags: ["autodocs"],
   parameters: {

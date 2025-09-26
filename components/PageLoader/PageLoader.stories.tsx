@@ -5,7 +5,7 @@ import { Button } from "../Button/Button";
 
 const meta: Meta<typeof PageLoader> = {
   component: PageLoader,
-  title: "PageLoader",
+  title: "Page Loader",
   parameters: { layout: "fullscreen", docs: { disable: true } },
   argTypes: {},
   decorators: [
