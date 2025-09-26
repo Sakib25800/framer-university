@@ -21,12 +21,20 @@ const iconButton = cva(
   }
 )
 
-export interface ButtonProps extends VariantProps<typeof iconButton> {
+export interface ButtonProps
+  extends VariantProps<typeof iconButton>,
+    Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      | "className"
+      | "onDrag"
+      | "onDragEnd"
+      | "onDragStart"
+      | "onAnimationStart"
+      | "onAnimationEnd"
+      | "onAnimationIteration"
+      | "onTransitionEnd"
+    > {
   className?: string
-  children?: React.ReactNode
-  onClick?: () => void
-  disabled?: boolean
-  type?: "button" | "submit" | "reset"
 }
 
 export function IconButton({ className, intent, children, ...props }: ButtonProps) {

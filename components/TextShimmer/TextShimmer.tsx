@@ -35,7 +35,7 @@ export function TextShimmer({
   style,
   className,
 }: TextShimmerProps) {
-  const Tag = tag as any
+  const Tag = tag as keyof React.JSX.IntrinsicElements
 
   const speedFormatted = 11 - speed
   const gradFirst = 50 - (size * (50 - 20)) / 100
@@ -52,17 +52,19 @@ export function TextShimmer({
       <Tag
         aria-hidden="true"
         className={twMerge(styles.layer)}
-        style={{
-          ["--ts-rotation" as any]: `${rotation}deg`,
-          ["--ts-grad-first" as any]: `${gradFirst}%`,
-          ["--ts-grad-last" as any]: `${gradLast}%`,
-          ["--ts-shimmer" as any]: shimmer,
-          ["--ts-duration" as any]: durationSec,
-          ["--ts-delay" as any]: `${delay}s`,
-          ["--ts-start" as any]: startPos,
-          ["--ts-end" as any]: endPos,
-          ...style,
-        }}
+        style={
+          {
+            ["--ts-rotation" as string]: `${rotation}deg`,
+            ["--ts-grad-first" as string]: `${gradFirst}%`,
+            ["--ts-grad-last" as string]: `${gradLast}%`,
+            ["--ts-shimmer" as string]: shimmer,
+            ["--ts-duration" as string]: durationSec,
+            ["--ts-delay" as string]: `${delay}s`,
+            ["--ts-start" as string]: startPos,
+            ["--ts-end" as string]: endPos,
+            ...style,
+          } as React.CSSProperties
+        }
       >
         {content}
       </Tag>
@@ -71,5 +73,3 @@ export function TextShimmer({
 }
 
 export default TextShimmer
-
-

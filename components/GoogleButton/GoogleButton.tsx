@@ -1,18 +1,16 @@
-import { Button, type ButtonProps } from "@/components/Button/Button"
 import { twMerge } from "tailwind-merge"
+import { Button, type ButtonProps } from "@/components/Button/Button"
 import IconGoogle from "@/components/icons/google.svg"
 
-export interface GoogleButtonProps extends Omit<ButtonProps, "intent"> {}
+export type GoogleButtonProps = Omit<ButtonProps, "intent">
 
 export function GoogleButton({ className, children = "Continue with Google", ...props }: GoogleButtonProps) {
   return (
     <Button intent="outline" size="sm" className={twMerge("gap-2.5", className)} {...props}>
-        <IconGoogle />
-        {children}
+      <IconGoogle />
+      {children}
     </Button>
   )
 }
 
 export default GoogleButton
-
-

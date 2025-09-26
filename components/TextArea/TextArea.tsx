@@ -1,7 +1,7 @@
 "use client"
 
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react"
 import { twMerge } from "tailwind-merge"
 import IconResizer from "@/components/icons/resizer.svg"
 
@@ -42,31 +42,16 @@ const textArea = cva(
   }
 )
 
-export interface TextAreaProps extends VariantProps<typeof textArea> {
+export interface TextAreaProps
+  extends VariantProps<typeof textArea>,
+    Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "className" | "disabled"> {
   className?: string
-  placeholder?: string
-  value?: string
-  defaultValue?: string
-  disabled?: boolean
-  readOnly?: boolean
-  required?: boolean
-  rows?: number
-  cols?: number
-  maxLength?: number
-  minLength?: number
-  name?: string
-  id?: string
-  "aria-label"?: string
-  "aria-describedby"?: string
-  onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  onBlur?: (event: React.FocusEvent<HTMLTextAreaElement>) => void
-  onFocus?: (event: React.FocusEvent<HTMLTextAreaElement>) => void
 }
 
-export function TextArea({ 
-  className, 
-  variant, 
-  disabled, 
+export function TextArea({
+  className,
+  variant,
+  disabled,
   placeholder,
   value,
   defaultValue,
@@ -83,7 +68,7 @@ export function TextArea({
   onChange,
   onBlur,
   onFocus,
-  ...props 
+  ...props
 }: TextAreaProps) {
   const reactId = React.useId()
   const textAreaId = id ?? `textarea-${reactId}`
@@ -97,7 +82,7 @@ export function TextArea({
         placeholder={placeholder}
         value={value}
         defaultValue={defaultValue}
-        disabled={disabled}
+        disabled={disabled ?? false}
         readOnly={readOnly}
         required={required}
         rows={rows}
@@ -111,7 +96,7 @@ export function TextArea({
         onFocus={onFocus}
         {...props}
       />
-      <IconResizer className="pointer-events-none absolute bottom-3 right-1 h-3 w-3 text-primary-900" />
+      <IconResizer className="text-primary-900 pointer-events-none absolute right-1 bottom-3 h-3 w-3" />
     </div>
   )
 }

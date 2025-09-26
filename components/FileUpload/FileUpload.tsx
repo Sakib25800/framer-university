@@ -1,10 +1,10 @@
 "use client"
 
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react"
 import { twMerge } from "tailwind-merge"
-import IconTrash from "@/components/icons/trash.svg"
 import { IconButton } from "@/components/IconButton/IconButton"
+import IconTrash from "@/components/icons/trash.svg"
 import { TextShimmer } from "@/components/TextShimmer/TextShimmer"
 
 const fileUpload = cva(
@@ -40,15 +40,10 @@ const fileUpload = cva(
   }
 )
 
-export interface FileUploadProps extends VariantProps<typeof fileUpload> {
-  id?: string
-  name?: string
-  accept?: string
-  multiple?: boolean
-  disabled?: boolean
+export interface FileUploadProps
+  extends VariantProps<typeof fileUpload>,
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, "className" | "onChange" | "disabled"> {
   className?: string
-  style?: React.CSSProperties
-  "aria-label"?: string
   onChange?: (files: FileList) => void
   onRemove?: () => void
   fileName?: string
@@ -56,7 +51,21 @@ export interface FileUploadProps extends VariantProps<typeof fileUpload> {
   fileType?: string
 }
 
-export function FileUpload({ id, name, accept, multiple, disabled, className, onChange, onRemove, fileName, fileSize, fileType, status, ...rest }: FileUploadProps) {
+export function FileUpload({
+  id,
+  name,
+  accept,
+  multiple,
+  disabled,
+  className,
+  onChange,
+  onRemove,
+  fileName,
+  fileSize,
+  fileType,
+  status,
+  ...rest
+}: FileUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const reactId = React.useId()
   const inputId = id ?? `file-upload-${reactId}`
@@ -107,14 +116,14 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
   }, [fileType, fileName])
 
   const handleRemove = React.useCallback(() => {
-      // Clear the input's current value so the same file can be re-selected
-      if (inputRef.current) {
-        inputRef.current.value = ""
-      }
-      // Notify consumer with an empty FileList
-      const emptyFiles = new DataTransfer().files
-      onChange?.(emptyFiles)
-      onRemove?.()
+    // Clear the input's current value so the same file can be re-selected
+    if (inputRef.current) {
+      inputRef.current.value = ""
+    }
+    // Notify consumer with an empty FileList
+    const emptyFiles = new DataTransfer().files
+    onChange?.(emptyFiles)
+    onRemove?.()
   }, [onChange, onRemove])
 
   return (
@@ -133,14 +142,12 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
       {status === "uploaded" ? (
         <div className="flex w-full items-center justify-between px-[6px]">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-[40px] w-[40px] items-center justify-center rounded-[4px] bg-primary-400 text-[12px] font-semibold text-white">
+            <div className="bg-primary-400 flex h-[40px] w-[40px] items-center justify-center rounded-[4px] text-[12px] font-semibold text-white">
               {resolvedFileType}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-body-s font-medium">
-                {fileName ?? "uploaded-file.png"}
-              </div>
-              <div className="text-body-s font-medium text-primary-900">{fileSize ?? "—"}</div>
+              <div className="text-body-s truncate font-medium">{fileName ?? "uploaded-file.png"}</div>
+              <div className="text-body-s text-primary-900 font-medium">{fileSize ?? "—"}</div>
             </div>
           </div>
           <IconButton aria-label="Remove file" intent="secondary" onClick={handleRemove}>
@@ -186,5 +193,3 @@ export function FileUpload({ id, name, accept, multiple, disabled, className, on
 }
 
 export default FileUpload
-
-
