@@ -44,11 +44,8 @@ export interface FileUploadProps
   extends VariantProps<typeof fileUpload>,
     Omit<React.InputHTMLAttributes<HTMLInputElement>, "className" | "onChange" | "disabled"> {
   className?: string
-  onChange?: (files: FileList) => void
+  onChange?: (files: FileList | null) => void
   onRemove?: () => void
-  fileName?: string
-  fileSize?: string
-  fileType?: string
 }
 
 export function FileUpload({
@@ -60,23 +57,55 @@ export function FileUpload({
   className,
   onChange,
   onRemove,
-  fileName,
-  fileSize,
-  fileType,
-  status,
+  status: statusProp,
   ...rest
 }: FileUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const reactId = React.useId()
   const inputId = id ?? `file-upload-${reactId}`
 
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+
+  // Allow parent to override status, otherwise derive from file state
+  const status = statusProp || (selectedFile ? "uploaded" : "default")
   const isUploading = status === "uploading"
   const isDisabled = Boolean(disabled || isUploading)
+
+  // Format file size helper
+  const formatFileSize = React.useCallback((bytes: number): string => {
+    if (bytes === 0) return "0 Bytes"
+    const k = 1024
+    const sizes = ["Bytes", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+  }, [])
+
+  // Get file type from file name or MIME type
+  const getFileType = React.useCallback((file: File): string => {
+    // First try to get extension from filename
+    const extension = file.name.split(".").pop()
+    if (extension && extension.length <= 6) {
+      return extension.toUpperCase()
+    }
+    // Fallback to MIME type
+    if (file.type) {
+      const mimeType = file.type.split("/")[1]
+      if (mimeType && mimeType.length <= 6) {
+        return mimeType.toUpperCase()
+      }
+    }
+    return "FILE"
+  }, [])
 
   const handleFiles = React.useCallback(
     (files: FileList | null) => {
       if (files && files.length > 0) {
+        const file = files[0] // Take first file for single file upload
+        setSelectedFile(file ?? null)
         onChange?.(files)
+      } else {
+        setSelectedFile(null)
+        onChange?.(null)
       }
     },
     [onChange]
@@ -106,23 +135,13 @@ export function FileUpload({
 
   // Keyboard activation is naturally handled by the label + input
 
-  const resolvedFileType = React.useMemo(() => {
-    if (fileType && fileType.trim().length > 0) return fileType.toUpperCase()
-    if (fileName) {
-      const match = fileName.split(".").pop()
-      if (match && match.length <= 6) return match.toUpperCase()
-    }
-    return "FILE"
-  }, [fileType, fileName])
-
   const handleRemove = React.useCallback(() => {
     // Clear the input's current value so the same file can be re-selected
     if (inputRef.current) {
       inputRef.current.value = ""
     }
-    // Notify consumer with an empty FileList
-    const emptyFiles = new DataTransfer().files
-    onChange?.(emptyFiles)
+    setSelectedFile(null)
+    onChange?.(null)
     onRemove?.()
   }, [onChange, onRemove])
 
@@ -143,11 +162,13 @@ export function FileUpload({
         <div className="flex w-full items-center justify-between px-[6px]">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="bg-primary-400 flex h-[40px] w-[40px] items-center justify-center rounded-[4px] text-[12px] font-semibold text-white">
-              {resolvedFileType}
+              {selectedFile ? getFileType(selectedFile) : "FILE"}
             </div>
             <div className="min-w-0">
-              <div className="text-body-s truncate font-medium">{fileName ?? "uploaded-file.png"}</div>
-              <div className="text-body-s text-primary-900 font-medium">{fileSize ?? "—"}</div>
+              <div className="text-body-s truncate font-medium">{selectedFile?.name ?? "uploaded-file.png"}</div>
+              <div className="text-body-s text-primary-900 font-medium">
+                {selectedFile ? formatFileSize(selectedFile.size) : "—"}
+              </div>
             </div>
           </div>
           <IconButton aria-label="Remove file" intent="secondary" onClick={handleRemove}>
