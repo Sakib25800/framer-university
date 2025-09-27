@@ -2,10 +2,10 @@
 
 import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import { IconButton } from "@/components/IconButton/IconButton"
 import IconTrash from "@/components/icons/trash.svg"
 import { TextShimmer } from "@/components/TextShimmer/TextShimmer"
+import { cn } from "@/lib/utils"
 
 const fileUpload = cva(
   [

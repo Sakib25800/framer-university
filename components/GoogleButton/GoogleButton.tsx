@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils"
 import { Button, type ButtonProps } from "@/components/Button/Button"
 import IconGoogle from "@/components/icons/google.svg"
+import { cn } from "@/lib/utils"
 
 export type GoogleButtonProps = Omit<ButtonProps, "intent">
 

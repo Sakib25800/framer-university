@@ -21,53 +21,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   className?: string
 }
 
-export function Input({
-  className,
-  disabled,
-  placeholder,
-  value,
-  defaultValue,
-  readOnly,
-  required,
-  name,
-  id,
-  type = "text",
-  maxLength,
-  minLength,
-  pattern,
-  "aria-label": ariaLabel,
-  "aria-describedby": ariaDescribedby,
-  onChange,
-  onBlur,
-  onFocus,
-  ...props
-}: InputProps) {
-  const reactId = React.useId()
-  const inputId = id ?? `input-${reactId}`
-
-  return (
-    <input
-      id={inputId}
-      name={name}
-      type={type}
-      className={cn(input(), className)}
-      placeholder={placeholder}
-      value={value}
-      defaultValue={defaultValue}
-      disabled={disabled}
-      readOnly={readOnly}
-      required={required}
-      maxLength={maxLength}
-      minLength={minLength}
-      pattern={pattern}
-      aria-label={ariaLabel}
-      aria-describedby={ariaDescribedby}
-      onChange={onChange}
-      onBlur={onBlur}
-      onFocus={onFocus}
-      {...props}
-    />
-  )
+export function Input({ className, ...props }: InputProps) {
+  return <input className={cn(input({ className }))} {...props} />
 }
 
 export default Input
