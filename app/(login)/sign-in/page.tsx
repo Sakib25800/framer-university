@@ -15,7 +15,7 @@ export default function SignInPage() {
       <div className="flex w-full flex-col items-center gap-6">
         <GoogleButton className="h-11 w-full">Log in with Google</GoogleButton>
         <Divider />
-        <Input placeholder="Email" className="w-full" />
+        <Input placeholder="Email" />
         <Button className="w-full" size="md">
           Send magic link
         </Button>

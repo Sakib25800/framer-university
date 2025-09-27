@@ -40,7 +40,7 @@ export interface InputProps extends React.ComponentProps<"input"> {
 
 export function Input({ className, variant = "default", errorText, ...props }: InputProps) {
   return (
-    <div className="flex flex-col">
+    <div className="flex w-full flex-col">
       <input className={cn(input({ variant, className }))} {...props} />
       {errorText && <p className="text-small text-error mt-1.5 font-medium">{errorText}</p>}
     </div>
