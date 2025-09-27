@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import * as React from "react"
-import FileUpload from "./FileUpload"
+import { useEffect, useRef } from "react"
+import { FileUpload } from "./FileUpload"
 
 const meta: Meta<typeof FileUpload> = {
   title: "File Upload",
@@ -18,16 +18,11 @@ const meta: Meta<typeof FileUpload> = {
     accept: undefined,
     multiple: false,
     disabled: false,
-    status: "default",
     className: "w-[340px] h-[56px]",
   },
   argTypes: {
     onChange: { action: "change" },
     onRemove: { action: "remove" },
-    status: {
-      control: { type: "select" },
-      options: ["default", "uploading", "uploaded"],
-    },
   },
 }
 
@@ -38,20 +33,78 @@ export const Default: Story = {
 }
 
 export const Uploading: Story = {
-  args: {
-    status: "uploading",
+  args: {},
+  render: (args) => {
+    const fileUploadRef = useRef<{
+      files: FileList | null
+      clear: () => void
+      setStatus: (status: "default" | "uploading" | "uploaded") => void
+    }>(null)
+
+    useEffect(() => {
+      fileUploadRef.current?.setStatus("uploading")
+    }, [])
+
+    return <FileUpload ref={fileUploadRef} {...args} />
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "The uploading state shows an animated shimmer effect while files are being processed.",
+      },
+    },
   },
 }
 
 export const Uploaded: Story = {
-  args: {
-    status: "uploaded",
-    fileName: "scroll-variants-edited.png",
-    fileSize: "2.4 MB",
-    fileType: "png",
+  args: {},
+  render: (args) => {
+    const fileUploadRef = useRef<{
+      files: FileList | null
+      clear: () => void
+      setStatus: (status: "default" | "uploading" | "uploaded") => void
+    }>(null)
+
+    useEffect(() => {
+      const mockFile = new File(["mock content"], "scroll-variants-edited.png", {
+        type: "image/png",
+        lastModified: Date.now(),
+      })
+
+      const dataTransfer = new DataTransfer()
+      dataTransfer.items.add(mockFile)
+
+      setTimeout(() => {
+        fileUploadRef.current?.setStatus("uploaded")
+      }, 100)
+    }, [])
+
+    return <FileUpload ref={fileUploadRef} {...args} />
+  },
+}
+
+export const Interactive: Story = {
+  args: {},
+  render: (args) => {
+    const fileUploadRef = useRef<{
+      files: FileList | null
+      clear: () => void
+      setStatus: (status: "default" | "uploading" | "uploaded") => void
+    }>(null)
+
+    const handleChange = (files: FileList | null) => {
+      if (files && files.length > 0) {
+        fileUploadRef.current?.setStatus("uploading")
+
+        setTimeout(() => {
+          fileUploadRef.current?.setStatus("uploaded")
+        }, 2000)
+      }
+      args.onChange?.(files)
+    }
+
+    return <FileUpload ref={fileUploadRef} {...args} onChange={handleChange} />
   },
 }
 
 export default meta
-
-
