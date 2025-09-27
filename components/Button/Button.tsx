@@ -18,7 +18,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        outline: ["border", "border-primary-400", "!text-white"],
+        outline: ["border", "border-primary-400", "text-white"],
         primary: ["bg-white", "text-black"],
         link: ["!text-primary-950", "group"],
       },

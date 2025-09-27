@@ -32,7 +32,6 @@ const config: NextConfig = {
                       overrides: {
                         removeViewBox: false,
                         removeDimensions: true,
-                        convertColors: { currentColor: true },
                       },
                     },
                   },

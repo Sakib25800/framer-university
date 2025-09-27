@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import React from "react"
 import { Logo } from "./Logo"
 
 const meta: Meta<typeof Logo> = {
@@ -19,6 +18,10 @@ const meta: Meta<typeof Logo> = {
     beta: {
       control: { type: "boolean" },
     },
+    size: {
+      control: { type: "select" },
+      options: ["sm", "lg"],
+    },
   },
 }
 
@@ -28,6 +31,25 @@ export const Default: Story = {}
 
 export const Beta: Story = {
   args: {
+    beta: true,
+  },
+}
+
+export const Small: Story = {
+  args: {
+    size: "sm",
+  },
+}
+
+export const Large: Story = {
+  args: {
+    size: "lg",
+  },
+}
+
+export const LargeBeta: Story = {
+  args: {
+    size: "lg",
     beta: true,
   },
 }
