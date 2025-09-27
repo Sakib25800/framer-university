@@ -1,9 +1,9 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { HTMLMotionProps, motion } from "motion/react"
+import { HTMLMotionProps, motion, Transition, Variants } from "motion/react"
 import { cn } from "@/lib/utils"
 
 const iconButtonVariants = cva(
-  ["flex items-center justify-center rounded-full w-9 h-9 text-primary-950 cursor-pointer hover:text-white"],
+  ["flex items-center justify-center rounded-full w-9 h-9 text-primary-950 cursor-pointer"],
   {
     variants: {
       intent: {
@@ -21,6 +21,22 @@ const iconButtonVariants = cva(
   }
 )
 
+const spring: Transition = {
+  type: "spring",
+  duration: 0.3,
+  bounce: 0.2,
+  delay: 0,
+}
+
+const iconButtonMotionVariants: Variants = {
+  hover: {
+    color: "rgb(255, 255, 255)",
+  },
+  tap: {
+    scale: 0.95,
+  },
+}
+
 export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
   VariantProps<typeof iconButtonVariants> & {
     children?: React.ReactNode
@@ -28,7 +44,14 @@ export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
 
 export function IconButton({ className, intent, children, ...props }: ButtonProps) {
   return (
-    <motion.button className={cn(iconButtonVariants({ intent, className }))} whileTap={{ scale: 0.95 }} {...props}>
+    <motion.button
+      className={cn(iconButtonVariants({ intent, className }))}
+      variants={iconButtonMotionVariants}
+      whileHover="hover"
+      whileTap="tap"
+      transition={spring}
+      {...props}
+    >
       {children}
     </motion.button>
   )
