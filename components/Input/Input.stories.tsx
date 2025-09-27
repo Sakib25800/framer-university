@@ -15,6 +15,11 @@ const meta: Meta<typeof Input> = {
     disabled: { control: { type: "boolean" } },
     readOnly: { control: { type: "boolean" } },
     required: { control: { type: "boolean" } },
+    variant: {
+      control: { type: "select" },
+      options: ["default", "error"],
+    },
+    errorText: { control: { type: "text" } },
     type: {
       control: { type: "select" },
       options: [
@@ -46,6 +51,19 @@ export const Default: Story = {
 
 export const WithValue: Story = {
   args: { value: "Hello world" },
+  render: (args) => (
+    <div className="w-[340px]">
+      <Input {...args} className="w-[340px]" />
+    </div>
+  ),
+}
+
+export const Error: Story = {
+  args: { 
+    variant: "error",
+    errorText: "Please include an '@' in the email address.",
+    placeholder: "Email"
+  },
   render: (args) => (
     <div className="w-[340px]">
       <Input {...args} className="w-[340px]" />

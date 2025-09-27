@@ -23,6 +23,7 @@
   --color-primary-950: #a9abad;
 
   --color-accent: #00bbff;
+  --color-error: #ff4545;
 
   /* Font */
   --font-sans: var(--font-university-sans);
