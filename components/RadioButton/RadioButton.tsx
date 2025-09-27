@@ -60,10 +60,7 @@ const radioBlock = cva(
   }
 )
 
-export interface RadioButtonProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "className" | "type"> {
-  className?: string
-  label?: string
-}
+export type RadioButtonProps = React.ComponentProps<"input"> & { label: string }
 
 export function RadioButton({
   className,
