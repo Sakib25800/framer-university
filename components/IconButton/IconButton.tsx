@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { motion } from "motion/react"
+import { HTMLMotionProps, motion } from "motion/react"
 import { cn } from "@/lib/utils"
 
-const iconButton = cva(
+const iconButtonVariants = cva(
   ["flex items-center justify-center rounded-full w-9 h-9 text-primary-950 cursor-pointer hover:text-white"],
   {
     variants: {
@@ -21,25 +21,14 @@ const iconButton = cva(
   }
 )
 
-export interface ButtonProps
-  extends VariantProps<typeof iconButton>,
-    Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      | "className"
-      | "onDrag"
-      | "onDragEnd"
-      | "onDragStart"
-      | "onAnimationStart"
-      | "onAnimationEnd"
-      | "onAnimationIteration"
-      | "onTransitionEnd"
-    > {
-  className?: string
-}
+export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
+  VariantProps<typeof iconButtonVariants> & {
+    children?: React.ReactNode
+  }
 
 export function IconButton({ className, intent, children, ...props }: ButtonProps) {
   return (
-    <motion.button className={cn(iconButton({ intent, className }))} whileTap={{ scale: 0.95 }} {...props}>
+    <motion.button className={cn(iconButtonVariants({ intent, className }))} whileTap={{ scale: 0.95 }} {...props}>
       {children}
     </motion.button>
   )
