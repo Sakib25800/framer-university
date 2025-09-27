@@ -64,7 +64,7 @@ export function Tooltip({
                 >
                   {explainer}
                   {shortcut && (
-                    <div className="ml-2 min-w-[21px] rounded-sm pt-[2px] pr-[4px] pb-[3px] pl-[4px] shadow-[inset_0_-2px_0_rgba(171,171,171,0.8),inset_0_-0.5px_0_rgba(13,13,13,0.4),inset_0_-1px_0_rgba(10,10,10,1),0_0_0_2px_rgba(171,171,171,0.3),inset_0_0.5px_0_rgba(171,171,171,0.4)]">
+                    <div className="ml-2 min-w-[21px] rounded-sm px-1 pt-0.5 pb-[3px] shadow-[inset_0_-2px_0_rgba(171,171,171,0.8),inset_0_-0.5px_0_rgba(13,13,13,0.4),inset_0_-1px_0_rgba(10,10,10,1),0_0_0_2px_rgba(171,171,171,0.3),inset_0_0.5px_0_rgba(171,171,171,0.4)]">
                       <p className="text-primary-600 leading-[1.6em] font-semibold">{shortcut}</p>
                     </div>
                   )}
