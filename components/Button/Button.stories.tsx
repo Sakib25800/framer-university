@@ -6,16 +6,15 @@ const meta: Meta<typeof Button> = {
   component: Button,
   tags: ["autodocs"],
   args: {
-    intent: "primary",
+    variant: "primary",
     children: "Continue",
     size: "lg",
     disabled: false,
   },
   argTypes: {
-    intent: {
+    variant: {
       options: ["primary", "outline", "link"],
       control: { type: "select" },
-      description: "Visual intent of the button",
     },
     size: {
       options: ["sm", "md", "lg"],
@@ -34,15 +33,15 @@ export const Default: Story = {
 }
 
 export const Primary: Story = {
-  args: { intent: "primary", children: "Primary" },
+  args: { variant: "primary", children: "Primary" },
 }
 
 export const Outline: Story = {
-  args: { intent: "outline", children: "Outline" },
+  args: { variant: "outline", children: "Outline" },
 }
 
 export const Link: Story = {
-  args: { intent: "link", children: "Continue" },
+  args: { variant: "link", children: "Continue" },
 }
 
 export const Sizes: Story = {
@@ -59,10 +58,6 @@ export const Sizes: Story = {
       </Button>
     </div>
   ),
-}
-
-export const Disabled: Story = {
-  args: { disabled: true, children: "Disabled" },
 }
 
 export default meta

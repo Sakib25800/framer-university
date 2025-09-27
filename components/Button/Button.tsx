@@ -1,9 +1,9 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { motion, Transition } from "motion/react"
+import { HTMLMotionProps, motion, Transition, Variants } from "motion/react"
 import IconChevron from "@/components/icons/chevron.svg"
 import { cn } from "@/lib/utils"
 
-const button = cva(
+const buttonVariants = cva(
   [
     "inline-flex",
     "items-center",
@@ -17,7 +17,7 @@ const button = cva(
   ],
   {
     variants: {
-      intent: {
+      variant: {
         outline: ["border", "border-primary-400", "!text-white"],
         primary: ["bg-white", "text-black"],
         link: ["!text-primary-950", "group"],
@@ -28,18 +28,18 @@ const button = cva(
         lg: ["text-body-l", "px-[26px]", "py-[15px]"],
       },
     },
-    defaultVariants: { intent: "primary", size: "lg" },
+    defaultVariants: { variant: "primary", size: "lg" },
   }
 )
 
-const springTransition: Transition = {
+const spring: Transition = {
   type: "spring",
   duration: 0.3,
   bounce: 0.2,
   delay: 0,
 }
 
-const parentVariants = {
+const parentVariants: Record<string, Variants> = {
   outline: {
     hover: { borderColor: "rgb(255,255,255)" },
     tap: { scale: 0.95 },
@@ -51,36 +51,26 @@ const parentVariants = {
   link: { hover: {}, tap: {} },
 }
 
-const chevronVariants = { hover: { x: 1 }, tap: { x: 3 } }
+export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
+  VariantProps<typeof buttonVariants> & {
+    children?: React.ReactNode
+  }
 
-export interface ButtonProps
-  extends VariantProps<typeof button>,
-    Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      | "onDrag"
-      | "onDragEnd"
-      | "onDragStart"
-      | "onAnimationStart"
-      | "onAnimationEnd"
-      | "onAnimationIteration"
-      | "onTransitionEnd"
-    > {}
-
-export function Button({ className, intent, size, children, ...props }: ButtonProps) {
+export function Button({ className, variant: intent, size, children, ...props }: ButtonProps) {
   return (
     <motion.button
-      className={cn(button({ intent, size, className }))}
+      className={cn(buttonVariants({ variant: intent, size, className }))}
       variants={parentVariants[intent ?? "primary"]}
       whileHover="hover"
       whileTap="tap"
-      transition={springTransition}
+      transition={spring}
       {...props}
     >
       {intent === "link" ? (
         <motion.span
           className="brightness-[1] filter"
           variants={{ hover: { filter: "brightness(1.25)" } }}
-          transition={springTransition}
+          transition={spring}
         >
           {children}
         </motion.span>
@@ -90,8 +80,8 @@ export function Button({ className, intent, size, children, ...props }: ButtonPr
       {intent === "link" && (
         <motion.span
           className="ml-[9px] flex items-center justify-center"
-          variants={chevronVariants}
-          transition={springTransition}
+          variants={{ hover: { x: 1 }, tap: { x: 3 } }}
+          transition={spring}
         >
           <IconChevron
             className={cn("origin-center rotate-90", {
