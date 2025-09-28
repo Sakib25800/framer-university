@@ -33,7 +33,9 @@ export default function SignUpPage() {
         </p>
       </div>
       <form className="flex flex-col items-center gap-6" action={formAction}>
-        <GoogleButton className="h-11 w-full" />
+        <GoogleButton className="h-11 w-full">
+          Continue with Google
+        </GoogleButton>
         <Divider />
         <div className="flex flex-col gap-3">
           <Input

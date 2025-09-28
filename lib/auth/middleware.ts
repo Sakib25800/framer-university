@@ -18,9 +18,6 @@ export function validatedAction<S extends z.ZodType<any, any>, T>(schema: S, act
   return async (prevState: ActionState, formData: FormData) => {
     const result = schema.safeParse(Object.fromEntries(formData))
     if (!result.success) {
-      console.log("RESULT=======", result.error.errors)
-      console.log("RESULT=======", result.error.formErrors)
-
       // Create field-specific errors
       const fieldErrors: Record<string, string> = {}
       result.error.errors.forEach((error) => {
@@ -58,7 +55,7 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
   return async (prevState: ActionState, formData: FormData) => {
     const user = await getUser()
     if (!user) {
-      redirect("/login")
+      redirect("/sign-in")
     }
 
     const result = schema.safeParse(Object.fromEntries(formData))
