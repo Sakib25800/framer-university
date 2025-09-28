@@ -39,12 +39,7 @@ const meta: Meta<typeof TextShimmer> = {
 type Story = StoryObj<typeof TextShimmer>
 
 export const Default: Story = {
-  render: (args) => (
-      <TextShimmer {...args} />
-  ),
+  render: (args) => <TextShimmer {...args} />,
 }
 
-
 export default meta
-
-

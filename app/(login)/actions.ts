@@ -1,12 +1,14 @@
+"use server"
+
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { validatedAction } from "@/lib/auth/middleware"
 import { createClient } from "@/utils/supabase/server"
 
 const signUpSchema = z.object({
-  email: z.string().email().min(3).max(255),
-  firstName: z.string().min(2).max(100),
-  lastName: z.string().min(2).max(100),
+  email: z.string().email().min(3).max(50),
+  firstName: z.string().min(2).max(50),
+  lastName: z.string().min(2).max(50),
 })
 
 export const signUp = validatedAction(signUpSchema, async (data) => {
@@ -30,11 +32,11 @@ export const signUp = validatedAction(signUpSchema, async (data) => {
     }
   }
 
-  redirect("/magic-link")
+  redirect(`/magic-link?email=${email}`)
 })
 
 const signInSchema = z.object({
-  email: z.string().email().min(3).max(255),
+  email: z.string().email().min(3).max(50),
 })
 
 export const signIn = validatedAction(signInSchema, async (data) => {
@@ -55,5 +57,5 @@ export const signIn = validatedAction(signInSchema, async (data) => {
     }
   }
 
-  redirect("/magic-link")
+  redirect(`/magic-link?email=${email}`)
 })

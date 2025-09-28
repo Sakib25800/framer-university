@@ -22,15 +22,7 @@ const meta: Meta<typeof Input> = {
     errorText: { control: { type: "text" } },
     type: {
       control: { type: "select" },
-      options: [
-        "text",
-        "email",
-        "password",
-        "number",
-        "search",
-        "tel",
-        "url",
-      ],
+      options: ["text", "email", "password", "number", "search", "tel", "url"],
     },
     onChange: { action: "change" },
     onBlur: { action: "blur" },
@@ -59,10 +51,10 @@ export const WithValue: Story = {
 }
 
 export const Error: Story = {
-  args: { 
+  args: {
     variant: "error",
     errorText: "Please include an '@' in the email address.",
-    placeholder: "Email"
+    placeholder: "Email",
   },
   render: (args) => (
     <div className="w-[340px]">
@@ -70,4 +62,3 @@ export const Error: Story = {
     </div>
   ),
 }
-

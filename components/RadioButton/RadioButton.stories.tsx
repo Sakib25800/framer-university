@@ -9,8 +9,7 @@ const meta: Meta<typeof RadioButton> = {
   parameters: {
     docs: {
       description: {
-        component:
-          "A radio button component with a single fixed size (268px width).",
+        component: "A radio button component with a single fixed size (268px width).",
       },
     },
   },
@@ -65,57 +64,57 @@ export const Disabled: Story = {
 export const RadioGroup: Story = {
   render: (args) => {
     const [selected, setSelected] = React.useState<string>("customizing")
-    
+
     return (
-      <div className="flex flex-col gap-4 w-[552px] mx-auto">
-        <RadioButton 
-          {...args} 
-          label="Customizing a template I bought" 
+      <div className="mx-auto flex w-[552px] flex-col gap-4">
+        <RadioButton
+          {...args}
+          label="Customizing a template I bought"
           name="goals"
           value="customizing"
           checked={selected === "customizing"}
           onChange={(e) => setSelected(e.target.value)}
           className="w-full"
         />
-        <RadioButton 
-          {...args} 
-          label="Building my first website" 
+        <RadioButton
+          {...args}
+          label="Building my first website"
           name="goals"
           value="building"
           checked={selected === "building"}
           onChange={(e) => setSelected(e.target.value)}
           className="w-full"
         />
-        <RadioButton 
-          {...args} 
-          label="Leveling up my Framer skills" 
+        <RadioButton
+          {...args}
+          label="Leveling up my Framer skills"
           name="goals"
           value="levelling"
           checked={selected === "levelling"}
           onChange={(e) => setSelected(e.target.value)}
           className="w-full"
         />
-        <RadioButton 
-          {...args} 
-          label="Launching a website for my business" 
+        <RadioButton
+          {...args}
+          label="Launching a website for my business"
           name="goals"
           value="launching"
           checked={selected === "launching"}
           onChange={(e) => setSelected(e.target.value)}
           className="w-full"
         />
-        <RadioButton 
-          {...args} 
-          label="Making money with Framer" 
+        <RadioButton
+          {...args}
+          label="Making money with Framer"
           name="goals"
           value="making-money"
           checked={selected === "making-money"}
           onChange={(e) => setSelected(e.target.value)}
           className="w-full"
         />
-        <RadioButton 
-          {...args} 
-          label="Something else" 
+        <RadioButton
+          {...args}
+          label="Something else"
           name="goals"
           value="something-else"
           checked={selected === "something-else"}
@@ -126,7 +125,5 @@ export const RadioGroup: Story = {
     )
   },
 }
-
-
 
 export default meta

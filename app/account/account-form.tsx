@@ -8,7 +8,8 @@ import Avatar from "./avatar"
 export default function AccountForm({ user }: { user: User }) {
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [fullname, setFullname] = useState<string | null>(null)
+  const [firstName, setFirstName] = useState<string>("")
+  const [lastName, setLastName] = useState<string>("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   const getProfile = useCallback(async () => {
@@ -16,7 +17,7 @@ export default function AccountForm({ user }: { user: User }) {
       setLoading(true)
       const { data, error, status } = await supabase
         .from("profiles")
-        .select(`full_name, avatar_url`)
+        .select(`first_name, last_name, avatar_url`)
         .eq("id", user?.id)
         .single()
 
@@ -25,7 +26,8 @@ export default function AccountForm({ user }: { user: User }) {
       }
 
       if (data) {
-        setFullname(data.full_name)
+        setFirstName(data.first_name || "")
+        setLastName(data.last_name || "")
         setAvatarUrl(data.avatar_url)
       }
     } catch (error) {
@@ -40,13 +42,22 @@ export default function AccountForm({ user }: { user: User }) {
     getProfile()
   }, [user, getProfile])
 
-  async function updateProfile({ fullname, avatar_url }: { fullname: string | null; avatar_url?: string | null }) {
+  async function updateProfile({
+    firstName,
+    lastName,
+    avatar_url,
+  }: {
+    firstName: string
+    lastName: string
+    avatar_url?: string | null
+  }) {
     try {
       setLoading(true)
 
       const { error } = await supabase.from("profiles").upsert({
         id: user?.id,
-        full_name: fullname,
+        first_name: firstName,
+        last_name: lastName,
         avatar_url,
         updated_at: new Date().toISOString(),
       })
@@ -72,7 +83,7 @@ export default function AccountForm({ user }: { user: User }) {
           size={150}
           onUploadAction={(url) => {
             setAvatarUrl(url)
-            updateProfile({ fullname, avatar_url: url })
+            updateProfile({ firstName, lastName, avatar_url: url })
           }}
         />
       </div>
@@ -84,12 +95,20 @@ export default function AccountForm({ user }: { user: User }) {
         </div>
 
         <div>
-          <label htmlFor="fullName">Full Name</label>
-          <input id="fullName" type="text" value={fullname || ""} onChange={(e) => setFullname(e.target.value)} />
+          <label htmlFor="firstName">First Name</label>
+          <input id="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
         </div>
 
         <div>
-          <button onClick={() => updateProfile({ fullname, avatar_url: avatarUrl })} disabled={loading}>
+          <label htmlFor="lastName">Last Name</label>
+          <input id="lastName" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+        </div>
+
+        <div>
+          <button
+            onClick={() => updateProfile({ firstName, lastName, avatar_url: avatarUrl })}
+            disabled={loading || !firstName.trim() || !lastName.trim()}
+          >
             {loading ? "Loading..." : "Update Profile"}
           </button>
         </div>

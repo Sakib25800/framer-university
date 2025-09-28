@@ -44,16 +44,32 @@ export const Positions: Story = {
   render: (args) => (
     <div className="grid grid-cols-2 gap-8">
       <div className="flex items-center justify-center">
-        <Tooltip {...args} side="left"><IconButton><CloseIcon /></IconButton></Tooltip>
+        <Tooltip {...args} side="left">
+          <IconButton>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
       </div>
       <div className="flex items-center justify-center">
-        <Tooltip {...args} side="top"><IconButton><CloseIcon /></IconButton></Tooltip>
+        <Tooltip {...args} side="top">
+          <IconButton>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
       </div>
       <div className="flex items-center justify-center">
-        <Tooltip {...args} side="bottom"><IconButton><CloseIcon /></IconButton></Tooltip>
+        <Tooltip {...args} side="bottom">
+          <IconButton>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
       </div>
       <div className="flex items-center justify-center">
-        <Tooltip {...args} side="right"><IconButton><CloseIcon /></IconButton></Tooltip>
+        <Tooltip {...args} side="right">
+          <IconButton>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
       </div>
     </div>
   ),

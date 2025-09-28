@@ -27,33 +27,33 @@ const meta: Meta<typeof TextArea> = {
       control: { type: "inline-radio" },
       description: "Visual variant of the textarea",
     },
-    disabled: { 
+    disabled: {
       control: { type: "boolean" },
-      description: "Whether the textarea is disabled"
+      description: "Whether the textarea is disabled",
     },
-    readOnly: { 
+    readOnly: {
       control: { type: "boolean" },
-      description: "Whether the textarea is read-only"
+      description: "Whether the textarea is read-only",
     },
-    required: { 
+    required: {
       control: { type: "boolean" },
-      description: "Whether the textarea is required"
+      description: "Whether the textarea is required",
     },
-    rows: { 
+    rows: {
       control: { type: "number", min: 1, max: 20 },
-      description: "Number of visible text lines"
+      description: "Number of visible text lines",
     },
-    maxLength: { 
+    maxLength: {
       control: { type: "number", min: 1, max: 1000 },
-      description: "Maximum number of characters"
+      description: "Maximum number of characters",
     },
-    placeholder: { 
+    placeholder: {
       control: { type: "text" },
-      description: "Placeholder text"
+      description: "Placeholder text",
     },
-    value: { 
+    value: {
       control: { type: "text" },
-      description: "Controlled value"
+      description: "Controlled value",
     },
     onChange: { action: "change" },
     onBlur: { action: "blur" },
@@ -72,9 +72,9 @@ export const Default: Story = {
 }
 
 export const WithValue: Story = {
-  args: { 
+  args: {
     value: "This is some sample text content that demonstrates how the textarea looks with actual content.",
-    placeholder: "Enter your message..."
+    placeholder: "Enter your message...",
   },
   render: (args) => (
     <div className="w-[340px]">
@@ -83,12 +83,11 @@ export const WithValue: Story = {
   ),
 }
 
-
 export const Disabled: Story = {
-  args: { 
+  args: {
     disabled: true,
     value: "This textarea is disabled",
-    placeholder: "Disabled textarea..."
+    placeholder: "Disabled textarea...",
   },
   render: (args) => (
     <div className="w-[340px]">
@@ -98,10 +97,10 @@ export const Disabled: Story = {
 }
 
 export const ReadOnly: Story = {
-  args: { 
+  args: {
     readOnly: true,
     value: "This textarea is read-only and cannot be edited.",
-    placeholder: "Read-only textarea..."
+    placeholder: "Read-only textarea...",
   },
   render: (args) => (
     <div className="w-[340px]">
@@ -111,9 +110,9 @@ export const ReadOnly: Story = {
 }
 
 export const WithMaxLength: Story = {
-  args: { 
+  args: {
     maxLength: 100,
-    placeholder: "Maximum 100 characters allowed..."
+    placeholder: "Maximum 100 characters allowed...",
   },
   render: (args) => (
     <div className="w-[340px]">
@@ -127,15 +126,15 @@ export const DifferentSizes: Story = {
     <div className="w-[340px]">
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-white mb-2">Small (2 rows)</label>
+          <label className="mb-2 block text-sm text-white">Small (2 rows)</label>
           <TextArea {...args} rows={2} placeholder="Small textarea..." className="w-[340px]" />
         </div>
         <div>
-          <label className="block text-sm text-white mb-2">Medium (4 rows)</label>
+          <label className="mb-2 block text-sm text-white">Medium (4 rows)</label>
           <TextArea {...args} rows={4} placeholder="Medium textarea..." className="w-[340px]" />
         </div>
         <div>
-          <label className="block text-sm text-white mb-2">Large (8 rows)</label>
+          <label className="mb-2 block text-sm text-white">Large (8 rows)</label>
           <TextArea {...args} rows={8} placeholder="Large textarea..." className="w-[340px]" />
         </div>
       </div>
@@ -148,7 +147,7 @@ export const Variants: Story = {
     <div className="w-[340px]">
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-white mb-2">Default Variant</label>
+          <label className="mb-2 block text-sm text-white">Default Variant</label>
           <TextArea {...args} variant="default" placeholder="Default variant..." className="w-[340px]" />
         </div>
       </div>

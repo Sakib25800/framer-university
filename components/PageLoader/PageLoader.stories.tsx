@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import React from "react";
-import PageLoader from "./PageLoader";
-import { Button } from "../Button/Button";
+import type { Meta, StoryObj } from "@storybook/react"
+import React from "react"
+import PageLoader from "./PageLoader"
+import { Button } from "../Button/Button"
 
 const meta: Meta<typeof PageLoader> = {
   component: PageLoader,
@@ -15,39 +15,37 @@ const meta: Meta<typeof PageLoader> = {
       </div>
     ),
   ],
-};
+}
 
-export default meta;
-type Story = StoryObj<typeof PageLoader>;
+export default meta
+type Story = StoryObj<typeof PageLoader>
 
 export const Default: Story = {
   args: { loading: true },
   render: (args) => (
     <PageLoader {...args}>
       <div className="flex h-screen flex-col items-center justify-center gap-4 p-8">
-        <h1 className="text-3xl font-semibold text-white max-w-[302px] text-center">Welcome to Framer University!</h1>
+        <h1 className="max-w-[302px] text-center text-3xl font-semibold text-white">Welcome to Framer University!</h1>
         <Button size="md">Continue</Button>
       </div>
     </PageLoader>
   ),
-};
+}
 
 export const LoadingToContent: Story = {
   render: () => {
-    const [loading, setLoading] = React.useState(true);
+    const [loading, setLoading] = React.useState(true)
     React.useEffect(() => {
-      const t = setTimeout(() => setLoading(false), 1500);
-      return () => clearTimeout(t);
-    }, []);
+      const t = setTimeout(() => setLoading(false), 1500)
+      return () => clearTimeout(t)
+    }, [])
     return (
       <PageLoader loading={loading}>
         <div className="flex h-screen flex-col items-center justify-center gap-4 p-8">
-          <h1 className="text-3xl font-semibold text-white max-w-[302px] text-center">Welcome to Framer University!</h1>
+          <h1 className="max-w-[302px] text-center text-3xl font-semibold text-white">Welcome to Framer University!</h1>
           <Button size="md">Continue</Button>
         </div>
       </PageLoader>
-    );
+    )
   },
-};
-
-
+}

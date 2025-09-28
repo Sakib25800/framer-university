@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { ProgressBar } from "./ProgressBar";
-import { IconButton } from "../IconButton/IconButton";
-import Close from "@/components/icons/close.svg";
-import { Tooltip } from "../Tooltip/Tooltip";
+import type { Meta, StoryObj } from "@storybook/react"
+import Close from "@/components/icons/close.svg"
+import { ProgressBar } from "./ProgressBar"
+import { IconButton } from "../IconButton/IconButton"
+import { Tooltip } from "../Tooltip/Tooltip"
 
 const meta: Meta<typeof ProgressBar> = {
   title: "Progress Bar",
@@ -18,10 +18,10 @@ const meta: Meta<typeof ProgressBar> = {
     showPercentage: { control: { type: "boolean" } },
     ariaLabel: { control: { type: "text" } },
   },
-};
+}
 
-export default meta;
-type Story = StoryObj<typeof ProgressBar>;
+export default meta
+type Story = StoryObj<typeof ProgressBar>
 
 export const Percentage: Story = {
   args: { value: 25, showPercentage: true },
@@ -30,7 +30,7 @@ export const Percentage: Story = {
       <ProgressBar {...args} />
     </div>
   ),
-};
+}
 
 export const Info: Story = {
   render: () => (
@@ -38,7 +38,7 @@ export const Info: Story = {
       <ProgressBar intent="info" title="Building a Personal Website" dayLabel="Day 24" />
     </div>
   ),
-};
+}
 
 export const Action: Story = {
   render: (args) => (
@@ -56,7 +56,4 @@ export const Action: Story = {
     </div>
   ),
   args: { value: 42 },
-};
-
-
-
+}

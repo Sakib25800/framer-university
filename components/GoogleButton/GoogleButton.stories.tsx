@@ -36,5 +36,3 @@ export const LoginWithGoogle: Story = {
 }
 
 export default meta
-
-
