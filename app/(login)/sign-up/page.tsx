@@ -8,8 +8,10 @@ import Input from "@/components/Input/Input"
 import { Link } from "@/components/Link/Link"
 import { Logo } from "@/components/Logo/Logo"
 import { ActionState } from "@/lib/auth/middleware"
+import { cn } from "@/lib/utils"
 import { signUp } from "../actions"
-import Divider from "../Divider"
+import Divider from "../components/Divider"
+import ErrorMessage from "../components/ErrorMessage"
 
 export default function SignUpPage() {
   const searchParams = useSearchParams()
@@ -30,45 +32,70 @@ export default function SignUpPage() {
           Create your free account to learn from Framer University courses. No credit card required.
         </p>
       </div>
-      <GoogleButton className="h-11 w-full" />
-      <Divider />
-      <form className="flex flex-col gap-3" action={formAction}>
-        <Input placeholder="Email" />
-        <div className="flex">
+      <form className="flex flex-col items-center gap-6" action={formAction}>
+        <GoogleButton className="h-11 w-full" />
+        <Divider />
+        <div className="flex flex-col gap-3">
           <Input
-            placeholder="First name"
-            id="first_name"
-            name="first_name"
-            type="text"
-            autoComplete="given-name"
-            defaultValue={state.first_name}
+            placeholder="Email"
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            defaultValue={state.email}
             maxLength={50}
-            className="w-full rounded-r-none border-r border-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_2px_4px_0_rgba(255,255,255,0.1)] focus:relative focus:z-10"
+            variant={state.fieldErrors?.email ? "error" : "default"}
+            errorText={state.fieldErrors?.email}
             required
           />
-          <Input
-            placeholder="Second name"
-            id="last_name"
-            name="last_name"
-            type="text"
-            autoComplete="family-name"
-            defaultValue={state.last_name}
-            maxLength={50}
-            className="w-full rounded-l-none shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_2px_4px_0_rgba(255,255,255,0.1)] focus:relative focus:z-10"
-            required
-          />
+          <div className="flex">
+            <Input
+              placeholder="First name"
+              id="firstName"
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+              defaultValue={state.firstName}
+              maxLength={50}
+              variant={state.fieldErrors?.firstName ? "error" : "default"}
+              errorText={state.fieldErrors?.firstName}
+              className={cn(
+                "w-full rounded-r-none border-r border-white/5 focus:relative focus:z-10",
+                !state.fieldErrors?.firstName &&
+                  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_2px_4px_0_rgba(255,255,255,0.1)]"
+              )}
+              required
+            />
+            <Input
+              placeholder="Last name"
+              id="lastName"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              defaultValue={state.lastName}
+              maxLength={50}
+              variant={state.fieldErrors?.lastName ? "error" : "default"}
+              errorText={state.fieldErrors?.lastName}
+              className={cn(
+                "w-full rounded-l-none focus:relative focus:z-10",
+                !state.fieldErrors?.lastName &&
+                  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_2px_4px_0_rgba(255,255,255,0.1)]"
+              )}
+              required
+            />
+          </div>
         </div>
-        {state?.error && <p className="text-small text-error font-medium">{state.error}</p>}
-        <Button className="w-full" size="md">
+        {state.error && !state.fieldErrors && <ErrorMessage>{state.error}</ErrorMessage>}
+        <Button className="w-full" size="md" type="submit">
           {pending ? "Sending..." : "Create account"}
         </Button>
+        <div className="text-small flex gap-1 font-medium">
+          <p className="text-primary-900">Already have an account?</p>
+          <Link href="/sign-in" className="text-primary-950" variant="secondary">
+            Log in
+          </Link>
+        </div>
       </form>
-      <div className="text-small flex gap-1 font-medium">
-        <p className="text-primary-900">Already have an account?</p>
-        <Link href="/sign-in" className="text-primary-950" variant="secondary">
-          Log in
-        </Link>
-      </div>
     </div>
   )
 }

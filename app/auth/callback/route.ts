@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code")
 
   if (!code) {
-    return NextResponse.redirect(`${requestUrl.origin}/login?error=Missing+code`)
+    return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=Missing+code`)
   }
 
   try {
@@ -17,13 +17,13 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      return NextResponse.redirect(`${requestUrl.origin}/login?error=${encodeURIComponent(error.message)}`)
+      return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=${encodeURIComponent(error.message)}`)
     }
 
     // Redirect to the account page on successful authentication
     return NextResponse.redirect(`${requestUrl.origin}/account`)
   } catch (error) {
     console.error("Error in auth callback:", error)
-    return NextResponse.redirect(`${requestUrl.origin}/login?error=Something+went+wrong`)
+    return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=Something+went+wrong`)
   }
 }

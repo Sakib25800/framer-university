@@ -9,7 +9,8 @@ import { Link } from "@/components/Link/Link"
 import { Logo } from "@/components/Logo/Logo"
 import { ActionState } from "@/lib/auth/middleware"
 import { signIn } from "../actions"
-import Divider from "../Divider"
+import Divider from "../components/Divider"
+import ErrorMessage from "../components/ErrorMessage"
 
 export default function SignInPage() {
   const searchParams = useSearchParams()
@@ -35,9 +36,11 @@ export default function SignInPage() {
             autoComplete="email"
             defaultValue={state.email}
             maxLength={50}
+            variant={state.fieldErrors?.email ? "error" : "default"}
+            errorText={state.fieldErrors?.email}
             required
           />
-          {state?.error && <p className="text-small text-error font-medium">{state.error}</p>}
+          {state.error && !state.fieldErrors && <ErrorMessage>{state.error}</ErrorMessage>}
           <Button className="w-full" size="md">
             {pending ? "Sending..." : "Send magic link"}
           </Button>

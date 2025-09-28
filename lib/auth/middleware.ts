@@ -8,6 +8,7 @@ import { getUser } from "@/lib/db/queries"
 export type ActionState = {
   error?: string
   success?: string
+  fieldErrors?: Record<string, string>
   [key: string]: any
 }
 
@@ -17,7 +18,27 @@ export function validatedAction<S extends z.ZodType<any, any>, T>(schema: S, act
   return async (prevState: ActionState, formData: FormData) => {
     const result = schema.safeParse(Object.fromEntries(formData))
     if (!result.success) {
-      return { error: result.error.errors?.[0]?.message }
+      console.log("RESULT=======", result.error.errors)
+      console.log("RESULT=======", result.error.formErrors)
+
+      // Create field-specific errors
+      const fieldErrors: Record<string, string> = {}
+      result.error.errors.forEach((error) => {
+        if (error.path.length > 0) {
+          const fieldName = error.path[0] as string
+          fieldErrors[fieldName] = error.message
+        }
+      })
+
+      // Extract form values to preserve them
+      const formValues = Object.fromEntries(formData)
+
+      return {
+        ...formValues, // Preserve form values
+        fieldErrors,
+        // Only show global error if there are no field-specific errors
+        error: Object.keys(fieldErrors).length === 0 ? result.error.errors?.[0]?.message : undefined,
+      }
     }
 
     return action(result.data, formData)
@@ -42,7 +63,24 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
 
     const result = schema.safeParse(Object.fromEntries(formData))
     if (!result.success) {
-      return { error: result.error.errors?.[0]?.message }
+      // Create field-specific errors
+      const fieldErrors: Record<string, string> = {}
+      result.error.errors.forEach((error) => {
+        if (error.path.length > 0) {
+          const fieldName = error.path[0] as string
+          fieldErrors[fieldName] = error.message
+        }
+      })
+
+      // Extract form values to preserve them
+      const formValues = Object.fromEntries(formData)
+
+      return {
+        ...formValues, // Preserve form values
+        fieldErrors,
+        // Only show global error if there are no field-specific errors
+        error: Object.keys(fieldErrors).length === 0 ? result.error.errors?.[0]?.message : undefined,
+      }
     }
 
     return action(result.data, formData, user)

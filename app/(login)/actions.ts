@@ -52,6 +52,14 @@ export const signIn = validatedAction(signInSchema, async (data) => {
   })
 
   if (error) {
+    const code = error.code
+
+    if (code === "otp_disabled") {
+      return {
+        error: "No account found with this email address. Please sign up first.",
+      }
+    }
+
     return {
       error: error.message,
     }

@@ -10,7 +10,7 @@ export default async function Account() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/login")
+    redirect("/sign-in")
   }
 
   return (
