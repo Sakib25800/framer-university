@@ -15,6 +15,7 @@ const meta: Meta<typeof RadioButton> = {
   },
   args: {
     label: "X (Twitter)",
+    subtext: "This connects your X account",
     name: "example",
     value: "twitter",
     checked: false,
@@ -24,6 +25,10 @@ const meta: Meta<typeof RadioButton> = {
     label: {
       control: { type: "text" },
       description: "Label text for the radio button",
+    },
+    subtext: {
+      control: { type: "text" },
+      description: "Optional subtext shown below the main label",
     },
     name: {
       control: { type: "text" },
@@ -52,12 +57,12 @@ export const Default: Story = {
 }
 
 export const Checked: Story = {
-  args: { checked: true, label: "Checked option" },
+  args: { checked: true, label: "Checked option", subtext: "Additional info about this option" },
   render: (args) => <RadioButton {...args} className="w-[268px]" />,
 }
 
 export const Disabled: Story = {
-  args: { disabled: true, label: "Disabled option" },
+  args: { disabled: true, label: "Disabled option", subtext: "Disabled state preview" },
   render: (args) => <RadioButton {...args} className="w-[268px]" />,
 }
 
@@ -70,6 +75,7 @@ export const RadioGroup: Story = {
         <RadioButton
           {...args}
           label="Customizing a template I bought"
+          subtext="I already have a template"
           name="goals"
           value="customizing"
           checked={selected === "customizing"}
@@ -79,6 +85,7 @@ export const RadioGroup: Story = {
         <RadioButton
           {...args}
           label="Building my first website"
+          subtext="I'm new to Framer"
           name="goals"
           value="building"
           checked={selected === "building"}
@@ -88,6 +95,7 @@ export const RadioGroup: Story = {
         <RadioButton
           {...args}
           label="Leveling up my Framer skills"
+          subtext="I want to advance"
           name="goals"
           value="levelling"
           checked={selected === "levelling"}
@@ -97,6 +105,7 @@ export const RadioGroup: Story = {
         <RadioButton
           {...args}
           label="Launching a website for my business"
+          subtext="I have a business"
           name="goals"
           value="launching"
           checked={selected === "launching"}
@@ -106,6 +115,7 @@ export const RadioGroup: Story = {
         <RadioButton
           {...args}
           label="Making money with Framer"
+          subtext="I want revenue"
           name="goals"
           value="making-money"
           checked={selected === "making-money"}
@@ -115,6 +125,7 @@ export const RadioGroup: Story = {
         <RadioButton
           {...args}
           label="Something else"
+          subtext="Other goals"
           name="goals"
           value="something-else"
           checked={selected === "something-else"}

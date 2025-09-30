@@ -60,11 +60,15 @@ const radioBlock = cva(
   }
 )
 
-export type RadioButtonProps = React.ComponentProps<"input"> & { label: string }
+export type RadioButtonProps = React.ComponentProps<"input"> & {
+  label: string
+  subtext?: string
+}
 
 export function RadioButton({
   className,
   label,
+  subtext,
   name,
   value,
   checked,
@@ -90,7 +94,12 @@ export function RadioButton({
           transition: `all ${spring({ keyframes: [0, 1], duration: 300, bounce: 0.2, delay: 0 })}`,
         }}
       >
-        {label}
+        <div className="flex flex-col items-start gap-2">
+          <span>{label}</span>
+          {subtext ? (
+            <span className={cn("base font-normal text-primary-950", checked && "text-[#00BBFFA6]")}>{subtext}</span>
+          ) : null}
+        </div>
       </div>
     </label>
   )
