@@ -1,5 +1,6 @@
-import { createClient } from "@/utils/supabase/server"
+import { redirect } from "next/navigation"
 import type { Database } from "@/types/supabase"
+import { createClient } from "@/utils/supabase/server"
 
 export async function getUser() {
   const supabase = await createClient()
@@ -9,36 +10,22 @@ export async function getUser() {
     error,
   } = await supabase.auth.getUser()
 
-  if (error) {
-    return null
+  if (error || !user) {
+    redirect("/sign-in")
   }
 
   return user
 }
 
-type OnboardingPartial = Partial<
-  Pick<Database["public"]["Tables"]["onboarding_responses"]["Insert"], "source" | "goal" | "experience">
+type OnboardingResponse = Pick<
+  Database["public"]["Tables"]["onboarding_responses"]["Insert"],
+  "source" | "goal" | "experience"
 >
 
-export async function upsertOnboardingResponses(userId: string, partial: OnboardingPartial) {
+export async function upsertOnboardingResponses(userId: string, response: OnboardingResponse) {
   const supabase = await createClient()
   const { error } = await supabase
     .from("onboarding_responses")
-    .upsert({ user_id: userId, ...partial }, { onConflict: "user_id" })
+    .upsert({ user_id: userId, ...response }, { onConflict: "user_id" })
   if (error) throw new Error(error.message)
-}
-
-export async function markOnboardingCompleted(userId: string) {
-  // No-op: completion is derived when all required fields are present
-}
-
-export async function getOnboardingCompleted(userId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("onboarding_responses")
-    .select("user_id")
-    .eq("user_id", userId)
-    .maybeSingle()
-  if (error) return false
-  return Boolean(data)
 }

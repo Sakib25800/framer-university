@@ -1,27 +1,54 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
-import OnboardingSteps from '@/app/onboarding/steps/StepsClient'
+"use client"
 
-export default async function OnboardingPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+import { redirect, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { TOTAL_ONBOARDING_STEPS } from "@/lib/constants"
+import { getUser, upsertOnboardingResponses } from "@/lib/db/queries"
+import BottomNav from "./components/BottomNav"
+import { Step0, Step1, Step2, Step3, Step4, Step5 } from "./steps"
 
-  if (!user) {
-    redirect('/sign-in')
+export default function OnboardingPage() {
+  const searchParams = useSearchParams()
+  const currentStep = parseInt(searchParams.get("step") || "0")
+  const [data, setData] = useState({
+    source: "",
+    goal: "",
+    experience: "",
+  })
+
+  const handleContinue = async () => {
+    const user = await getUser()
+    if (currentStep === TOTAL_ONBOARDING_STEPS) {
+      await upsertOnboardingResponses(user.id, data)
+      redirect("/account")
+    }
   }
 
-  // If a response exists at all, consider onboarding complete
-  const { data: record } = await supabase
-    .from('onboarding_responses')
-    .select('user_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (record) {
-    redirect('/account')
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <Step0 />
+      case 1:
+        return <Step1 value={data.source} onChangeAction={(value) => setData({ ...data, source: value })} />
+      case 2:
+        return <Step2 value={data.goal} onChangeAction={(value) => setData({ ...data, goal: value })} />
+      case 3:
+        return <Step3 />
+      case 4:
+        return <Step4 value={data.experience} onChangeAction={(value) => setData({ ...data, experience: value })} />
+      case 5:
+        return <Step5 />
+      default:
+        return <Step0 />
+    }
   }
 
-  return <OnboardingSteps />
+  return (
+    <div className="flex w-full max-w-[600px] flex-col">
+      <div className="flex-1">{renderStep()}</div>
+      <div className="px-6 pt-[40px]">
+        <BottomNav onContinueAction={handleContinue} />
+      </div>
+    </div>
+  )
 }

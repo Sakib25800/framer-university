@@ -1,25 +1,46 @@
 "use client"
 
-import SpeechBubble from '../components/SpeechBubble'
-import { motion } from 'motion/react'
+import { motion } from "motion/react"
+import { RadioButton } from "@/components/RadioButton/RadioButton"
+import SpeechBubble from "../components/SpeechBubble"
 
-export default function Step1() {
+export default function Step1({ value, onChangeAction }: { value: string; onChangeAction: (value: string) => void }) {
+  const options = [
+    "X (Twitter)",
+    "YouTube",
+    "Google Search",
+    "Facebook/Instagram",
+    "TikTok",
+    "Friends/Family",
+    "News/article/blog",
+    "Other",
+  ]
+
   return (
-    <div className="flex flex-col gap-[30px]">
-      <motion.h1
-        className="text-center font-semibold text-white"
-        initial={{ opacity: 0, scale: 1.05, y: -10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.1, ease: [0.75, 0.07, 0.31, 1] }}
-      >
-        Welcome to<br />Framer University!
-      </motion.h1>
+    <div className="flex flex-col gap-[40px] px-6">
       <motion.div
-        initial={{ opacity: 0, scale: 1.05, y: -10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.2, ease: [0.75, 0.07, 0.31, 1] }}
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.12, 0.23, 0.5, 1] }}
       >
-        <SpeechBubble message="Please allow me to ask 3 quick questions before we start learning." />
+        <SpeechBubble message="Where did you hear about Framer University?" />
+      </motion.div>
+      <motion.div
+        className="grid grid-cols-2 gap-4"
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.25, ease: [0.12, 0.23, 0.5, 1] }}
+      >
+        {options.map((option) => (
+          <RadioButton
+            key={option}
+            name="source_ux"
+            value={option}
+            label={option}
+            checked={value === option}
+            onChange={(e) => onChangeAction(e.target.value)}
+          />
+        ))}
       </motion.div>
     </div>
   )
