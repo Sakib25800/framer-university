@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import React from "react"
 import { RadioButton } from "./RadioButton"
+import Lvl1Icon from "@/components/icons/lvl-1.svg"
 
 const meta: Meta<typeof RadioButton> = {
   title: "Radio Button",
@@ -47,6 +48,10 @@ const meta: Meta<typeof RadioButton> = {
       description: "Whether the radio button is disabled",
     },
     onChange: { action: "change" },
+    icon: {
+      control: false,
+      description: "Optional left icon component (SVG)",
+    },
   },
 }
 
@@ -135,6 +140,15 @@ export const RadioGroup: Story = {
       </div>
     )
   },
+}
+
+export const WithIcon: Story = {
+  args: {
+    label: "Level 1",
+    subtext: "Beginner level",
+    icon: Lvl1Icon,
+  },
+  render: (args) => <RadioButton {...args} className="w-[268px]" />,
 }
 
 export default meta

@@ -31,6 +31,7 @@ const radioBlock = cva(
     "flex",
     "items-center",
     "justify-start",
+    "gap-2",
     "ring-1",
     "ring-[rgba(37,39,39,0.65)]",
     "select-none",
@@ -63,12 +64,14 @@ const radioBlock = cva(
 export type RadioButtonProps = React.ComponentProps<"input"> & {
   label: string
   subtext?: string
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
 export function RadioButton({
   className,
   label,
   subtext,
+  icon,
   name,
   value,
   checked,
@@ -76,6 +79,7 @@ export function RadioButton({
   onChange,
   ...props
 }: RadioButtonProps) {
+  const Icon = icon
   return (
     <label className={cn(radioButton({ checked }), className)}>
       <input
@@ -94,7 +98,12 @@ export function RadioButton({
           transition: `all ${spring({ keyframes: [0, 1], duration: 300, bounce: 0.2, delay: 0 })}`,
         }}
       >
-        <div className="flex flex-col items-start gap-2">
+        {Icon ? (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+            <Icon className="h-5 w-5 [fill:currentColor]" aria-hidden="true" />
+          </div>
+        ) : null}
+        <div className="flex flex-col items-start">
           <span>{label}</span>
           {subtext ? (
             <span className={cn("base font-normal text-primary-950", checked && "text-[#00BBFFA6]")}>{subtext}</span>
