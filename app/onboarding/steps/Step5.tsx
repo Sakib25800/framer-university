@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { saveOnboardingServerAction } from '@/lib/onboarding/actions'
 import SpeechBubble from '../components/SpeechBubble'
 import { RadioButton } from '@/components/RadioButton/RadioButton'
 import Lvl0Icon from '@/components/icons/lvl-0.svg'
@@ -9,17 +10,18 @@ import Lvl4Icon from '@/components/icons/lvl-4.svg'
 
 export default function Step5() {
   const [selectedLevel, setSelectedLevel] = useState('')
+  const formRef = useRef<HTMLFormElement | null>(null)
 
   const levels = [
-    { value: 'never',        label: 'Never used Framer',   subtext: "Haven't tried it yet",                  icon: Lvl0Icon },
-    { value: 'just-started', label: 'Just started',        subtext: "I've played around with the basics",    icon: Lvl1Icon },
-    { value: 'few-things',   label: 'Built a few things',  subtext: 'Comfortable with basic features',        icon: Lvl2Icon },
-    { value: 'regular',      label: 'Regular user',        subtext: 'Familiar with most features',            icon: Lvl3Icon },
-    { value: 'advanced',     label: 'Advanced user',       subtext: 'Expert with advanced features',          icon: Lvl4Icon },
+    { value: '0', label: 'Never used Framer',   subtext: "Haven't tried it yet",               icon: Lvl0Icon },
+    { value: '1', label: 'Just started',        subtext: "I've played around with the basics", icon: Lvl1Icon },
+    { value: '2', label: 'Built a few things',  subtext: 'Comfortable with basic features',     icon: Lvl2Icon },
+    { value: '3', label: 'Regular user',        subtext: 'Familiar with most features',         icon: Lvl3Icon },
+    { value: '4', label: 'Advanced user',       subtext: 'Expert with advanced features',       icon: Lvl4Icon },
   ]
 
   return (
-    <div className="flex flex-col gap-[40px] px-6">
+    <form ref={formRef} action={saveOnboardingServerAction} className="flex flex-col gap-[40px] px-6">
       {/* Speech bubble */}
       <SpeechBubble message="What's your experience with Framer?" />
 
@@ -28,16 +30,20 @@ export default function Step5() {
         {levels.map(({ value, label, subtext, icon }) => (
           <RadioButton
             key={value}
-            name="experience"
+            name="experience_ux"
             value={value}
             label={label}
             subtext={subtext}
             icon={icon}
             checked={selectedLevel === value}
-            onChange={(e) => setSelectedLevel(e.target.value)}
+            onChange={(e) => {
+              setSelectedLevel(e.target.value)
+              setTimeout(() => formRef.current?.requestSubmit(), 0)
+            }}
           />
         ))}
       </div>
-    </div>
+      <input type="hidden" name="experience" value={selectedLevel} />
+    </form>
   )
 }

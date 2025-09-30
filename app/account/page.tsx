@@ -13,6 +13,17 @@ export default async function Account() {
     redirect("/sign-in")
   }
 
+  // If onboarding not completed, force to onboarding
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.onboarding_completed) {
+    redirect('/onboarding')
+  }
+
   return (
     <div>
       <h1>Account</h1>

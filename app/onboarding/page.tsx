@@ -1,35 +1,27 @@
-"use client"
+import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
+import OnboardingSteps from '@/app/onboarding/steps/StepsClient'
 
-import { useSearchParams } from 'next/navigation'
-import Step1 from './steps/Step1'
-import Step2 from './steps/Step2'
-import Step3 from './steps/Step3'
-import Step4 from './steps/Step4'
-import Step5 from './steps/Step5'
-import Step6 from './steps/Step6'
+export default async function OnboardingPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-export default function OnboardingPage() {
-  const searchParams = useSearchParams()
-  const currentStep = parseInt(searchParams.get('step') || '1')
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return <Step1 />
-      case 2:
-        return <Step2 />
-      case 3:
-        return <Step3 />
-      case 4:
-        return <Step4 />
-      case 5:
-        return <Step5 />
-      case 6:
-        return <Step6 />
-      default:
-        return <Step1 />
-    }
+  if (!user) {
+    redirect('/sign-in')
   }
 
-  return renderStep()
+  // If user already completed onboarding, redirect to account
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.onboarding_completed) {
+    redirect('/account')
+  }
+
+  return <OnboardingSteps />
 }

@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { saveOnboardingServerAction } from '@/lib/onboarding/actions'
 import SpeechBubble from '../components/SpeechBubble'
 import { RadioButton } from '@/components/RadioButton/RadioButton'
 
 export default function Step3() {
   const [selectedGoal, setSelectedGoal] = useState('')
+  const formRef = useRef<HTMLFormElement | null>(null)
 
   const goals = [
     'Customizing a template I bought',
@@ -15,7 +17,7 @@ export default function Step3() {
   ]
 
   return (
-    <div className="flex flex-col gap-[40px] px-6">
+    <form ref={formRef} action={saveOnboardingServerAction} className="flex flex-col gap-[40px] px-6">
       {/* Speech bubble */}
       <SpeechBubble message="What is your top goal?" />
       
@@ -24,14 +26,18 @@ export default function Step3() {
         {goals.map((goal) => (
           <RadioButton
             key={goal}
-            name="goal"
+            name="goal_ux"
             value={goal}
             label={goal}
             checked={selectedGoal === goal}
-            onChange={(e) => setSelectedGoal(e.target.value)}
+            onChange={(e) => {
+              setSelectedGoal(e.target.value)
+              setTimeout(() => formRef.current?.requestSubmit(), 0)
+            }}
           />
         ))}
       </div>
-    </div>
+      <input type="hidden" name="goal" value={selectedGoal} />
+    </form>
   )
 }

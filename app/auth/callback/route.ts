@@ -33,9 +33,17 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=${encodeURIComponent(sessionError.message)}`)
     }
 
-    // If we have a session, redirect to account
+    // If we have a session, decide destination based on onboarding
     if (session) {
-      return NextResponse.redirect(`${requestUrl.origin}/account`)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', session.user.id)
+        .single()
+      if (profile?.onboarding_completed) {
+        return NextResponse.redirect(`${requestUrl.origin}/account`)
+      }
+      return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
     }
 
     // If no session exists, this might be a magic link flow
@@ -47,7 +55,21 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${requestUrl.origin}/sign-in?error=${encodeURIComponent(exchangeError.message)}`)
     }
 
-    // Redirect to the account page on successful authentication
+    // After exchange, redirect based on onboarding completion
+    const {
+      data: { user: exchangedUser },
+    } = await supabase.auth.getUser()
+    if (exchangedUser) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', exchangedUser.id)
+        .single()
+      if (profile?.onboarding_completed) {
+        return NextResponse.redirect(`${requestUrl.origin}/account`)
+      }
+      return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
+    }
     return NextResponse.redirect(`${requestUrl.origin}/account`)
   } catch (error) {
     console.error("Error in auth callback:", error)
