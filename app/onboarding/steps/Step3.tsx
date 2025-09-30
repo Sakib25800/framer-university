@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react'
-import { saveOnboardingServerAction } from '@/lib/onboarding/actions'
+"use client"
+
+import { useState } from 'react'
 import SpeechBubble from '../components/SpeechBubble'
 import { RadioButton } from '@/components/RadioButton/RadioButton'
+import { motion } from 'motion/react'
 
-export default function Step3() {
-  const [selectedGoal, setSelectedGoal] = useState('')
-  const formRef = useRef<HTMLFormElement | null>(null)
+export default function Step3({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [selectedGoal, setSelectedGoal] = useState(value)
 
   const goals = [
     'Customizing a template I bought',
@@ -17,12 +18,31 @@ export default function Step3() {
   ]
 
   return (
-    <form ref={formRef} action={saveOnboardingServerAction} className="flex flex-col gap-[40px] px-6">
-      {/* Speech bubble */}
-      <SpeechBubble message="What is your top goal?" />
+    <div className="flex flex-col gap-[40px] px-6">
+      {/* Heading */}
+      <motion.h2
+        className="sr-only"
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.12, 0.23, 0.5, 1] }}
+      >
+        What is your top goal?
+      </motion.h2>
+      <motion.div
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.12, 0.23, 0.5, 1] }}
+      >
+        <SpeechBubble message="What is your top goal?" />
+      </motion.div>
       
       {/* Goals list */}
-      <div className="flex flex-col gap-4">
+      <motion.div
+        className="flex flex-col gap-4"
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.25, ease: [0.12, 0.23, 0.5, 1] }}
+      >
         {goals.map((goal) => (
           <RadioButton
             key={goal}
@@ -32,12 +52,11 @@ export default function Step3() {
             checked={selectedGoal === goal}
             onChange={(e) => {
               setSelectedGoal(e.target.value)
-              setTimeout(() => formRef.current?.requestSubmit(), 0)
+              onChange(e.target.value)
             }}
           />
         ))}
-      </div>
-      <input type="hidden" name="goal" value={selectedGoal} />
-    </form>
+      </motion.div>
+    </div>
   )
 }

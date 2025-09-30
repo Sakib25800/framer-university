@@ -29,20 +29,16 @@ export async function upsertOnboardingResponses(userId: string, partial: Onboard
 }
 
 export async function markOnboardingCompleted(userId: string) {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from("profiles")
-    .update({ onboarding_completed: true })
-    .eq("id", userId)
-  if (error) throw new Error(error.message)
+  // No-op: completion is derived when all required fields are present
 }
 
 export async function getOnboardingCompleted(userId: string) {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from("profiles")
-    .select("onboarding_completed")
-    .eq("id", userId)
-    .single()
-  return data?.onboarding_completed ?? false
+  const { data, error } = await supabase
+    .from("onboarding_responses")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle()
+  if (error) return false
+  return Boolean(data)
 }

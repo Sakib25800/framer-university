@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/Button/Button'
 import { useCallback, useTransition } from 'react'
-import { completeOnboardingServerAction } from '@/lib/onboarding/actions'
 
 export default function ContinueButton({ 
   children = "Continue",
@@ -20,15 +19,7 @@ export default function ContinueButton({
   const [isPending, startTransition] = useTransition()
 
   const saveForStep = useCallback(async () => {
-    // In steps 2/3/5 we persist user's selection before navigating
-    try {
-      // No per-step save here; forms will submit themselves on change
-      if (currentStep === 6) {
-        await completeOnboardingServerAction()
-      }
-    } catch (e) {
-      // Non-blocking
-    }
+    // No-op placeholder; Step 6 uses a form submission now
   }, [currentStep])
 
   const handleContinue = async () => {

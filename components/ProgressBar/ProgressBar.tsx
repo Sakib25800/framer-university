@@ -47,7 +47,10 @@ export function ProgressBar({
         <>
           <div className={cn("min-w-0 flex-1", showPercentage ? "mr-[10px]" : "")}>
             <div className={cn("h-1 w-full overflow-hidden rounded-full", trackColorClass)}>
-              <div className={cn("h-full rounded-full", fillColorClass)} style={{ width: `${clampedValue}%` }} />
+              <div
+                className={cn("h-full rounded-full", fillColorClass)}
+                style={{ width: `${clampedValue}%`, transition: "width 0.3s ease-in-out" }}
+              />
             </div>
           </div>
           {showPercentage && (

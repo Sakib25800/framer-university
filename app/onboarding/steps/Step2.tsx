@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react'
-import { saveOnboardingServerAction } from '@/lib/onboarding/actions'
+"use client"
+
+import { useState } from 'react'
 import SpeechBubble from '../components/SpeechBubble'
 import { RadioButton } from '@/components/RadioButton/RadioButton'
+import { motion } from 'motion/react'
 
-export default function Step2() {
-  const [selectedOption, setSelectedOption] = useState('')
-  const formRef = useRef<HTMLFormElement | null>(null)
+export default function Step2({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [selectedOption, setSelectedOption] = useState(value)
 
   const options = [
     'X (Twitter)',
@@ -19,12 +20,23 @@ export default function Step2() {
   ]
 
   return (
-    <form ref={formRef} action={saveOnboardingServerAction} className="flex flex-col gap-[40px] px-6">
+    <div className="flex flex-col gap-[40px] px-6">
       {/* Speech bubble */}
-      <SpeechBubble message="Where did you hear about Framer University?" />
+      <motion.div
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.12, 0.23, 0.5, 1] }}
+      >
+        <SpeechBubble message="Where did you hear about Framer University?" />
+      </motion.div>
       
       {/* Options grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <motion.div
+        className="grid grid-cols-2 gap-4"
+        initial={{ opacity: 0, y: -10, scale: 1 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, delay: 0.25, ease: [0.12, 0.23, 0.5, 1] }}
+      >
         {options.map((option) => (
           <RadioButton
             key={option}
@@ -34,13 +46,11 @@ export default function Step2() {
             checked={selectedOption === option}
             onChange={(e) => {
               setSelectedOption(e.target.value)
-              // Save immediately
-              setTimeout(() => formRef.current?.requestSubmit(), 0)
+              onChange(e.target.value)
             }}
           />
         ))}
-      </div>
-      <input type="hidden" name="source" value={selectedOption} />
-    </form>
+      </motion.div>
+    </div>
   )
 }

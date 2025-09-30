@@ -12,14 +12,14 @@ export default async function OnboardingPage() {
     redirect('/sign-in')
   }
 
-  // If user already completed onboarding, redirect to account
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_completed')
-    .eq('id', user.id)
-    .single()
+  // If a response exists at all, consider onboarding complete
+  const { data: record } = await supabase
+    .from('onboarding_responses')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
 
-  if (profile?.onboarding_completed) {
+  if (record) {
     redirect('/account')
   }
 

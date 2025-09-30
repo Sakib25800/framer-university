@@ -35,12 +35,12 @@ export async function GET(request: Request) {
 
     // If we have a session, decide destination based on onboarding
     if (session) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed')
-        .eq('id', session.user.id)
-        .single()
-      if (profile?.onboarding_completed) {
+      const { data: record } = await supabase
+        .from('onboarding_responses')
+        .select('user_id')
+        .eq('user_id', session.user.id)
+        .maybeSingle()
+      if (record) {
         return NextResponse.redirect(`${requestUrl.origin}/account`)
       }
       return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
@@ -60,12 +60,12 @@ export async function GET(request: Request) {
       data: { user: exchangedUser },
     } = await supabase.auth.getUser()
     if (exchangedUser) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed')
-        .eq('id', exchangedUser.id)
-        .single()
-      if (profile?.onboarding_completed) {
+      const { data: record } = await supabase
+        .from('onboarding_responses')
+        .select('user_id')
+        .eq('user_id', exchangedUser.id)
+        .maybeSingle()
+      if (record) {
         return NextResponse.redirect(`${requestUrl.origin}/account`)
       }
       return NextResponse.redirect(`${requestUrl.origin}/onboarding`)
