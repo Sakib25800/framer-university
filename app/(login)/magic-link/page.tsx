@@ -17,7 +17,7 @@ export default function MagicLinkPage() {
   return (
     <div className="flex max-w-[400px] flex-col gap-9">
       <div className="flex flex-col items-center gap-3.5">
-        <motion.h1 
+        <motion.h1
           className="font-semibold text-white"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -25,7 +25,7 @@ export default function MagicLinkPage() {
         >
           Check your inbox
         </motion.h1>
-        <motion.p 
+        <motion.p
           className="text-primary-950 text-center text-base font-medium"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

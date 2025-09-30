@@ -25,9 +25,7 @@ export default function SignInPage() {
       <Logo className="text-white" size="lg" />
       <h1 className="text-center font-semibold text-white">Log in to University</h1>
       <div className="flex w-full flex-col items-center gap-6">
-        <GoogleButton className="h-11 w-full">
-          Log in with Google
-        </GoogleButton>
+        <GoogleButton className="h-11 w-full">Log in with Google</GoogleButton>
         <Divider />
         <form action={formAction} className="flex w-full flex-col gap-6">
           <Input

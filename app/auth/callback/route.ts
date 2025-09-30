@@ -23,7 +23,10 @@ export async function GET(request: Request) {
 
     // For OAuth flows, the session should be established automatically by the redirect
     // Check if we have a session first
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
 
     if (sessionError) {
       console.error("Session error:", sessionError)

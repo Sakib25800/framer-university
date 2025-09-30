@@ -20,7 +20,7 @@ const buttonVariants = cva(
       variant: {
         outline: ["border", "border-primary-400", "text-white"],
         primary: ["bg-white", "text-black"],
-        link: ["!text-primary-950", "group"],
+        link: ["!text-primary-950", "group", "!px-0", "!py-0"],
       },
       size: {
         sm: ["text-base", "px-4", "py-[7px]"],
@@ -54,9 +54,10 @@ const parentVariants: Record<string, Variants> = {
 export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
   VariantProps<typeof buttonVariants> & {
     children?: React.ReactNode
+    direction?: "left" | "right"
   }
 
-export function Button({ className, variant: intent, size, children, ...props }: ButtonProps) {
+export function Button({ className, variant: intent, size, children, direction = "right", ...props }: ButtonProps) {
   return (
     <motion.button
       className={cn(buttonVariants({ variant: intent, size, className }))}
@@ -67,30 +68,47 @@ export function Button({ className, variant: intent, size, children, ...props }:
       {...props}
     >
       {intent === "link" ? (
-        <motion.span
-          className="brightness-[1] filter"
-          variants={{ hover: { filter: "brightness(1.25)" } }}
-          transition={spring}
-        >
-          {children}
-        </motion.span>
+        <>
+          {direction === "left" && (
+            <motion.span
+              className="mr-[9px] flex items-center justify-center"
+              variants={{ hover: { x: -1 }, tap: { x: -3 } }}
+              transition={spring}
+            >
+              <IconChevron
+                className={cn("origin-center -rotate-90", {
+                  "scale-80": size === "sm",
+                  "scale-90": size === "md",
+                  "scale-100": size === "lg",
+                })}
+              />
+            </motion.span>
+          )}
+          <motion.span
+            className="brightness-[1] filter"
+            variants={{ hover: { filter: "brightness(1.25)" } }}
+            transition={spring}
+          >
+            {children}
+          </motion.span>
+          {direction === "right" && (
+            <motion.span
+              className="ml-[9px] flex items-center justify-center"
+              variants={{ hover: { x: 1 }, tap: { x: 3 } }}
+              transition={spring}
+            >
+              <IconChevron
+                className={cn("origin-center rotate-90", {
+                  "scale-80": size === "sm",
+                  "scale-90": size === "md",
+                  "scale-100": size === "lg",
+                })}
+              />
+            </motion.span>
+          )}
+        </>
       ) : (
         children
-      )}
-      {intent === "link" && (
-        <motion.span
-          className="ml-[9px] flex items-center justify-center"
-          variants={{ hover: { x: 1 }, tap: { x: 3 } }}
-          transition={spring}
-        >
-          <IconChevron
-            className={cn("origin-center rotate-90", {
-              "scale-80": size === "sm",
-              "scale-90": size === "md",
-              "scale-100": size === "lg",
-            })}
-          />
-        </motion.span>
       )}
     </motion.button>
   )

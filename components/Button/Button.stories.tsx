@@ -21,6 +21,11 @@ const meta: Meta<typeof Button> = {
       control: { type: "inline-radio" },
       description: "Button size",
     },
+    direction: {
+      options: ["left", "right"],
+      control: { type: "inline-radio" },
+      description: "Icon direction for link variant",
+    },
     disabled: { control: { type: "boolean" } },
     onClick: { action: "click" },
   },
@@ -42,6 +47,23 @@ export const Outline: Story = {
 
 export const Link: Story = {
   args: { variant: "link", children: "Continue" },
+}
+
+export const LinkWithLeftIcon: Story = {
+  args: { variant: "link", children: "Back", direction: "left" },
+}
+
+export const LinkIconDirections: Story = {
+  render: (args) => (
+    <div className="flex items-center gap-4">
+      <Button variant="link" direction="left">
+        Back
+      </Button>
+      <Button variant="link" direction="right">
+        Continue
+      </Button>
+    </div>
+  ),
 }
 
 export const Sizes: Story = {
