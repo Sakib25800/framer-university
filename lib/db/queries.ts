@@ -1,3 +1,5 @@
+"use server"
+
 import { redirect } from "next/navigation"
 import type { Database } from "@/types/supabase"
 import { createClient } from "@/utils/supabase/server"
@@ -17,15 +19,17 @@ export async function getUser() {
   return user
 }
 
-type OnboardingResponse = Pick<
+export type OnboardingResponse = Pick<
   Database["public"]["Tables"]["onboarding_responses"]["Insert"],
   "source" | "goal" | "experience"
 >
 
-export async function upsertOnboardingResponses(userId: string, response: OnboardingResponse) {
+export async function submitOnboardingResponse(response: OnboardingResponse) {
+  const user = await getUser()
   const supabase = await createClient()
   const { error } = await supabase
     .from("onboarding_responses")
-    .upsert({ user_id: userId, ...response }, { onConflict: "user_id" })
+    .upsert({ user_id: user.id, ...response }, { onConflict: "user_id" })
   if (error) throw new Error(error.message)
+  redirect("/account")
 }
