@@ -1,3 +1,5 @@
+"use client"
+
 import { cva, type VariantProps } from "class-variance-authority"
 import { HTMLMotionProps, motion, Transition, Variants } from "motion/react"
 import IconChevron from "@/components/icons/chevron.svg"
@@ -55,19 +57,25 @@ export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
   VariantProps<typeof buttonVariants> & {
     children?: React.ReactNode
     direction?: "left" | "right"
+    href?: string
   }
 
-export function Button({ className, variant: intent, size, children, direction = "right", ...props }: ButtonProps) {
+export function Button({ className, variant, size, children, href, direction = "right", ...props }: ButtonProps) {
   return (
     <motion.button
-      className={cn(buttonVariants({ variant: intent, size, className }))}
-      variants={parentVariants[intent ?? "primary"]}
+      className={cn(buttonVariants({ variant, size, className }))}
+      variants={parentVariants[variant ?? "primary"]}
       whileHover="hover"
       whileTap="tap"
       transition={spring}
+      onClick={() => {
+        if (href) {
+          window.location.href = href
+        }
+      }}
       {...props}
     >
-      {intent === "link" ? (
+      {variant === "link" ? (
         <>
           {direction === "left" && (
             <motion.span
