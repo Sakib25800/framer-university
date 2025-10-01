@@ -70,10 +70,10 @@ export const signIn = validatedAction(signInSchema, async (data) => {
 
 export const signInWithGoogle = async () => {
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -83,6 +83,8 @@ export const signInWithGoogle = async () => {
   })
 
   if (error) {
-    redirect(`/sign-in?error=${encodeURIComponent(error.message)}`)
+    redirect(`/sign-in?error=${encodeURIComponent("Something went wrong")}`)
   }
+
+  redirect(data.url)
 }
