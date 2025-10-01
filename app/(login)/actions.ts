@@ -67,3 +67,22 @@ export const signIn = validatedAction(signInSchema, async (data) => {
 
   redirect(`/magic-link?email=${email}`)
 })
+
+export const signInWithGoogle = async () => {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+        scope: "openid email profile",
+      },
+    },
+  })
+
+  if (error) {
+    redirect(`/sign-in?error=${encodeURIComponent(error.message)}`)
+  }
+}

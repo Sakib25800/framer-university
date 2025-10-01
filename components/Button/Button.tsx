@@ -59,8 +59,9 @@ export type BaseProps = VariantProps<typeof buttonVariants> & {
   href?: string
 }
 
-type ButtonAsButton = BaseProps & Omit<HTMLMotionProps<"button">, "children"> & { href?: undefined }
-type ButtonAsLink = BaseProps & Omit<HTMLMotionProps<"a">, "children"> & { href: string }
+type ButtonAsButton = BaseProps & Omit<HTMLMotionProps<"button">, "children" | "ref"> & { href?: undefined }
+
+type ButtonAsLink = BaseProps & Omit<HTMLMotionProps<"a">, "children" | "ref"> & { href: string }
 
 export type ButtonProps = ButtonAsButton | ButtonAsLink
 

@@ -54,7 +54,7 @@ export const LinkWithLeftIcon: Story = {
 }
 
 export const LinkIconDirections: Story = {
-  render: (args) => (
+  render: () => (
     <div className="flex items-center gap-4">
       <Button variant="link" direction="left">
         Back
