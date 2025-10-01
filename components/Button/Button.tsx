@@ -53,71 +53,83 @@ const parentVariants: Record<string, Variants> = {
   link: { hover: {}, tap: {} },
 }
 
-export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &
-  VariantProps<typeof buttonVariants> & {
-    children?: React.ReactNode
-    direction?: "left" | "right"
-    href?: string
+export type BaseProps = VariantProps<typeof buttonVariants> & {
+  children?: React.ReactNode
+  direction?: "left" | "right"
+  href?: string
+}
+
+type ButtonAsButton = BaseProps & Omit<HTMLMotionProps<"button">, "children"> & { href?: undefined }
+type ButtonAsLink = BaseProps & Omit<HTMLMotionProps<"a">, "children"> & { href: string }
+
+export type ButtonProps = ButtonAsButton | ButtonAsLink
+
+export function Button({ className, variant, size, href, direction = "right", children, ...props }: ButtonProps) {
+  const sharedProps = {
+    className: cn(buttonVariants({ variant, size, className })),
+    variants: parentVariants[variant ?? "primary"],
+    whileHover: "hover" as const,
+    whileTap: "tap" as const,
+    transition: spring,
   }
 
-export function Button({ className, variant, size, children, href, direction = "right", ...props }: ButtonProps) {
-  return (
-    <motion.button
-      className={cn(buttonVariants({ variant, size, className }))}
-      variants={parentVariants[variant ?? "primary"]}
-      whileHover="hover"
-      whileTap="tap"
-      transition={spring}
-      onClick={() => {
-        if (href) {
-          window.location.href = href
-        }
-      }}
-      {...props}
-    >
-      {variant === "link" ? (
-        <>
-          {direction === "left" && (
-            <motion.span
-              className="mr-[9px] flex items-center justify-center"
-              variants={{ hover: { x: -1 }, tap: { x: -3 } }}
-              transition={spring}
-            >
-              <IconChevron
-                className={cn("origin-center -rotate-90", {
-                  "scale-80": size === "sm",
-                  "scale-90": size === "md",
-                  "scale-100": size === "lg",
-                })}
-              />
-            </motion.span>
-          )}
+  const renderContent = () => {
+    if (variant !== "link") return children
+
+    return (
+      <>
+        {direction === "left" && (
           <motion.span
-            className="brightness-[1] filter"
-            variants={{ hover: { filter: "brightness(1.25)" } }}
+            className="mr-[9px] flex items-center justify-center"
+            variants={{ hover: { x: -1 }, tap: { x: -3 } }}
             transition={spring}
           >
-            {children}
+            <IconChevron
+              className={cn("origin-center -rotate-90", {
+                "scale-80": size === "sm",
+                "scale-90": size === "md",
+                "scale-100": size === "lg",
+              })}
+            />
           </motion.span>
-          {direction === "right" && (
-            <motion.span
-              className="ml-[9px] flex items-center justify-center"
-              variants={{ hover: { x: 1 }, tap: { x: 3 } }}
-              transition={spring}
-            >
-              <IconChevron
-                className={cn("origin-center rotate-90", {
-                  "scale-80": size === "sm",
-                  "scale-90": size === "md",
-                  "scale-100": size === "lg",
-                })}
-              />
-            </motion.span>
-          )}
-        </>
-      ) : (
-        children
-      )}
+        )}
+        <motion.span
+          className="brightness-[1] filter"
+          variants={{ hover: { filter: "brightness(1.25)" } }}
+          transition={spring}
+        >
+          {children}
+        </motion.span>
+        {direction === "right" && (
+          <motion.span
+            className="ml-[9px] flex items-center justify-center"
+            variants={{ hover: { x: 1 }, tap: { x: 3 } }}
+            transition={spring}
+          >
+            <IconChevron
+              className={cn("origin-center rotate-90", {
+                "scale-80": size === "sm",
+                "scale-90": size === "md",
+                "scale-100": size === "lg",
+              })}
+            />
+          </motion.span>
+        )}
+      </>
+    )
+  }
+
+  if (href) {
+    return (
+      <motion.a href={href} {...sharedProps} {...(props as Omit<HTMLMotionProps<"a">, "children">)}>
+        {renderContent()}
+      </motion.a>
+    )
+  }
+
+  return (
+    <motion.button {...sharedProps} {...(props as Omit<HTMLMotionProps<"button">, "children">)}>
+      {renderContent()}
     </motion.button>
   )
 }
