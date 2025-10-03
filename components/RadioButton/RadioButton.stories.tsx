@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import React from "react"
-import { RadioButton } from "./RadioButton"
 import Lvl1Icon from "@/components/icons/lvl-1.svg"
+import { RadioButton } from "./RadioButton"
 
 const meta: Meta<typeof RadioButton> = {
   title: "Radio Button",

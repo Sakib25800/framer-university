@@ -1,5 +1,5 @@
-import Image from 'next/image'
-import BubbleCornerIcon from '@/components/icons/bubble-corner.svg'
+import Image from "next/image"
+import BubbleCornerIcon from "@/components/icons/bubble-corner.svg"
 
 interface SpeechBubbleProps {
   message: string
@@ -7,31 +7,19 @@ interface SpeechBubbleProps {
   avatarAlt?: string
 }
 
-export default function SpeechBubble({ 
-  message, 
-  avatarSrc = "/nandi.jpg", 
-  avatarAlt = "Avatar" 
-}: SpeechBubbleProps) {
+export default function SpeechBubble({ message, avatarSrc = "/nandi.jpg", avatarAlt = "Avatar" }: SpeechBubbleProps) {
   return (
-    <div className="flex items-end gap-[14px] justify-center">
+    <div className="flex items-end justify-center gap-[14px]">
       {/* Avatar */}
-      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-        <Image 
-          src={avatarSrc} 
-          alt={avatarAlt} 
-          width={40} 
-          height={40}
-          className="w-full h-full object-cover"
-        />
+      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+        <Image src={avatarSrc} alt={avatarAlt} width={40} height={40} className="h-full w-full object-cover" />
       </div>
-      
+
       {/* Message bubble */}
-      <div className="relative bg-primary-300 rounded-[20px] px-4 py-3 max-w-[280px]">
-        <p className="text-white body-medium">
-          {message}
-        </p>
+      <div className="bg-primary-300 relative max-w-[280px] rounded-[20px] px-4 py-3">
+        <p className="body-medium text-white">{message}</p>
         {/* Bubble corner icon */}
-        <BubbleCornerIcon className="absolute bottom-[6px] left-[-5.5px] w-4 h-4 text-primary-300" />
+        <BubbleCornerIcon className="text-primary-300 absolute bottom-[6px] left-[-5.5px] h-4 w-4" />
       </div>
     </div>
   )

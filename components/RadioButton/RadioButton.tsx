@@ -106,7 +106,7 @@ export function RadioButton({
         <div className="flex flex-col items-start">
           <span>{label}</span>
           {subtext ? (
-            <span className={cn("base font-normal text-primary-950", checked && "text-[#00BBFFA6]")}>{subtext}</span>
+            <span className={cn("base text-primary-950 font-normal", checked && "text-[#00BBFFA6]")}>{subtext}</span>
           ) : null}
         </div>
       </div>
