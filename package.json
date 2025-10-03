@@ -18,7 +18,7 @@
     "test:watch": "cross-env FORCE_COLOR=1 vitest --watch",
     "test:ui": "cross-env FORCE_COLOR=1 vitest --ui",
     "test:coverage": "cross-env FORCE_COLOR=1 vitest --coverage",
-    "e2e:headless": "playwright test",
+    "e2e:headless": "supabase db reset && playwright test",
     "e2e:ui": "playwright test --ui",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "postinstall": "npx patch-package -y",
