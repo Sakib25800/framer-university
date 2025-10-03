@@ -9,7 +9,7 @@ setup("authenticate", async ({ page }) => {
   execSync("supabase db reset")
   const email = "user1@test.com"
   const oldLink = await getLoginLink(email)
-  await page.goto("/sign-up")
+  await page.goto("/sign-up", { waitUntil: "domcontentloaded" })
   await page.locator('input[name="email"]').fill(email)
   await page.locator('input[name="firstName"]').fill("user1")
   await page.locator('input[name="lastName"]').fill("test")
