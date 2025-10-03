@@ -14,7 +14,6 @@ const meta: Meta<typeof TextArea> = {
     },
   },
   args: {
-    variant: "default",
     placeholder: "What's on your mind?",
     rows: 4,
     disabled: false,
@@ -22,11 +21,6 @@ const meta: Meta<typeof TextArea> = {
     required: false,
   },
   argTypes: {
-    variant: {
-      options: ["default"],
-      control: { type: "inline-radio" },
-      description: "Visual variant of the textarea",
-    },
     disabled: {
       control: { type: "boolean" },
       description: "Whether the textarea is disabled",
@@ -142,13 +136,13 @@ export const DifferentSizes: Story = {
   ),
 }
 
-export const Variants: Story = {
+export const WithLabel: Story = {
   render: (args) => (
     <div className="w-[340px]">
       <div className="space-y-4">
         <div>
-          <label className="mb-2 block text-sm text-white">Default Variant</label>
-          <TextArea {...args} variant="default" placeholder="Default variant..." className="w-[340px]" />
+          <label className="mb-2 block text-sm text-white">Your Message</label>
+          <TextArea {...args} placeholder="Enter your message..." className="w-[340px]" />
         </div>
       </div>
     </div>
