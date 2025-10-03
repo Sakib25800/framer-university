@@ -2,12 +2,13 @@
 
 import { motion } from "motion/react"
 import { useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { Button } from "@/components/Button/Button"
 import { Link } from "@/components/Link/Link"
+import { PageLoaderFallback } from "@/components/PageLoader/PageLoader"
 import { signIn, signUp } from "../actions"
 
-export default function MagicLinkPage() {
+function MagicLinkContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get("email")
   const type = searchParams.get("type") // "signin" or "signup"
@@ -83,5 +84,13 @@ export default function MagicLinkPage() {
         </motion.div>
       </div>
     </div>
+  )
+}
+
+export default function MagicLinkPage() {
+  return (
+    <Suspense fallback={<PageLoaderFallback />}>
+      <MagicLinkContent />
+    </Suspense>
   )
 }

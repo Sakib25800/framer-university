@@ -1,17 +1,14 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useState } from "react"
+import { PageLoaderFallback } from "@/components/PageLoader/PageLoader"
 import { TOTAL_ONBOARDING_STEPS } from "@/lib/constants"
 import { OnboardingResponse } from "@/lib/db/queries"
 import BottomNav from "./components/BottomNav"
 import { Step0, Step1, Step2, Step3, Step4, Step5 } from "./steps"
 
-export default function OnboardingForm({
-  submitAction,
-}: {
-  submitAction: (response: OnboardingResponse) => Promise<void>
-}) {
+function OnboardingFormContent({ submitAction }: { submitAction: (response: OnboardingResponse) => Promise<void> }) {
   const searchParams = useSearchParams()
   const currentStep = parseInt(searchParams.get("step") || "0")
   const [data, setData] = useState({
@@ -52,5 +49,17 @@ export default function OnboardingForm({
         <BottomNav onContinueAction={handleContinue} />
       </div>
     </div>
+  )
+}
+
+export default function OnboardingForm({
+  submitAction,
+}: {
+  submitAction: (response: OnboardingResponse) => Promise<void>
+}) {
+  return (
+    <Suspense fallback={<PageLoaderFallback />}>
+      <OnboardingFormContent submitAction={submitAction} />
+    </Suspense>
   )
 }

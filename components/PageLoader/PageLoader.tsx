@@ -65,4 +65,12 @@ export function PageLoader({ loading, children }: PageLoaderProps) {
   )
 }
 
+export function PageLoaderFallback() {
+  return (
+    <div className="bg-background/80 flex min-h-screen items-center justify-center" aria-live="polite" role="status">
+      <Loader size={56} />
+    </div>
+  )
+}
+
 export default PageLoader

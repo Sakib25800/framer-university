@@ -3,10 +3,11 @@
 import clsx from "clsx"
 import { motion } from "motion/react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 import { Button } from "@/components/Button/Button"
 import { TOTAL_ONBOARDING_STEPS } from "@/lib/constants"
 
-export default function BottomNav({ onContinueAction }: { onContinueAction: () => void }) {
+function BottomNavContent({ onContinueAction }: { onContinueAction: () => void }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const currentStep = parseInt(searchParams.get("step") || "0")
@@ -41,5 +42,13 @@ export default function BottomNav({ onContinueAction }: { onContinueAction: () =
         {currentStep === TOTAL_ONBOARDING_STEPS ? "Let's go!" : "Continue"}
       </Button>
     </motion.div>
+  )
+}
+
+export default function BottomNav({ onContinueAction }: { onContinueAction: () => void }) {
+  return (
+    <Suspense fallback={<div />}>
+      <BottomNavContent onContinueAction={onContinueAction} />
+    </Suspense>
   )
 }

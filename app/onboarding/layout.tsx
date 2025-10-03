@@ -1,11 +1,13 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 import { Logo } from "@/components/Logo/Logo"
+import { PageLoaderFallback } from "@/components/PageLoader/PageLoader"
 import ProgressBar from "@/components/ProgressBar/ProgressBar"
 import { TOTAL_ONBOARDING_STEPS } from "@/lib/constants"
 
-export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
+function OnboardingLayoutContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
   const step = parseInt(searchParams.get("step") || "0")
   const progressValue = (step / TOTAL_ONBOARDING_STEPS) * 100
@@ -24,5 +26,13 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       </nav>
       <div className="flex flex-1 items-center justify-center">{children}</div>
     </main>
+  )
+}
+
+export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<PageLoaderFallback />}>
+      <OnboardingLayoutContent>{children}</OnboardingLayoutContent>
+    </Suspense>
   )
 }
