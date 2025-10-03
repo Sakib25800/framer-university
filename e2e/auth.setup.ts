@@ -1,12 +1,10 @@
 import { test as setup } from "@playwright/test"
-import { execSync } from "child_process"
 import path from "path"
 import { getLoginLink, waitForNewLink } from "./utils/mail"
 
 const authFile = path.join(__dirname, "../playwright/.auth/user.json")
 
 setup("authenticate", async ({ page }) => {
-  execSync("supabase db reset")
   const email = "user1@test.com"
   const oldLink = await getLoginLink(email)
   await page.goto("/sign-up", { waitUntil: "domcontentloaded" })
