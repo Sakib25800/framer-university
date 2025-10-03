@@ -36,7 +36,7 @@ jobs:
           version: latest
 
       - name: Start Supabase local development setup
-        run: supabase db start
+        run: supabase start
 
       - name: Install Playwright Browsers
         run: pnpm playwright install --with-deps chromium
@@ -46,7 +46,7 @@ jobs:
 
       - name: Stop Supabase
         if: always()
-        run: supabase db stop
+        run: supabase stop
 
       - uses: actions/upload-artifact@v4
         if: always()
