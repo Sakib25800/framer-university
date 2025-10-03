@@ -42,7 +42,7 @@ export default function SignInPage() {
           />
           {state.error && !state.fieldErrors && <ErrorMessage>{state.error}</ErrorMessage>}
           <Button className="w-full" size="md" type="submit">
-            {pending ? "Sending..." : "Send magic link"}
+            {pending ? "Sending..." : "Sign in"}
           </Button>
         </form>
         <div className="text-small flex gap-1 font-medium">

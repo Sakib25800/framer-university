@@ -1,6 +1,6 @@
 create table public.onboarding_responses (
   user_id uuid primary key references auth.users(id),
-  completed_at timestamp with time zone,
+  completed_at timestamp with time zone default now(),
   experience text,
   goal text,
   source text

@@ -33,5 +33,6 @@ storybook-static/
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/playwright
 
 /.npm-only-allow

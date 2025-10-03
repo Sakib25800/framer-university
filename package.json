@@ -53,6 +53,7 @@
     "@vercel/otel": "^1.12.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
     "lodash": "^4.17.21",
     "motion": "^12.23.20",
     "next": "15.3.3",

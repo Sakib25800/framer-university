@@ -34,7 +34,7 @@ export default function Step1({ value, onChangeAction }: { value: string; onChan
         {options.map((option) => (
           <RadioButton
             key={option}
-            name="source_ux"
+            name="source"
             value={option}
             label={option}
             checked={value === option}

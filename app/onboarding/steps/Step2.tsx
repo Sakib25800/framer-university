@@ -40,7 +40,7 @@ export default function Step2({ value, onChangeAction }: { value: string; onChan
         {goals.map((goal) => (
           <RadioButton
             key={goal}
-            name="goal_ux"
+            name="goal"
             value={goal}
             label={goal}
             checked={value == goal}

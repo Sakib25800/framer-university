@@ -42,7 +42,7 @@ export default function Step4({
         {levels.map(({ value, label, subtext, icon }) => (
           <RadioButton
             key={value}
-            name="experience_ux"
+            name="experience"
             value={value}
             label={label}
             subtext={subtext}
