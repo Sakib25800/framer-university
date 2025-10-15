@@ -9,10 +9,14 @@ test.describe("Landing Page", () => {
     await expect(page).toHaveTitle("Framer University")
   })
 
-  test("displays TV image", async ({ page }) => {
-    const image = page.locator('img[alt="Retro TV with color bars"]')
-    await expect(image).toBeVisible()
-    await expect(image).toHaveAttribute("src", /TV\.png/)
+  test("displays TV video", async ({ page }) => {
+    const video = page.locator('video[aria-label="Retro TV teaser video"]')
+    await expect(video).toBeVisible()
+    await expect(video).toHaveAttribute("src", "/tv-teaser.mp4")
+    await expect(video).toHaveAttribute("autoplay")
+    await expect(video).toHaveAttribute("muted")
+    await expect(video).toHaveAttribute("loop")
+    await expect(video).toHaveAttribute("playsinline")
   })
 
   test("displays main heading text", async ({ page }) => {

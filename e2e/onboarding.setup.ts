@@ -11,6 +11,9 @@ setup("onboarding", async ({ page }) => {
   await page.goto("/onboarding")
   await expect(page).toHaveURL("/onboarding")
 
+  // Wait for the loading to complete and the Continue button to be visible
+  await page.getByRole("button", { name: "Continue" }).waitFor({ state: "visible" })
+
   // Step 0 - Welcome step, just continue
   await page.getByRole("button", { name: "Continue" }).click()
   await expect(page).toHaveURL("/onboarding?step=1")

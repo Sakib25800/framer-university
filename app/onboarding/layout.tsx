@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { Logo } from "@/components/Logo/Logo"
-import { PageLoaderFallback } from "@/components/PageLoader/PageLoader"
 import ProgressBar from "@/components/ProgressBar/ProgressBar"
 import { TOTAL_ONBOARDING_STEPS } from "@/lib/constants"
 
@@ -31,7 +30,7 @@ function OnboardingLayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense fallback={<PageLoaderFallback />}>
+    <Suspense fallback={null}>
       <OnboardingLayoutContent>{children}</OnboardingLayoutContent>
     </Suspense>
   )
