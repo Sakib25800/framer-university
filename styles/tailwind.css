@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 @theme {
   /* Breakpoints */
   --breakpoint-phone: 50.5625rem;
