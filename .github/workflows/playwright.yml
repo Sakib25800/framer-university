@@ -5,7 +5,27 @@ on:
       - main
       - master
       - develop
-  pull_request: null
+    paths:
+      - "e2e/**"
+      - "playwright/**"
+      - "playwright.config.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/playwright.yml"
+      - "supabase/**"
+      - "src/**"
+      - "app/**"
+  pull_request:
+    paths:
+      - "e2e/**"
+      - "playwright/**"
+      - "playwright.config.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/playwright.yml"
+      - "supabase/**"
+      - "src/**"
+      - "app/**"
   workflow_dispatch: null
 jobs:
   test:
