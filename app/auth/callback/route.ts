@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   const {
-    data: { session },
+    data: { session }
   } = await supabase.auth.getSession()
 
   // User has not completed onboarding, redirect to onboarding

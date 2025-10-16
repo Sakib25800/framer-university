@@ -13,7 +13,7 @@ export default function Step1({ value, onChangeAction }: { value: string; onChan
     "TikTok",
     "Friends/Family",
     "News/article/blog",
-    "Other",
+    "Other"
   ]
 
   return (

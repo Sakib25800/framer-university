@@ -13,8 +13,8 @@ const meta: Meta<typeof PageLoader> = {
       <div className="h-screen w-screen">
         <Story />
       </div>
-    ),
-  ],
+    )
+  ]
 }
 
 export default meta
@@ -29,7 +29,7 @@ export const Default: Story = {
         <Button size="md">Continue</Button>
       </div>
     </PageLoader>
-  ),
+  )
 }
 
 export const LoadingToContent: Story = {
@@ -47,5 +47,5 @@ export const LoadingToContent: Story = {
         </div>
       </PageLoader>
     )
-  },
+  }
 }

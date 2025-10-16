@@ -11,7 +11,7 @@ export default function Step2({ value, onChangeAction }: { value: string; onChan
     "Leveling up my Framer skills",
     "Launching a website for my business",
     "Making money with Framer",
-    "Something else",
+    "Something else"
   ]
 
   return (

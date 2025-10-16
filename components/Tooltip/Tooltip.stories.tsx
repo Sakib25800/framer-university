@@ -10,22 +10,22 @@ const meta: Meta<typeof Tooltip> = {
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
-    docs: {},
+    docs: {}
   },
   args: {
     explainer: "Action name",
     side: "bottom",
-    shortcut: "ESC",
+    shortcut: "ESC"
   },
   argTypes: {
     side: {
       options: ["left", "top", "bottom", "right"],
-      control: { type: "select" },
+      control: { type: "select" }
     },
     shortcut: {
-      control: { type: "text" },
-    },
-  },
+      control: { type: "text" }
+    }
+  }
 }
 
 type Story = StoryObj<typeof Tooltip>
@@ -37,7 +37,7 @@ export const Default: Story = {
         <CloseIcon />
       </IconButton>
     </Tooltip>
-  ),
+  )
 }
 
 export const Positions: Story = {
@@ -72,7 +72,7 @@ export const Positions: Story = {
         </Tooltip>
       </div>
     </div>
-  ),
+  )
 }
 
 export default meta

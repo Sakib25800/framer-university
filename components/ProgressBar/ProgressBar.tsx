@@ -20,7 +20,7 @@ export function ProgressBar({
   title,
   dayLabel,
   showPercentage = false,
-  className,
+  className
 }: ProgressBarProps) {
   const clampedValue = Math.max(0, Math.min(100, value))
   const fillColorClass = "bg-white"

@@ -18,7 +18,7 @@ function MagicLinkContent() {
 
   const fadeInTransition = {
     ease: [0.12, 0.23, 0.5, 1] as const,
-    duration: 0.3,
+    duration: 0.3
   }
 
   const handleResend = async () => {

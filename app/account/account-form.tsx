@@ -45,7 +45,7 @@ export default function AccountForm({ user }: { user: User }) {
   async function updateProfile({
     firstName,
     lastName,
-    avatar_url,
+    avatar_url
   }: {
     firstName: string
     lastName: string
@@ -59,7 +59,7 @@ export default function AccountForm({ user }: { user: User }) {
         first_name: firstName,
         last_name: lastName,
         avatar_url,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
 
       if (error) throw error

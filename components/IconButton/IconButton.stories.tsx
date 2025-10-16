@@ -9,34 +9,34 @@ const meta: Meta<typeof IconButton> = {
   parameters: {
     docs: {
       description: {
-        component: "Circular icon button for compact actions.",
-      },
+        component: "Circular icon button for compact actions."
+      }
     },
-    layout: "centered",
+    layout: "centered"
   },
   args: {
     intent: "primary",
-    children: <Close />,
+    children: <Close />
   },
   argTypes: {
     intent: {
       options: ["primary", "secondary"],
-      control: { type: "inline-radio" },
+      control: { type: "inline-radio" }
     },
-    onClick: { action: "click" },
-  },
+    onClick: { action: "click" }
+  }
 }
 
 type Story = StoryObj<typeof IconButton>
 
 export const Default: Story = {
-  render: (args) => <IconButton {...args} />,
+  render: (args) => <IconButton {...args} />
 }
 
 export const Primary: Story = {}
 
 export const Secondary: Story = {
-  args: { intent: "secondary" },
+  args: { intent: "secondary" }
 }
 
 export default meta

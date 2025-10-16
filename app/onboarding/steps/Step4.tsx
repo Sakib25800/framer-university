@@ -11,7 +11,7 @@ import SpeechBubble from "../components/SpeechBubble"
 
 export default function Step4({
   value: selected,
-  onChangeAction,
+  onChangeAction
 }: {
   value: string
   onChangeAction: (value: string) => void
@@ -21,7 +21,7 @@ export default function Step4({
     { value: "1", label: "Just started", subtext: "I've played around with the basics", icon: Lvl1Icon },
     { value: "2", label: "Built a few things", subtext: "Comfortable with basic features", icon: Lvl2Icon },
     { value: "3", label: "Regular user", subtext: "Familiar with most features", icon: Lvl3Icon },
-    { value: "4", label: "Advanced user", subtext: "Expert with advanced features", icon: Lvl4Icon },
+    { value: "4", label: "Advanced user", subtext: "Expert with advanced features", icon: Lvl4Icon }
   ]
 
   return (

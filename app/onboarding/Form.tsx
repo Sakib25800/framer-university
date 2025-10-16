@@ -14,7 +14,7 @@ function OnboardingFormContent({ submitAction }: { submitAction: (response: Onbo
   const [data, setData] = useState({
     source: "",
     goal: "",
-    experience: "",
+    experience: ""
   })
 
   const handleContinue = async () => {
@@ -53,7 +53,7 @@ function OnboardingFormContent({ submitAction }: { submitAction: (response: Onbo
 }
 
 export default function OnboardingForm({
-  submitAction,
+  submitAction
 }: {
   submitAction: (response: OnboardingResponse) => Promise<void>
 }) {

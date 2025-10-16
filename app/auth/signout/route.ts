@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
   // Check if a user's logged in
   const {
-    data: { user },
+    data: { user }
   } = await supabase.auth.getUser()
 
   if (user) {
@@ -17,6 +17,6 @@ export async function POST(req: Request) {
   revalidatePath("/", "layout")
 
   return NextResponse.redirect(new URL("/sign-in", req.url), {
-    status: 302,
+    status: 302
   })
 }

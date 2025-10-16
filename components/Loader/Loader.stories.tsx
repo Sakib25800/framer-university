@@ -7,15 +7,15 @@ const meta: Meta<typeof Loader> = {
   tags: ["autodocs"],
   parameters: { layout: "fullscreen" },
   argTypes: {
-    size: { control: { type: "number", min: 24, max: 160, step: 4 } },
+    size: { control: { type: "number", min: 24, max: 160, step: 4 } }
   },
   decorators: [
     (Story) => (
       <div className="flex h-screen items-center justify-center">
         <Story />
       </div>
-    ),
-  ],
+    )
+  ]
 }
 
 export default meta
@@ -23,6 +23,6 @@ type Story = StoryObj<typeof Loader>
 
 export const Default: Story = {
   args: {
-    size: 56,
-  },
+    size: 56
+  }
 }

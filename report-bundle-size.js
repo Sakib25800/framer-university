@@ -65,7 +65,7 @@ const allAppDirSizes = Object.values(appDirMeta.pages).reduce((acc, scriptPaths,
 // format and write the output
 const rawData = JSON.stringify({
   ...allAppDirSizes,
-  __global: globalAppDirBundleSizes,
+  __global: globalAppDirBundleSizes
 })
 
 // log ouputs to the gh actions panel

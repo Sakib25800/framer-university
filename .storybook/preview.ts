@@ -8,28 +8,28 @@ const preview: Preview = {
     controls: {
       matchers: {
         color: /(background|color)$/i,
-        date: /Date$/,
-      },
+        date: /Date$/
+      }
     },
     backgrounds: {
       default: "dark",
       values: [
         {
           name: "dark",
-          value: "#1D1D1D",
-        },
+          value: "#1D1D1D"
+        }
       ],
       disable: false,
       grid: {
-        disable: true,
-      },
-    },
+        disable: true
+      }
+    }
   },
   globalTypes: {
     backgrounds: {
-      defaultValue: "dark",
-    },
-  },
+      defaultValue: "dark"
+    }
+  }
 }
 
 export default preview

@@ -15,22 +15,22 @@ const buttonVariants = cva(
     "cursor-pointer",
     "font-semibold",
     "filter",
-    "brightness-[1]",
+    "brightness-[1]"
   ],
   {
     variants: {
       variant: {
         outline: ["border", "border-primary-400", "text-white"],
         primary: ["bg-white", "text-black"],
-        link: ["!text-primary-950", "group", "!px-0", "!py-0"],
+        link: ["!text-primary-950", "group", "!px-0", "!py-0"]
       },
       size: {
         sm: ["text-base", "px-4", "py-[7px]"],
         md: ["text-body", "px-5", "py-2.5"],
-        lg: ["text-body-l", "px-[26px]", "py-[15px]"],
-      },
+        lg: ["text-body-l", "px-[26px]", "py-[15px]"]
+      }
     },
-    defaultVariants: { variant: "primary", size: "lg" },
+    defaultVariants: { variant: "primary", size: "lg" }
   }
 )
 
@@ -38,19 +38,19 @@ const spring: Transition = {
   type: "spring",
   duration: 0.3,
   bounce: 0.2,
-  delay: 0,
+  delay: 0
 }
 
 const parentVariants: Record<string, Variants> = {
   outline: {
     hover: { borderColor: "rgb(255,255,255)" },
-    tap: { scale: 0.95 },
+    tap: { scale: 0.95 }
   },
   primary: {
     hover: { filter: "brightness(0.8)" },
-    tap: { scale: 0.95 },
+    tap: { scale: 0.95 }
   },
-  link: { hover: {}, tap: {} },
+  link: { hover: {}, tap: {} }
 }
 
 export type BaseProps = VariantProps<typeof buttonVariants> & {
@@ -71,7 +71,7 @@ export function Button({ className, variant, size, href, direction = "right", ch
     variants: parentVariants[variant ?? "primary"],
     whileHover: "hover" as const,
     whileTap: "tap" as const,
-    transition: spring,
+    transition: spring
   }
 
   const renderContent = () => {
@@ -89,7 +89,7 @@ export function Button({ className, variant, size, href, direction = "right", ch
               className={cn("origin-center -rotate-90", {
                 "scale-80": size === "sm",
                 "scale-90": size === "md",
-                "scale-100": size === "lg",
+                "scale-100": size === "lg"
               })}
             />
           </motion.span>
@@ -111,7 +111,7 @@ export function Button({ className, variant, size, href, direction = "right", ch
               className={cn("origin-center rotate-90", {
                 "scale-80": size === "sm",
                 "scale-90": size === "md",
-                "scale-100": size === "lg",
+                "scale-100": size === "lg"
               })}
             />
           </motion.span>

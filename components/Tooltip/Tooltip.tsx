@@ -21,7 +21,7 @@ export function Tooltip({
   onOpenChange,
   side = "top",
   className,
-  shortcut,
+  shortcut
 }: TooltipProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen || false)
 
@@ -59,7 +59,7 @@ export function Tooltip({
                     type: "spring",
                     duration: 0.2,
                     bounce: 0,
-                    delay: 0,
+                    delay: 0
                   }}
                 >
                   {explainer}

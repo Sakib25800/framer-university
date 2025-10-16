@@ -9,8 +9,8 @@ const meta: Meta<typeof TextShimmer> = {
   parameters: {
     layout: "centered",
     docs: {
-      description: { component: "Animated shimmering text for loading states." },
-    },
+      description: { component: "Animated shimmering text for loading states." }
+    }
   },
   args: {
     content: "Uploading...",
@@ -22,24 +22,24 @@ const meta: Meta<typeof TextShimmer> = {
     delay: 0,
     tag: "p",
     direction: "right",
-    style: { fontSize: 18 },
+    style: { fontSize: 18 }
   },
   argTypes: {
     direction: {
       options: ["left", "right"],
-      control: { type: "select" },
+      control: { type: "select" }
     },
     tag: {
       options: ["h1", "h2", "h3", "p"],
-      control: { type: "select" },
-    },
-  },
+      control: { type: "select" }
+    }
+  }
 }
 
 type Story = StoryObj<typeof TextShimmer>
 
 export const Default: Story = {
-  render: (args) => <TextShimmer {...args} />,
+  render: (args) => <TextShimmer {...args} />
 }
 
 export default meta

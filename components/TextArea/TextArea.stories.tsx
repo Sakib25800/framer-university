@@ -9,50 +9,50 @@ const meta: Meta<typeof TextArea> = {
     docs: {
       description: {
         component:
-          "A versatile textarea component with default and outline variants, supporting various states and configurations.",
-      },
-    },
+          "A versatile textarea component with default and outline variants, supporting various states and configurations."
+      }
+    }
   },
   args: {
     placeholder: "What's on your mind?",
     rows: 4,
     disabled: false,
     readOnly: false,
-    required: false,
+    required: false
   },
   argTypes: {
     disabled: {
       control: { type: "boolean" },
-      description: "Whether the textarea is disabled",
+      description: "Whether the textarea is disabled"
     },
     readOnly: {
       control: { type: "boolean" },
-      description: "Whether the textarea is read-only",
+      description: "Whether the textarea is read-only"
     },
     required: {
       control: { type: "boolean" },
-      description: "Whether the textarea is required",
+      description: "Whether the textarea is required"
     },
     rows: {
       control: { type: "number", min: 1, max: 20 },
-      description: "Number of visible text lines",
+      description: "Number of visible text lines"
     },
     maxLength: {
       control: { type: "number", min: 1, max: 1000 },
-      description: "Maximum number of characters",
+      description: "Maximum number of characters"
     },
     placeholder: {
       control: { type: "text" },
-      description: "Placeholder text",
+      description: "Placeholder text"
     },
     value: {
       control: { type: "text" },
-      description: "Controlled value",
+      description: "Controlled value"
     },
     onChange: { action: "change" },
     onBlur: { action: "blur" },
-    onFocus: { action: "focus" },
-  },
+    onFocus: { action: "focus" }
+  }
 }
 
 type Story = StoryObj<typeof TextArea>
@@ -62,57 +62,57 @@ export const Default: Story = {
     <div className="w-[340px]">
       <TextArea {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const WithValue: Story = {
   args: {
     value: "This is some sample text content that demonstrates how the textarea looks with actual content.",
-    placeholder: "Enter your message...",
+    placeholder: "Enter your message..."
   },
   render: (args) => (
     <div className="w-[340px]">
       <TextArea {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const Disabled: Story = {
   args: {
     disabled: true,
     value: "This textarea is disabled",
-    placeholder: "Disabled textarea...",
+    placeholder: "Disabled textarea..."
   },
   render: (args) => (
     <div className="w-[340px]">
       <TextArea {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const ReadOnly: Story = {
   args: {
     readOnly: true,
     value: "This textarea is read-only and cannot be edited.",
-    placeholder: "Read-only textarea...",
+    placeholder: "Read-only textarea..."
   },
   render: (args) => (
     <div className="w-[340px]">
       <TextArea {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const WithMaxLength: Story = {
   args: {
     maxLength: 100,
-    placeholder: "Maximum 100 characters allowed...",
+    placeholder: "Maximum 100 characters allowed..."
   },
   render: (args) => (
     <div className="w-[340px]">
       <TextArea {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const DifferentSizes: Story = {
@@ -133,7 +133,7 @@ export const DifferentSizes: Story = {
         </div>
       </div>
     </div>
-  ),
+  )
 }
 
 export const WithLabel: Story = {
@@ -146,7 +146,7 @@ export const WithLabel: Story = {
         </div>
       </div>
     </div>
-  ),
+  )
 }
 
 export default meta

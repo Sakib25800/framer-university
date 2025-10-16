@@ -10,14 +10,14 @@ const iconButtonVariants = cva(
         primary: [
           "shadow-[0px_5px_10px_0px_rgba(0,0,0,0.25)]",
           "shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.05)]",
-          "bg-[#252727]",
+          "bg-[#252727]"
         ],
-        secondary: [],
-      },
+        secondary: []
+      }
     },
     defaultVariants: {
-      intent: "primary",
-    },
+      intent: "primary"
+    }
   }
 )
 
@@ -25,16 +25,16 @@ const spring: Transition = {
   type: "spring",
   duration: 0.3,
   bounce: 0.2,
-  delay: 0,
+  delay: 0
 }
 
 const iconButtonMotionVariants: Variants = {
   hover: {
-    color: "rgb(255, 255, 255)",
+    color: "rgb(255, 255, 255)"
   },
   tap: {
-    scale: 0.95,
-  },
+    scale: 0.95
+  }
 }
 
 export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> &

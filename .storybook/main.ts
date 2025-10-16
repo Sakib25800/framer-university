@@ -6,18 +6,18 @@ const config: StorybookConfig = {
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-interactions",
-    "@storybook/addon-controls",
+    "@storybook/addon-controls"
   ],
   framework: {
     name: "@storybook/nextjs",
-    options: {},
+    options: {}
   },
   docs: {
-    autodocs: "tag",
+    autodocs: "tag"
   },
   staticDirs: [
     { from: "../public", to: "/" },
-    { from: "../app/fonts", to: "/fonts" },
+    { from: "../app/fonts", to: "/fonts" }
   ],
   typescript: {
     check: false,
@@ -25,8 +25,8 @@ const config: StorybookConfig = {
     reactDocgen: false,
     reactDocgenTypescriptOptions: {
       shouldExtractLiteralValuesFromEnum: true,
-      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
-    },
+      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true)
+    }
   },
   webpackFinal: (webpackConfig) => {
     const imageRule = webpackConfig?.module?.rules?.find((rule) => {
@@ -40,11 +40,11 @@ const config: StorybookConfig = {
 
     webpackConfig?.module?.rules?.push({
       test: /\.svg$/,
-      use: ["@svgr/webpack"],
+      use: ["@svgr/webpack"]
     })
 
     return webpackConfig
-  },
+  }
 }
 
 export default config

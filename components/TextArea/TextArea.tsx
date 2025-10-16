@@ -22,7 +22,7 @@ const textAreaVariants = cn([
   "focus:border-primary-200",
   "focus:ring-1",
   "focus:ring-accent",
-  "focus:ring-offset-0",
+  "focus:ring-offset-0"
 ])
 
 export function TextArea({ className, ...props }: React.ComponentProps<"textarea">) {

@@ -8,21 +8,21 @@ const meta: Meta<typeof Logo> = {
   parameters: {
     layout: "centered",
     docs: {
-      description: { component: "Brand logo with optional beta badge." },
-    },
+      description: { component: "Brand logo with optional beta badge." }
+    }
   },
   args: {
-    beta: false,
+    beta: false
   },
   argTypes: {
     beta: {
-      control: { type: "boolean" },
+      control: { type: "boolean" }
     },
     size: {
       control: { type: "select" },
-      options: ["sm", "lg"],
-    },
-  },
+      options: ["sm", "lg"]
+    }
+  }
 }
 
 type Story = StoryObj<typeof Logo>
@@ -31,27 +31,27 @@ export const Default: Story = {}
 
 export const Beta: Story = {
   args: {
-    beta: true,
-  },
+    beta: true
+  }
 }
 
 export const Small: Story = {
   args: {
-    size: "sm",
-  },
+    size: "sm"
+  }
 }
 
 export const Large: Story = {
   args: {
-    size: "lg",
-  },
+    size: "lg"
+  }
 }
 
 export const LargeBeta: Story = {
   args: {
     size: "lg",
-    beta: true,
-  },
+    beta: true
+  }
 }
 
 export default meta

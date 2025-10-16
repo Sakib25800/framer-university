@@ -4,7 +4,7 @@ import { Quote } from "./Quote"
 const meta: Meta<typeof Quote> = {
   title: "Quote",
   component: Quote,
-  tags: ["autodocs"],
+  tags: ["autodocs"]
 }
 
 type Story = StoryObj<typeof Quote>
@@ -18,7 +18,7 @@ export const Default: Story = {
       </p>
       <p>Be ready to join the community of designers who turned their Framer expertise into passive income streams.</p>
     </Quote>
-  ),
+  )
 }
 
 export const SingleParagraph: Story = {
@@ -28,7 +28,7 @@ export const SingleParagraph: Story = {
         This is a single paragraph quote with <strong>highlighted text</strong> for emphasis.
       </p>
     </Quote>
-  ),
+  )
 }
 
 export const LongContent: Story = {
@@ -44,7 +44,7 @@ export const LongContent: Story = {
       </p>
       <p>Join our community and start building the future of web design today.</p>
     </Quote>
-  ),
+  )
 }
 
 export default meta

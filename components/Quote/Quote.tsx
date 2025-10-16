@@ -8,7 +8,7 @@ const quoteContent = cva([
   "body-l",
   "font-medium",
   "[&_strong]:text-white",
-  "[&_strong]:font-medium",
+  "[&_strong]:font-medium"
 ])
 
 export function Quote({ children, className, ...props }: React.ComponentProps<"div">) {

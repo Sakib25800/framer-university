@@ -9,7 +9,7 @@ const meta: Meta<typeof Input> = {
     placeholder: "Enter text",
     disabled: false,
     readOnly: false,
-    required: false,
+    required: false
   },
   argTypes: {
     disabled: { control: { type: "boolean" } },
@@ -17,17 +17,17 @@ const meta: Meta<typeof Input> = {
     required: { control: { type: "boolean" } },
     variant: {
       control: { type: "select" },
-      options: ["default", "error"],
+      options: ["default", "error"]
     },
     errorText: { control: { type: "text" } },
     type: {
       control: { type: "select" },
-      options: ["text", "email", "password", "number", "search", "tel", "url"],
+      options: ["text", "email", "password", "number", "search", "tel", "url"]
     },
     onChange: { action: "change" },
     onBlur: { action: "blur" },
-    onFocus: { action: "focus" },
-  },
+    onFocus: { action: "focus" }
+  }
 }
 
 export default meta
@@ -38,7 +38,7 @@ export const Default: Story = {
     <div className="w-[340px]">
       <Input {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const WithValue: Story = {
@@ -47,18 +47,18 @@ export const WithValue: Story = {
     <div className="w-[340px]">
       <Input {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }
 
 export const Error: Story = {
   args: {
     variant: "error",
     errorText: "Please include an '@' in the email address.",
-    placeholder: "Email",
+    placeholder: "Email"
   },
   render: (args) => (
     <div className="w-[340px]">
       <Input {...args} className="w-[340px]" />
     </div>
-  ),
+  )
 }

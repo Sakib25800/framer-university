@@ -21,24 +21,24 @@ const fileUploadVariants = cva(
     "justify-center",
     "select-none",
     "relative",
-    "overflow-hidden",
+    "overflow-hidden"
   ],
   {
     variants: {
       status: {
         default: ["border-primary-400"],
         uploading: ["border-primary-400"],
-        uploaded: ["border-primary-400"],
+        uploaded: ["border-primary-400"]
       },
       disabled: {
         true: ["opacity-60", "cursor-not-allowed"],
-        false: [],
-      },
+        false: []
+      }
     },
     defaultVariants: {
       status: "default",
-      disabled: false,
-    },
+      disabled: false
+    }
   }
 )
 
@@ -106,7 +106,7 @@ export const FileUpload = React.forwardRef<FileUploadRef, FileUploadProps>(
         },
         setStatus: (newStatus: "default" | "uploading" | "uploaded") => {
           setStatus(newStatus)
-        },
+        }
       }),
       [selectedFiles]
     )

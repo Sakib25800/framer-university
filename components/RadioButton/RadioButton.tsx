@@ -6,12 +6,12 @@ const radioButton = cva(["inline-flex", "items-center", "select-none"], {
   variants: {
     checked: {
       true: ["cursor-default"],
-      false: ["cursor-pointer"],
-    },
+      false: ["cursor-pointer"]
+    }
   },
   defaultVariants: {
-    checked: false,
-  },
+    checked: false
+  }
 })
 
 const radioBlock = cva(
@@ -34,7 +34,7 @@ const radioBlock = cva(
     "gap-2",
     "ring-1",
     "ring-[rgba(37,39,39,0.65)]",
-    "select-none",
+    "select-none"
   ],
   {
     variants: {
@@ -50,14 +50,14 @@ const radioBlock = cva(
           "outline-accent",
           "outline-offset-[3px]",
           "cursor-default",
-          "pl-[14px]",
+          "pl-[14px]"
         ],
-        false: ["cursor-pointer"],
-      },
+        false: ["cursor-pointer"]
+      }
     },
     defaultVariants: {
-      checked: false,
-    },
+      checked: false
+    }
   }
 )
 
@@ -95,7 +95,7 @@ export function RadioButton({
       <div
         className={cn(radioBlock({ checked }))}
         style={{
-          transition: `all ${spring({ keyframes: [0, 1], duration: 300, bounce: 0.2, delay: 0 })}`,
+          transition: `all ${spring({ keyframes: [0, 1], duration: 300, bounce: 0.2, delay: 0 })}`
         }}
       >
         {Icon ? (

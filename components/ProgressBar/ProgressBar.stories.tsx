@@ -10,14 +10,14 @@ const meta: Meta<typeof ProgressBar> = {
   tags: ["autodocs"],
   args: {
     value: 42,
-    intent: "default",
+    intent: "default"
   },
   argTypes: {
     value: { control: { type: "range", min: 0, max: 100, step: 1 } },
     intent: { control: { type: "inline-radio" }, options: ["default", "info"] },
     showPercentage: { control: { type: "boolean" } },
-    ariaLabel: { control: { type: "text" } },
-  },
+    ariaLabel: { control: { type: "text" } }
+  }
 }
 
 export default meta
@@ -29,7 +29,7 @@ export const Percentage: Story = {
     <div className="w-[340px]">
       <ProgressBar {...args} />
     </div>
-  ),
+  )
 }
 
 export const Info: Story = {
@@ -37,7 +37,7 @@ export const Info: Story = {
     <div className="w-[340px]">
       <ProgressBar intent="info" title="Building a Personal Website" dayLabel="Day 24" />
     </div>
-  ),
+  )
 }
 
 export const Action: Story = {
@@ -55,5 +55,5 @@ export const Action: Story = {
       </div>
     </div>
   ),
-  args: { value: 42 },
+  args: { value: 42 }
 }

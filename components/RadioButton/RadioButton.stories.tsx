@@ -10,9 +10,9 @@ const meta: Meta<typeof RadioButton> = {
   parameters: {
     docs: {
       description: {
-        component: "A radio button component with a single fixed size (268px width).",
-      },
-    },
+        component: "A radio button component with a single fixed size (268px width)."
+      }
+    }
   },
   args: {
     label: "X (Twitter)",
@@ -20,55 +20,55 @@ const meta: Meta<typeof RadioButton> = {
     name: "example",
     value: "twitter",
     checked: false,
-    disabled: false,
+    disabled: false
   },
   argTypes: {
     label: {
       control: { type: "text" },
-      description: "Label text for the radio button",
+      description: "Label text for the radio button"
     },
     subtext: {
       control: { type: "text" },
-      description: "Optional subtext shown below the main label",
+      description: "Optional subtext shown below the main label"
     },
     name: {
       control: { type: "text" },
-      description: "Name attribute for grouping radio buttons",
+      description: "Name attribute for grouping radio buttons"
     },
     value: {
       control: { type: "text" },
-      description: "Value attribute for the radio button",
+      description: "Value attribute for the radio button"
     },
     checked: {
       control: { type: "boolean" },
-      description: "Whether the radio button is checked",
+      description: "Whether the radio button is checked"
     },
     disabled: {
       control: { type: "boolean" },
-      description: "Whether the radio button is disabled",
+      description: "Whether the radio button is disabled"
     },
     onChange: { action: "change" },
     icon: {
       control: false,
-      description: "Optional left icon component (SVG)",
-    },
-  },
+      description: "Optional left icon component (SVG)"
+    }
+  }
 }
 
 type Story = StoryObj<typeof RadioButton>
 
 export const Default: Story = {
-  render: (args) => <RadioButton {...args} className="w-[268px]" />,
+  render: (args) => <RadioButton {...args} className="w-[268px]" />
 }
 
 export const Checked: Story = {
   args: { checked: true, label: "Checked option", subtext: "Additional info about this option" },
-  render: (args) => <RadioButton {...args} className="w-[268px]" />,
+  render: (args) => <RadioButton {...args} className="w-[268px]" />
 }
 
 export const Disabled: Story = {
   args: { disabled: true, label: "Disabled option", subtext: "Disabled state preview" },
-  render: (args) => <RadioButton {...args} className="w-[268px]" />,
+  render: (args) => <RadioButton {...args} className="w-[268px]" />
 }
 
 export const RadioGroup: Story = {
@@ -139,16 +139,16 @@ export const RadioGroup: Story = {
         />
       </div>
     )
-  },
+  }
 }
 
 export const WithIcon: Story = {
   args: {
     label: "Level 1",
     subtext: "Beginner level",
-    icon: Lvl1Icon,
+    icon: Lvl1Icon
   },
-  render: (args) => <RadioButton {...args} className="w-[268px]" />,
+  render: (args) => <RadioButton {...args} className="w-[268px]" />
 }
 
 export default meta

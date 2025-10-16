@@ -10,12 +10,12 @@ const linkVariants = cva(["inline-flex", "items-center", "cursor-pointer", "text
         "hover:underline",
         "hover:decoration-primary-900",
         "hover:decoration-1",
-        "hover:underline-offset-2",
+        "hover:underline-offset-2"
       ],
-      secondary: ["text-primary-950", "hover:text-white"],
-    },
+      secondary: ["text-primary-950", "hover:text-white"]
+    }
   },
-  defaultVariants: { variant: "primary" },
+  defaultVariants: { variant: "primary" }
 })
 
 export type LinkProps = React.ComponentProps<typeof NextLink> &

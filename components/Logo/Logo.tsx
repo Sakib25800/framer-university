@@ -6,12 +6,12 @@ const logoIconVariants = cva([], {
   variants: {
     size: {
       sm: ["w-6", "h-6"],
-      lg: ["w-[34px]", "h-[34px]"],
-    },
+      lg: ["w-[34px]", "h-[34px]"]
+    }
   },
   defaultVariants: {
-    size: "sm",
-  },
+    size: "sm"
+  }
 })
 
 type LogoProps = React.ComponentProps<"div"> &

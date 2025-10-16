@@ -9,48 +9,48 @@ const meta: Meta<typeof Button> = {
     variant: "primary",
     children: "Continue",
     size: "lg",
-    disabled: false,
+    disabled: false
   },
   argTypes: {
     variant: {
       options: ["primary", "outline", "link"],
-      control: { type: "select" },
+      control: { type: "select" }
     },
     size: {
       options: ["sm", "md", "lg"],
       control: { type: "inline-radio" },
-      description: "Button size",
+      description: "Button size"
     },
     direction: {
       options: ["left", "right"],
       control: { type: "inline-radio" },
-      description: "Icon direction for link variant",
+      description: "Icon direction for link variant"
     },
     disabled: { control: { type: "boolean" } },
-    onClick: { action: "click" },
-  },
+    onClick: { action: "click" }
+  }
 }
 
 type Story = StoryObj<typeof Button>
 
 export const Default: Story = {
-  render: (args) => <Button {...args} />,
+  render: (args) => <Button {...args} />
 }
 
 export const Primary: Story = {
-  args: { variant: "primary", children: "Primary" },
+  args: { variant: "primary", children: "Primary" }
 }
 
 export const Outline: Story = {
-  args: { variant: "outline", children: "Outline" },
+  args: { variant: "outline", children: "Outline" }
 }
 
 export const Link: Story = {
-  args: { variant: "link", children: "Continue" },
+  args: { variant: "link", children: "Continue" }
 }
 
 export const LinkWithLeftIcon: Story = {
-  args: { variant: "link", children: "Back", direction: "left" },
+  args: { variant: "link", children: "Back", direction: "left" }
 }
 
 export const LinkIconDirections: Story = {
@@ -63,7 +63,7 @@ export const LinkIconDirections: Story = {
         Continue
       </Button>
     </div>
-  ),
+  )
 }
 
 export const Sizes: Story = {
@@ -79,7 +79,7 @@ export const Sizes: Story = {
         Large
       </Button>
     </div>
-  ),
+  )
 }
 
 export default meta

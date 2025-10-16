@@ -15,7 +15,7 @@ export async function uploadAvatarAction(formData: FormData) {
 
     // Get the user from the session
     const {
-      data: { user },
+      data: { user }
     } = await supabase.auth.getUser()
     if (!user) {
       return { error: "User not authenticated" }

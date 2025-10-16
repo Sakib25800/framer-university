@@ -34,7 +34,7 @@ export function validatedAction<S extends z.ZodType<any, any>, T>(schema: S, act
         ...formValues, // Preserve form values
         fieldErrors,
         // Only show global error if there are no field-specific errors
-        error: Object.keys(fieldErrors).length === 0 ? result.error.errors?.[0]?.message : undefined,
+        error: Object.keys(fieldErrors).length === 0 ? result.error.errors?.[0]?.message : undefined
       }
     }
 
@@ -76,7 +76,7 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
         ...formValues, // Preserve form values
         fieldErrors,
         // Only show global error if there are no field-specific errors
-        error: Object.keys(fieldErrors).length === 0 ? result.error.errors?.[0]?.message : undefined,
+        error: Object.keys(fieldErrors).length === 0 ? result.error.errors?.[0]?.message : undefined
       }
     }
 

@@ -22,7 +22,7 @@ function LoginFormContent({ mode, action }: LoginFormProps) {
   const searchParams = useSearchParams()
   const urlError = searchParams?.get("error") ?? ""
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, {
-    error: urlError,
+    error: urlError
   })
 
   const isSignUp = mode === "sign-up"

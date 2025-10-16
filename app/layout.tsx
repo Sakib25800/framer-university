@@ -5,7 +5,7 @@ import "styles/tailwind.css"
 const chivoMono = Chivo_Mono({
   subsets: ["latin"],
   weight: "500",
-  variable: "--font-chivo-mono",
+  variable: "--font-chivo-mono"
 })
 
 const universitySans = localFont({
@@ -13,25 +13,25 @@ const universitySans = localFont({
     {
       path: "./fonts/UniversitySans-Regular.woff2",
       weight: "400",
-      style: "normal",
+      style: "normal"
     },
     {
       path: "./fonts/UniversitySans-Medium.woff2",
       weight: "500",
-      style: "normal",
+      style: "normal"
     },
     {
       path: "./fonts/UniversitySans-SemiBold.woff2",
       weight: "600",
-      style: "normal",
+      style: "normal"
     },
     {
       path: "./fonts/UniversitySans-Bold.woff2",
       weight: "700",
-      style: "normal",
-    },
+      style: "normal"
+    }
   ],
-  variable: "--font-university-sans",
+  variable: "--font-university-sans"
 })
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

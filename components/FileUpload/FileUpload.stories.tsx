@@ -10,26 +10,26 @@ const meta: Meta<typeof FileUpload> = {
     docs: {
       description: {
         component:
-          "A file upload component with drag and drop support, multiple file types, and upload status indicators.",
-      },
-    },
+          "A file upload component with drag and drop support, multiple file types, and upload status indicators."
+      }
+    }
   },
   args: {
     accept: undefined,
     multiple: false,
     disabled: false,
-    className: "w-[340px] h-[56px]",
+    className: "w-[340px] h-[56px]"
   },
   argTypes: {
     onChange: { action: "change" },
-    onRemove: { action: "remove" },
-  },
+    onRemove: { action: "remove" }
+  }
 }
 
 type Story = StoryObj<typeof FileUpload>
 
 export const Default: Story = {
-  args: {},
+  args: {}
 }
 
 export const Uploading: Story = {
@@ -50,10 +50,10 @@ export const Uploading: Story = {
   parameters: {
     docs: {
       description: {
-        story: "The uploading state shows an animated shimmer effect while files are being processed.",
-      },
-    },
-  },
+        story: "The uploading state shows an animated shimmer effect while files are being processed."
+      }
+    }
+  }
 }
 
 export const Uploaded: Story = {
@@ -68,7 +68,7 @@ export const Uploaded: Story = {
     useEffect(() => {
       const mockFile = new File(["mock content"], "scroll-variants-edited.png", {
         type: "image/png",
-        lastModified: Date.now(),
+        lastModified: Date.now()
       })
 
       const dataTransfer = new DataTransfer()
@@ -80,7 +80,7 @@ export const Uploaded: Story = {
     }, [])
 
     return <FileUpload ref={fileUploadRef} {...args} />
-  },
+  }
 }
 
 export const Interactive: Story = {
@@ -104,7 +104,7 @@ export const Interactive: Story = {
     }
 
     return <FileUpload ref={fileUploadRef} {...args} onChange={handleChange} />
-  },
+  }
 }
 
 export default meta

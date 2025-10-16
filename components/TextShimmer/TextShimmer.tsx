@@ -33,7 +33,7 @@ export function TextShimmer({
   tag = "p",
   direction = "right",
   style,
-  className,
+  className
 }: TextShimmerProps) {
   const Tag = tag as keyof React.JSX.IntrinsicElements
 
@@ -62,7 +62,7 @@ export function TextShimmer({
             ["--ts-delay" as string]: `${delay}s`,
             ["--ts-start" as string]: startPos,
             ["--ts-end" as string]: endPos,
-            ...style,
+            ...style
           } as React.CSSProperties
         }
       >

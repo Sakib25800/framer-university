@@ -22,7 +22,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
+    trace: "on-first-retry"
   },
 
   /* Configure projects for major browsers */
@@ -32,13 +32,13 @@ export default defineConfig({
       name: "onboarding-setup",
       testMatch: /onboarding\.setup\.ts/,
       use: { storageState: "playwright/.auth/user.json" },
-      dependencies: ["auth-setup"],
+      dependencies: ["auth-setup"]
     },
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"], storageState: "playwright/.auth/user.json" },
-      dependencies: ["onboarding-setup"],
-    },
+      dependencies: ["onboarding-setup"]
+    }
 
     /* Test against mobile viewports. */
     // {
@@ -67,6 +67,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
-    stderr: "pipe",
-  },
+    stderr: "pipe"
+  }
 })

@@ -7,32 +7,32 @@ const meta: Meta<typeof GoogleButton> = {
   tags: ["autodocs"],
   parameters: {
     docs: {
-      description: { component: "Google OAuth CTA button variant." },
-    },
+      description: { component: "Google OAuth CTA button variant." }
+    }
   },
   args: {
     children: "Continue with Google",
-    className: "w-[400px]",
+    className: "w-[400px]"
   },
   argTypes: {
     children: {
-      control: { type: "text" },
-    },
-  },
+      control: { type: "text" }
+    }
+  }
 }
 
 type Story = StoryObj<typeof GoogleButton>
 
 export const ContinueWithGoogle: Story = {
   args: {
-    children: "Continue with Google",
-  },
+    children: "Continue with Google"
+  }
 }
 
 export const LoginWithGoogle: Story = {
   args: {
-    children: "Login with Google",
-  },
+    children: "Login with Google"
+  }
 }
 
 export default meta
