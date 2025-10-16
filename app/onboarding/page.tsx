@@ -1,10 +1,10 @@
 "use client"
 
+import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "motion/react"
+import Loader from "@/components/Loader/Loader"
 import { submitOnboardingResponse } from "@/lib/db/queries"
 import OnboardingForm from "./Form"
-import Loader from "@/components/Loader/Loader"
 
 export default function OnboardingPage() {
   const [showLoader, setShowLoader] = useState(true)
@@ -23,13 +23,13 @@ export default function OnboardingPage() {
     if (typeof document === "undefined") return
     const { body } = document
     const previousOverflow = body.style.overflow
-    
+
     if (showLoader) {
       body.style.overflow = "hidden"
     } else {
       body.style.overflow = previousOverflow || ""
     }
-    
+
     return () => {
       body.style.overflow = previousOverflow || ""
     }
@@ -43,9 +43,9 @@ export default function OnboardingPage() {
             key="loader"
             className="bg-primary-50 fixed inset-0 z-50 flex items-center justify-center"
             initial={{ opacity: 1 }}
-            exit={{ 
+            exit={{
               opacity: 0,
-              transition: { 
+              transition: {
                 duration: 0.2,
                 ease: "easeOut"
               }
@@ -57,8 +57,8 @@ export default function OnboardingPage() {
           <motion.div
             key="onboarding"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ 
-              opacity: 1, 
+            animate={{
+              opacity: 1,
               y: 0,
               transition: {
                 duration: 0.3,

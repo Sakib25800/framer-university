@@ -1,0 +1,93 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat_v2"],
+  "minify": true,
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  "preview_urls": true,
+  "observability": {
+    "enabled": true
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "web"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEXT_CACHE_DO_QUEUE",
+        "class_name": "DOQueueHandler"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler"]
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_id": "26605a0c-a253-43bb-a2d1-0aabf944ec49",
+      "database_name": "web-tag-cache"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "3d992aa8af144788bef57fa6e87d0de4"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://frameruniversity.com",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://wqovhpxokaxceoxvkabd.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxb3ZocHhva2F4Y2VveHZrYWJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTI1NTQsImV4cCI6MjA3Mzg2ODU1NH0.GJPvfp7v0PyWdFejJWAFL2o1xJojtBpE0eFllrPdw-o"
+  },
+  "env": {
+    "preview": {
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "web"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "NEXT_CACHE_DO_QUEUE",
+            "class_name": "DOQueueHandler"
+          }
+        ]
+      },
+      "d1_databases": [
+        {
+          "binding": "NEXT_TAG_CACHE_D1",
+          "database_id": "26605a0c-a253-43bb-a2d1-0aabf944ec49",
+          "database_name": "web-tag-cache"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "NEXT_INC_CACHE_KV",
+          "id": "3d992aa8af144788bef57fa6e87d0de4"
+        }
+      ],
+      "vars": {
+        "NEXT_PUBLIC_SITE_URL": "https://web.frameruniversity.workers.dev",
+        "NEXT_PUBLIC_SUPABASE_URL": "https://wqovhpxokaxceoxvkabd.supabase.co",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxb3ZocHhva2F4Y2VveHZrYWJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTI1NTQsImV4cCI6MjA3Mzg2ODU1NH0.GJPvfp7v0PyWdFejJWAFL2o1xJojtBpE0eFllrPdw-o"
+      }
+    }
+  }
+}

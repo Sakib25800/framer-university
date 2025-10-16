@@ -36,3 +36,7 @@ storybook-static/
 /playwright
 
 /.npm-only-allow
+
+.open-next
+.dev.vars
+.wrangler

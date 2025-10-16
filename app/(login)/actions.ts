@@ -8,7 +8,7 @@ import { createClient } from "@/utils/supabase/server"
 const signUpSchema = z.object({
   email: z.string().email().min(3).max(50),
   firstName: z.string().min(2).max(50),
-  lastName: z.string().min(2).max(50),
+  lastName: z.string().min(2).max(50)
 })
 
 export const signUp = validatedAction(signUpSchema, async (data) => {
@@ -21,14 +21,14 @@ export const signUp = validatedAction(signUpSchema, async (data) => {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       data: {
         first_name: firstName,
-        last_name: lastName,
-      },
-    },
+        last_name: lastName
+      }
+    }
   })
 
   if (error) {
     return {
-      error: error.message,
+      error: error.message
     }
   }
 
@@ -36,7 +36,7 @@ export const signUp = validatedAction(signUpSchema, async (data) => {
 })
 
 const signInSchema = z.object({
-  email: z.string().email().min(3).max(50),
+  email: z.string().email().min(3).max(50)
 })
 
 export const signIn = validatedAction(signInSchema, async (data) => {
@@ -47,8 +47,8 @@ export const signIn = validatedAction(signInSchema, async (data) => {
     email,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      shouldCreateUser: false,
-    },
+      shouldCreateUser: false
+    }
   })
 
   if (error) {
@@ -56,12 +56,12 @@ export const signIn = validatedAction(signInSchema, async (data) => {
 
     if (code === "otp_disabled") {
       return {
-        error: "No account found with this email address. Please sign up first.",
+        error: "No account found with this email address. Please sign up first."
       }
     }
 
     return {
-      error: error.message,
+      error: error.message
     }
   }
 
@@ -77,9 +77,9 @@ export const signInWithGoogle = async () => {
       queryParams: {
         access_type: "offline",
         prompt: "consent",
-        scope: "openid email profile",
-      },
-    },
+        scope: "openid email profile"
+      }
+    }
   })
 
   if (error) {

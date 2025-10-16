@@ -16,12 +16,12 @@ const eslintIgnore = [
   "coverage/",
   "*.min.js",
   "*.config.js",
-  "*.d.ts",
+  "*.d.ts"
 ]
 
 const config = typescriptEslint.config(
   {
-    ignores: eslintIgnore,
+    ignores: eslintIgnore
   },
   ...eslintPluginStorybook.configs["flat/recommended"],
   //  https://github.com/francoismassart/eslint-plugin-tailwindcss/pull/381
@@ -30,38 +30,38 @@ const config = typescriptEslint.config(
   eslintPluginImport.flatConfigs.recommended,
   {
     plugins: {
-      "@next/next": eslintPluginNext,
+      "@next/next": eslintPluginNext
     },
     rules: {
       ...eslintPluginNext.configs.recommended.rules,
-      ...eslintPluginNext.configs["core-web-vitals"].rules,
-    },
+      ...eslintPluginNext.configs["core-web-vitals"].rules
+    }
   },
   {
     settings: {
       tailwindcss: {
-        callees: ["classnames", "clsx", "ctl", "cn", "cva"],
+        callees: ["classnames", "clsx", "ctl", "cn", "cva"]
       },
 
       "import/resolver": {
         typescript: true,
-        node: true,
-      },
+        node: true
+      }
     },
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
           argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-        },
+          varsIgnorePattern: "^_"
+        }
       ],
       "sort-imports": [
         "error",
         {
           ignoreCase: true,
-          ignoreDeclarationSort: true,
-        },
+          ignoreDeclarationSort: true
+        }
       ],
       "import/order": [
         "warn",
@@ -70,30 +70,30 @@ const config = typescriptEslint.config(
           pathGroups: [
             ...getDirectoriesToSort().map((singleDir) => ({
               pattern: `${singleDir}/**`,
-              group: "internal",
+              group: "internal"
             })),
             {
               pattern: "env",
-              group: "internal",
+              group: "internal"
             },
             {
               pattern: "theme",
-              group: "internal",
+              group: "internal"
             },
             {
               pattern: "public/**",
               group: "internal",
-              position: "after",
-            },
+              position: "after"
+            }
           ],
           pathGroupsExcludedImportTypes: ["internal"],
           alphabetize: {
             order: "asc",
-            caseInsensitive: true,
-          },
-        },
-      ],
-    },
+            caseInsensitive: true
+          }
+        }
+      ]
+    }
   }
 )
 
