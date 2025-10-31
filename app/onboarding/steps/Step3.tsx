@@ -6,7 +6,7 @@ import SpeechBubble from "../components/SpeechBubble"
 
 export default function Step3() {
   return (
-    <div className="flex flex-col gap-[40px] px-6">
+    <div className="flex flex-col gap-10">
       <motion.div
         initial={{ opacity: 0, y: -10, scale: 1 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

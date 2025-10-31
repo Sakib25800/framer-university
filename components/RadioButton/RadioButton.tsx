@@ -103,10 +103,12 @@ export function RadioButton({
             <Icon className="h-5 w-5 [fill:currentColor]" aria-hidden="true" />
           </div>
         ) : null}
-        <div className="flex flex-col items-start">
-          <span>{label}</span>
+        <div className="flex min-w-0 flex-col items-start">
+          <span className="block w-full truncate">{label}</span>
           {subtext ? (
-            <span className={cn("base text-primary-950 font-normal", checked && "text-[#00BBFFA6]")}>{subtext}</span>
+            <span className={cn("base text-primary-950 w-full truncate font-normal", checked && "text-[#00BBFFA6]")}>
+              {subtext}
+            </span>
           ) : null}
         </div>
       </div>

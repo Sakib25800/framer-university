@@ -12,7 +12,7 @@ function OnboardingLayoutContent({ children }: { children: React.ReactNode }) {
   const progressValue = (step / TOTAL_ONBOARDING_STEPS) * 100
 
   return (
-    <main className="bg-primary-50 flex min-h-screen min-w-screen flex-col">
+    <main className="bg-primary-50 flex min-h-screen min-w-screen flex-col items-center">
       <nav className="relative flex h-[76px] w-full flex-shrink-0 items-center justify-center">
         <div className="absolute left-[24px] hidden sm:left-[24px] sm:block md:left-[74px]">
           <Logo beta={true} />
@@ -23,7 +23,7 @@ function OnboardingLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </nav>
-      <div className="flex flex-1 items-center justify-center">{children}</div>
+      <div className="flex w-full max-w-[600px] flex-1 items-center justify-center px-6">{children}</div>
     </main>
   )
 }

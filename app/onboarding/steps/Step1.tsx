@@ -17,7 +17,7 @@ export default function Step1({ value, onChangeAction }: { value: string; onChan
   ]
 
   return (
-    <div className="flex flex-col gap-[40px] px-6">
+    <div className="flex w-full flex-1 flex-col gap-10">
       <motion.div
         initial={{ opacity: 0, y: -10, scale: 1 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -36,7 +36,7 @@ export default function OnboardingPage() {
   }, [showLoader])
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <AnimatePresence mode="wait">
         {showLoader ? (
           <motion.div
@@ -56,6 +56,7 @@ export default function OnboardingPage() {
         ) : (
           <motion.div
             key="onboarding"
+            className="w-full"
             initial={{ opacity: 0, y: 10 }}
             animate={{
               opacity: 1,

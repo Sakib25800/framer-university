@@ -45,7 +45,7 @@ function OnboardingFormContent({ submitAction }: { submitAction: (response: Onbo
   return (
     <div className="flex w-full max-w-[600px] flex-col">
       <div className="flex-1">{renderStep()}</div>
-      <div className="px-6 pt-[40px]">
+      <div className="pt-10">
         <BottomNav onContinueAction={handleContinue} />
       </div>
     </div>

@@ -15,7 +15,7 @@ export default function Step2({ value, onChangeAction }: { value: string; onChan
   ]
 
   return (
-    <div className="flex flex-col gap-[40px] px-6">
+    <div className="flex flex-col gap-10">
       <motion.h2
         className="sr-only"
         initial={{ opacity: 0, y: -10, scale: 1 }}
